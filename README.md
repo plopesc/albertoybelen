@@ -44,12 +44,15 @@ La dirección del proyecto es <https://albertoybelen.ddev.site/frontend/>.
   los símbolos del mapa para posición, hito bloqueado/desbloqueado y meta.
 - Los hitos del 20/40/60/80 % muestran un cofre animado y una imagen al
   alcanzarlos aumentando kilómetros. Clic, toque, Enter o Espacio permiten reabrir
-  los desbloqueados; los bloqueados no abren. Se pueden saltar la animación y la
-  cola de revelaciones. Son imágenes provisionales públicas, sin personas.
+  los desbloqueados directamente; los bloqueados no abren. El aviso de un hito
+  nuevo espera a **Ver imagen** y no vuelve a mostrarse en visitas posteriores.
+  Los avisos de otros hitos aún no mostrados quedan pendientes para otra visita.
+  Son imágenes provisionales públicas, sin personas.
 - Las posiciones de los hitos se calculan sobre el mismo trazado que el indicador.
   Los cinco tramos del 20 % tienen igual longitud siguiendo el camino; su altura
   visible varía según las curvas. El historial conserva los hitos ganados aunque
-  retroceda el progreso o cambie la meta; recargar no abre cofres automáticamente.
+  retroceda el progreso o cambie la meta. Al volver solo se anuncian logros
+  pendientes de aviso; cargar no crea desbloqueos por el porcentaje actual.
 - La meta al 100 % tiene un arco y un regalo decorativo con perspectiva, papel
   verde con brocado y lazo dorado. Se conserva su consecución histórica aunque
   suba la meta; el contenido definitivo del premio queda para otra fase.
@@ -89,7 +92,8 @@ ejecutar las mismas pruebas en el contenedor.
 
 Las pruebas usan `node:test` y cubren cálculos, validación del JSON versionado,
 fechas existentes y zonas horarias, precedencia del objetivo, migración v1/v2,
-historial permanente, cola de cofres y mapeo de imágenes por ID,
+historial permanente, avisos vistos y pendientes, migración de hitos v1/v2,
+cola de cofres y mapeo de imágenes por ID,
 selección real/simulado, persistencia y almacenamiento bloqueado/corrupto. No
 requieren instalación de dependencias.
 
@@ -107,7 +111,8 @@ playwright-cli -s=adventure close
 La prueba reinicia el estado local e intercepta temporalmente el JSON para
 comprobar título, meta, fecha/zona, modos, errores HTTP/red/JSON, migración y
 hitos configurables. La segunda prueba verifica cofres, imágenes, teclado/táctil,
-recarga, retroceso 40→38→40, cambios de objetivo y recompensa final histórica.
+avisos pendientes al volver, apertura manual de imágenes, retroceso 40→38→40,
+cambios de objetivo y recompensa final histórica.
 Conserva las comprobaciones de posición sobre el SVG,
 teclado, movimiento reducido y tamaños 320/390/768/1280. No modifica el archivo.
 La [guía de configuración](docs/configuration.md) incluye comandos para repetirla
@@ -144,7 +149,8 @@ Integración de configuración: [simulación móvil](docs/screenshots/issue-6-mo
 
 Cofres e historial de la issue #9: [móvil](docs/screenshots/issue-9-mobile.png),
 [escritorio](docs/screenshots/issue-9-desktop.png),
-[cofre abierto](docs/screenshots/issue-9-chest-open.png) y
+[aviso de un nuevo hito](docs/screenshots/issue-9-new-milestone.png),
+[imagen desbloqueada](docs/screenshots/issue-9-chest-open.png) y
 [hito 40 % conservado al retroceder a 38 %](docs/screenshots/issue-9-history.png).
 La [guía de hitos](docs/milestones.md) explica cómo sustituir imágenes y conservar
 sus identidades al editar la configuración.

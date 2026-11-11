@@ -73,7 +73,9 @@ en el estado simulado desde las que recalcularlos.
 La configuración nunca se toma de `localStorage`. La interfaz pública ya no
 incluye un formulario para cambiar el objetivo. Cambiar `goalKm` en JSON y
 recargar conserva distancia y recalcula progreso, posición y restantes. Conserva
-los hitos conseguidos históricamente, incluido `finish`, sin abrir ningún cofre.
+los hitos conseguidos históricamente, incluido `finish`, sin crear nuevos avisos
+por ese cambio. Un aviso pendiente de un logro anterior sí puede mostrarse al
+volver a la página; solo abre su foto al pulsar **Ver imagen**.
 Los hitos todavía no registrados se descubren únicamente tras otro aumento real
 de kilómetros; editar el objetivo o los porcentajes no los desbloquea al cargar.
 

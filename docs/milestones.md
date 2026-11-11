@@ -37,20 +37,28 @@ que Alberto y Belén han autorizado su publicación abierta y que no contienen
 información sensible. Una foto que necesite privacidad no debe subirse al
 frontend ni al repositorio público. No hay servicios externos ni gasto adicional.
 
-## Cuándo se abre un cofre
+## Avisos de logros y consulta de imágenes
 
-- Un aumento efectivo de kilómetros descubre los hitos alcanzados que aún no
-  constan en el historial. Saltar varios muestra una cola ordenada en un solo
-  modal: cofre cerrado, apertura y fotografía. Se puede saltar la animación,
-  pasar al siguiente hito o cerrar toda la cola.
-- Cerrar la cola conserva todos esos desbloqueos. Clic, toque, Enter o Espacio
-  sobre cualquier hito desbloqueado permiten reabrir su imagen. Los bloqueados
-  no abren imágenes.
-- Recargar, renderizar, editar la meta y reiniciar no abren cofres automáticamente.
-  Volver a cruzar un hito histórico tampoco repite su celebración.
-- Escape, el botón Cerrar o pulsar fuera del cuadro cierran el modal y restauran
-  el foco. Tab y Mayús+Tab circulan por sus controles. Con movimiento reducido
-  se omite la espera y se muestra directamente la imagen.
+- Al conseguir un hito aumentando kilómetros se muestra un aviso con su cofre.
+  Permanece en ese estado hasta pulsar **Ver imagen**: entonces se anima la
+  apertura y se muestra la imagen. Esperar no abre la foto. Con movimiento
+  reducido, pulsar el botón abre la imagen inmediatamente.
+- Al volver a la página se muestran, por orden, los avisos de hitos que ya están
+  desbloqueados pero cuyo aviso todavía no se ha mostrado. Esto incluye los
+  pendientes de una cola anterior. No se deducen nuevos desbloqueos por editar
+  porcentajes o el objetivo al cargar.
+- Un aviso se da por visto cuando aparece, aunque se cierre sin abrir su imagen.
+  Las siguientes visitas no lo repiten. Si se cierra el primero de varios,
+  únicamente ese queda visto: los demás continúan pendientes para otra visita.
+  **Siguiente hito** permite recorrerlos sin superponer modales ni obligar a abrir
+  cada foto. Cerrar la cola conserva todos los logros.
+- Clic, toque, Enter o Espacio en un hito desbloqueado abren **directamente su
+  imagen**, sin aviso ni animación del cofre. Consultarlo manualmente también da
+  su aviso por visto, sin consumir los avisos de otros hitos. Los bloqueados no
+  abren contenido.
+- Escape, Cerrar o pulsar fuera del cuadro cierran el modal y restauran el foco.
+  Tab y Mayús+Tab circulan por sus controles. Cambiar la preferencia de movimiento
+  reducido nunca abre una imagen sin una acción previa.
 
 ## Progreso actual e historial son independientes
 
@@ -59,7 +67,7 @@ partir de la distancia actual y `game.goalKm`; el porcentaje está acotado a
 0–100 %. Los IDs desbloqueados se agregan al historial y no desaparecen cuando
 baja la distancia. Ejemplo: después de llegar al 40 %, una corrección a 38 %
 mueve el personaje hacia atrás pero permite seguir abriendo la imagen del 40 %.
-Volver al 40 % no abre otro modal.
+Volver al 40 % no repite un aviso ya mostrado.
 
 Cambiar la meta de 500 a 700 km conserva los 500 km y todos los hitos ganados,
 incluido `finish` si ya se alcanzó el final. El HUD muestra el porcentaje actual
@@ -88,28 +96,39 @@ visual ya está limitado al 100 % y siguen aumentando los kilómetros.
   porcentaje. La clave anterior `rewards.checkpoints` debe renombrarse a
   `rewards.milestones`; el validador avisa en lugar de ignorarla.
 
-El estado de distancia v2 de #6 no cambia. El historial usa otra clave versionada:
+El estado de distancia v2 de #6 no cambia. El historial usa una clave independiente
+y distingue los logros de los avisos vistos:
 
 ```text
-strava-adventure:milestones:v1:alberto-belen
+strava-adventure:milestones:v2:alberto-belen
 ```
 
 ```json
 {
-  "version": 1,
+  "version": 2,
   "gameId": "alberto-belen",
-  "unlockedIds": ["milestone-20", "milestone-40", "finish"]
+  "unlockedIds": ["milestone-20", "milestone-40", "finish"],
+  "seenNoticeIds": ["milestone-20"]
 }
 ```
 
 Al instalar esta función por primera vez, si no existe historial, se infieren una
 sola vez los IDs ya alcanzados con la distancia guardada y la meta configurada.
-No se abren modales. El estado previo solo tenía distancia: no permite reconstruir
+Esos logros se consideran antiguos y sus avisos se marcan como vistos, sin
+abrir modales. El estado previo solo tenía distancia: no permite reconstruir
 logros anteriores a un cambio antiguo de meta. Una vez existe historial, incluso
 vacío, cargar o modificar la configuración nunca añade ni borra IDs por porcentaje.
 
+Si existe historial v1 (`strava-adventure:milestones:v1:<gameId>`), se copia a v2
+sin borrar el original. Se conservan también IDs retirados y `finish`; todos los
+logros de v1 se consideran avisados para evitar anunciar de nuevo recuerdos
+antiguos cuya presentación no se registraba. V2 prevalece, incluso vacío o dañado:
+no se vuelve a importar v1. Los avisos vistos también se conservan al mover,
+retirar o restaurar IDs. El ejemplo anterior tiene el aviso de `milestone-40`
+pendiente para la siguiente visita; `finish` no tiene aviso de fotografía en #9.
+
 **Reiniciar kilómetros** es una acción explícita de pruebas que pone la distancia
-a cero y vacía este historial para repetir los cofres. No equivale a una corrección
+a cero y vacía tanto los logros como los avisos vistos para repetir los cofres. No equivale a una corrección
 de Strava. Si el almacenamiento está bloqueado o lleno, el estado continúa en
 memoria con aviso visible y puede perderse al cerrar. Un historial dañado no se
 sobrescribe al cargar: se usa una recuperación en memoria desde el progreso
@@ -126,7 +145,9 @@ compartido de Alberto y Belén. D1 persistirá los IDs por juego de forma monot�
 una corrección de distancia no borrará filas de desbloqueos. La API devolverá el
 total conjunto y los IDs históricos, sin desglose por participante ni información
 privada. Cada dispositivo recuperará esa misma información; `localStorage` no
-será la autoridad ni servirá para sincronizar móviles.
+será la autoridad ni servirá para sincronizar móviles. Los avisos vistos son un
+estado de presentación separado de esos logros compartidos; en esta fase solo
+se guardan en el navegador. Ninguna prueba local implica sincronización real.
 
 Prueba prevista con backend ficticio: dos clientes leen 40 km y los mismos IDs;
 el servidor corrige a 38 km manteniendo IDs; ambos conservan la imagen del 40 %.
@@ -150,7 +171,7 @@ git diff --check
 
 Las pruebas de navegador reinician datos simulados e interceptan el JSON solo en
 ese navegador, sin modificar archivos. Repiten 19→20 %, 40/60/80, cola múltiple,
-cierre/salto, reapertura con teclado/táctil, Escape/foco, recarga, 40→38→40,
+avisos pendientes entre visitas, cierre, consulta directa de imágenes con teclado/táctil, Escape/foco, recarga, 40→38→40,
 500→700 y reducción de meta, IDs movidos/archivados, imagen ausente y movimiento
 reducido. Revisan 320/390/768/1280 px y las rutas bajo el prefijo de Pages local.
 No hay pruebas en Safari ni dispositivos físicos en esta entrega.
