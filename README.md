@@ -295,3 +295,16 @@ consecución histórica, pero su contenido definitivo queda fuera de esta fase.
 
 Pages queda preparado e inactivo. No iniciar Strava, OAuth, Cloudflare ni el
 primer despliegue sin instrucciones explícitas.
+
+## Reglas de kilómetros para la integración futura
+
+La [política de distancia](docs/distance-policy.md) define el agregado conjunto,
+permisos, correcciones, supresión y fixtures. Sus pruebas no usan Strava:
+
+```sh
+npm test
+TZ=UTC node --test tests/distance-policy.test.js
+TZ=Pacific/Honolulu node --test tests/distance-policy.test.js
+```
+
+El frontend y su configuración siguen siendo independientes de este contrato.
