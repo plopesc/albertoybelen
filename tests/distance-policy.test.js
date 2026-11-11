@@ -79,3 +79,13 @@ test('revocación de snapshot cero conserva última fecha válida y marca parcia
  assert.equal(view(s).updatedAt,'2026-11-02T12:00:00Z');
  assert.equal(view(s).partial,true); assert.equal(view(s).stale,true);
 });
+
+test('tras supresión solo consentimiento nuevo verificado habilita estado limpio y nueva generación', () => {
+ let s=apply(connected(),sync('slot-a',[a('x',40000)]));
+ s=apply(s,{participantId:'slot-a',generation:0,status:'deleted',verified:true});
+ assert.deepEqual(apply(s,{participantId:'slot-a',generation:1,status:'connected',scopes:['activity:read_all']}),s);
+ s=apply(s,{participantId:'slot-a',generation:1,status:'connected',scopes:['activity:read_all'],verified:true,newConsent:true});
+ assert.equal(view(s).distanceKm,0); assert.equal(s.participants[0].generation,2);
+ assert.deepEqual(apply(s,sync('slot-a',[a('old',50000)],{generation:1})),s);
+ s=apply(s,sync('slot-a',[a('new',1000)],{generation:2})); assert.equal(view(s).distanceKm,1);
+});

@@ -47,7 +47,14 @@ export function applyParticipantSync(input, event) {
     if (event.purgeMilestones === true) state.unlockedMilestoneIds = [];
     return state;
   }
-  if (p.deleted) return state; // Reconexión tras supresión requiere un reto/estado nuevo autorizado.
+  if (p.deleted) {
+    // Decisión interna de autenticación ficticia; nunca flags confiables de una petición pública.
+    if (event.status === 'connected' && event.newConsent === true && event.verified === true) {
+      p.deleted = false; p.connected = true; p.scopes = [...(event.scopes ?? [])];
+      p.activities = []; p.syncedAt = null; p.stale = false; p.generation++;
+    }
+    return state;
+  }
   if (event.status === 'revoked') { p.connected = false; p.scopes = []; p.stale = true; p.generation++; return state; }
   if (event.status === 'connected') {
     p.connected = true; p.scopes = [...(event.scopes ?? [])];

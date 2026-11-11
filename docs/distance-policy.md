@@ -94,7 +94,11 @@ El tombstone de control usa un slot no personal y una generación: no conserva I
 externo ni token. Si su mera existencia requiriera supresión, el backend deberá
 usar una barrera de generación a nivel de reto que no pueda revivir la cuenta.
 Un nuevo consentimiento después de borrar requiere un flujo explícito autorizado
-y estado limpio; el modelo no ofrece una reconexión silenciosa tras supresión.
+y estado limpio: connected con generación vigente, verified:true y newConsent:true
+representa esa decisión interna ficticia. Vacía cualquier resto y aumenta otra vez
+la generación; solo trabajos creados después de esa nueva autorización pueden
+sincronizar. Nunca se recuperan automáticamente snapshots borrados. Ninguno de
+esos flags constituye autenticación de una petición HTTP pública.
 Retención, backups, caches y canal seguro de atención deben especificarse antes
  de producción; una copia antigua nunca debe anular esa barrera.
 
