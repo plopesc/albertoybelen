@@ -33,7 +33,8 @@ export function createMilestoneReveals({ root, dialog, milestones, history }) {
     dialog.dataset.phase = phase;
     $('reward-chest').classList.add('is-open');
     $('reward-photo-wrap').hidden = false;
-    $('reward-status').textContent = 'Imagen desbloqueada. Imagen provisional de esta versión de pruebas.';
+    $('reward-status').textContent = '';
+    $('reward-status').hidden = true;
     updateControls();
     if (skipHadFocus) ($('reward-next').hidden ? $('reward-close') : $('reward-next')).focus();
   }
@@ -52,6 +53,7 @@ export function createMilestoneReveals({ root, dialog, milestones, history }) {
     $('reward-photo').hidden = false;
     $('reward-title').textContent = `Hito ${number.format(definitions.get(current).percent)} %`;
     $('reward-description').textContent = photo.title;
+    $('reward-status').hidden = false;
     $('reward-status').textContent = 'Has llegado a un nuevo recuerdo. El cofre se está abriendo.';
     $('reward-photo').alt = photo.alt;
     $('reward-photo').onerror = () => {
