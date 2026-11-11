@@ -55,7 +55,8 @@ La dirección del proyecto es <https://albertoybelen.ddev.site/frontend/>.
   pendientes de aviso; cargar no crea desbloqueos por el porcentaje actual.
 - La meta al 100 % tiene un arco y un regalo decorativo con perspectiva, papel
   verde con brocado y lazo dorado. Se conserva su consecución histórica aunque
-  suba la meta; el contenido definitivo del premio queda para otra fase.
+  suba la meta. El premio provisional se puede abrir de nuevo desde su botón;
+  el contenido definitivo queda para otra fase.
 - La salida y el arco de meta usan madera con vetas, tela, piedra y sombras,
   dibujadas en SVG para integrarse con el paisaje de 16 bits.
 - El indicador de avance usa la ilustración aportada en `frontend/assets/icono.jpeg`,
@@ -154,6 +155,19 @@ Cofres e historial de la issue #9: [móvil](docs/screenshots/issue-9-mobile.png)
 [hito 40 % conservado al retroceder a 38 %](docs/screenshots/issue-9-history.png).
 La [guía de hitos](docs/milestones.md) explica cómo sustituir imágenes y conservar
 sus identidades al editar la configuración.
+
+## Celebración y regalo final
+
+La [guía del regalo final](docs/final-reward.md) explica su contenido provisional,
+el estado histórico y cómo verificarlo. Con el servidor local y el navegador
+de pruebas abiertos según los comandos anteriores:
+
+```sh
+playwright-cli -s=adventure run-code --filename=tests/browser-finale.js
+```
+
+La celebración se ejecuta solo ante el primer desbloqueo; recargas, retrocesos y
+cambios de meta conservan el acceso al regalo sin repetir la celebración.
 
 ## Organización
 
@@ -320,7 +334,7 @@ indicador son SVG independientes del fondo. Se conserva el
 [prompt y procedencia del arte](frontend/assets/ART.md). No hay fuentes externas,
 animaciones de carrera. Las imágenes provisionales de los cofres también son
 paisajes generados y locales; sus [prompts y procedencia](frontend/assets/milestones/ART.md)
-quedan documentados. El regalo final sigue siendo decorativo; se guarda su
+quedan documentados. El regalo final usa una imagen y un mensaje provisionales; se guarda su
 consecución histórica, pero su contenido definitivo queda fuera de esta fase.
 
 Pages queda preparado e inactivo. No iniciar Strava, OAuth, Cloudflare ni el

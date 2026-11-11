@@ -18,6 +18,10 @@
   </header>
   <main id="adventure" tabindex="-1">
     <div class="intro"><div><p class="eyebrow">VERSIÓN DE PRUEBAS · DATOS SIMULADOS</p><h1>ALBERTO <span>&amp; BELÉN</span></h1><p>Una aventura juntos, kilómetro a kilómetro.</p></div><a class="explore-link" href="#map">EXPLORAR MAPA <span aria-hidden="true">↓</span></a></div>
+    <section id="completion-card" class="completion-card" aria-labelledby="completion-title" hidden>
+      <div><p class="eyebrow">UN LOGRO PARA SIEMPRE</p><h2 id="completion-title">¡Reto completado!</h2><p>Habéis alcanzado la meta. El regalo sigue disponible aunque cambien los kilómetros actuales.</p></div>
+      <button id="final-reward-open" type="button">Abrir regalo final</button>
+    </section>
     <div class="adventure-layout">
       <section id="map" class="map-card" aria-label="Mapa del recorrido" tabindex="-1">
         <svg class="map" viewBox="0 0 480 1280" role="group" aria-roledescription="mapa interactivo" aria-labelledby="map-title map-description">
@@ -221,6 +225,7 @@
       <figure id="reward-photo-wrap" class="reward-photo-wrap" hidden><img id="reward-photo" width="800" height="520" alt=""><figcaption>Imagen provisional · Versión de pruebas</figcaption></figure>
       <p id="reward-image-error" class="error" hidden>No se pudo cargar esta imagen. Puedes cerrar el recuerdo y volver a intentarlo.</p>
     </div>
+    <p id="reward-message" class="reward-description" hidden></p>
     <p id="reward-status" class="reward-status" role="status" aria-live="polite"></p>
     <div class="reward-actions"><button id="reward-view" type="button">Ver imagen</button><button id="reward-next" type="button" hidden>Siguiente hito</button></div>
     <p id="reward-counter" class="reward-counter"></p>

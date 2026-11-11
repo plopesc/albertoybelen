@@ -1,3 +1,4 @@
+import { FINAL_REWARD } from './final-reward.js';
 import { calculateProgress } from './progress.js';
 import { createDistanceProvider } from './game.js';
 import { loadGameConfig } from './config.js';
@@ -56,7 +57,8 @@ function renderMilestones(ratio) {
     return `Hito ${number.format(Number(node.dataset.percent))} %: ${ratio === null ? 'sin datos' : unlocked ? 'conseguido históricamente' : 'bloqueado'}.`;
   });
   const finishUnlocked = Boolean(history?.isUnlocked(FINISH_MILESTONE_ID));
-  states.push(`Meta 100 %: ${ratio === null ? 'sin datos' : finishUnlocked ? 'conseguida históricamente' : 'pendiente'}. Regalo misterioso sin revelar.`);
+  $('completion-card').hidden = !finishUnlocked;
+  states.push(`Meta 100 %: ${ratio === null ? 'sin datos' : finishUnlocked ? 'conseguida históricamente' : 'pendiente'}. Regalo final disponible cuando se consigue la meta.`);
   document.querySelectorAll('#milestone-summary li').forEach((item, index) => { item.textContent = states[index]; });
   if (history) {
     const count = milestones.filter(node => history.isUnlocked(node.dataset.milestone)).length;
@@ -157,7 +159,8 @@ async function start() {
     }
     const initialState = provider.getState();
     history = createMilestoneHistory(storage, { gameId: game.id, milestones: rewards.milestones, initialRatio: calculateProgress(initialState.distanceKm, initialState.goalKm).ratio });
-    reveals = createMilestoneReveals({ root: $('milestones'), dialog: $('milestone-dialog'), milestones: rewards.milestones, history });
+    reveals = createMilestoneReveals({ root: $('milestones'), dialog: $('milestone-dialog'), milestones: [...rewards.milestones, FINAL_REWARD], history });
+    $('final-reward-open').addEventListener('click', event => reveals.openFinal(event.currentTarget));
     for (const button of document.querySelectorAll('[data-km]')) {
       button.addEventListener('click', () => {
         const before = provider.getState();

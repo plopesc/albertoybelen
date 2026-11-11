@@ -10,7 +10,7 @@ export function createMilestoneQueue(milestones, history) {
   return {
     getState: state,
     restorePending() {
-      pending = [...ids].filter(needsNotice);
+      pending = milestones.filter(item => item.notifyOnVisit !== false).map(item => item.id).filter(needsNotice);
       current = pending.shift() ?? null;
       return state();
     },
