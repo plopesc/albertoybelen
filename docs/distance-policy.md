@@ -73,8 +73,12 @@ umbrales. Un total que desborde Number se rechaza.
   y `stale` son indicadores independientes y pueden coexistir.
 - Cada slot conserva su última sincronización correcta. `updatedAt` público es
   la más antigua de ambas cuentas reconciliadas, nunca un instante inventado en un
-  fallo. Mientras falte el backfill inicial de alguna cuenta, updatedAt es null:
-  una fecha de subtotal no se presenta como actualización del conjunto completo. El detalle de error/slot solo pertenece al backend privado futuro.
+  fallo. Hasta tener por primera vez ambos historiales reconciliados, updatedAt
+  es null: una fecha de subtotal no se presenta como actualización del conjunto.
+  Después se conserva lastCompleteUpdatedAt ante revocación, reconexión o cambios
+  de permisos mientras el nuevo backfill está pendiente; partial/stale describen
+  ese pendiente sin perder la última fecha válida. La supresión la limpia porque
+  el agregado previo incluía datos de la cuenta borrada. El detalle de error/slot solo pertenece al backend privado futuro.
 - Revocar OAuth detiene consultas y elimina credenciales en el adaptador futuro;
   en el modelo deshabilita el slot y aumenta su generación. Conserva provisionalmente
   sus metros dentro del agregado y marca `partial`, sin presentarlos como actuales.

@@ -27,15 +27,13 @@ export function createDistanceState({ participants = ['slot-a', 'slot-b'], start
   startInstant(startDate, timeZone);
   if (!Number.isFinite(goalKm) || goalKm <= 0 || participants.length !== 2 || new Set(participants).size !== 2 || participants.some(id => typeof id !== 'string' || !id)) throw new Error('Configuración inválida');
   if (!Array.isArray(milestones) || milestones.some(m => !m || typeof m.id !== 'string' || m.id === 'finish' || !Number.isFinite(m.percent) || m.percent <= 0 || m.percent >= 100) || new Set(milestones.map(m => m.id)).size !== milestones.length) throw new Error('Hitos inválidos');
-  return { config: { startDate, timeZone, goalKm, milestones: clone(milestones) }, participants: participants.map(id => ({ id, generation: 0, connected: false, deleted: false, stale: false, initialReconciled: false, scopes: [], activities: [], syncedAt: null })), unlockedMilestoneIds: [] };
+  return { config: { startDate, timeZone, goalKm, milestones: clone(milestones) }, participants: participants.map(id => ({ id, generation: 0, connected: false, deleted: false, stale: false, initialReconciled: false, scopes: [], activities: [], syncedAt: null })), unlockedMilestoneIds: [], lastCompleteUpdatedAt: null };
 }
 function meters(state) {
   return state.participants.reduce((sum, p) => sum + p.activities.reduce((subtotal, a) => subtotal + a.validMeters, 0), 0);
 }
 export function publicProgress(state) {
-  const allReconciled = state.participants.every(p => p.initialReconciled);
-  const timestamps = allReconciled ? state.participants.map(p => p.syncedAt).filter(Boolean).sort() : [];
-  return { distanceKm: meters(state) / 1000, partial: state.participants.some(p => !p.connected || !p.initialReconciled || !p.scopes.includes('activity:read_all')), stale: state.participants.some(p => p.stale), updatedAt: timestamps[0] ?? null, unlockedMilestoneIds: [...state.unlockedMilestoneIds] };
+  return { distanceKm: meters(state) / 1000, partial: state.participants.some(p => !p.connected || !p.initialReconciled || !p.scopes.includes('activity:read_all')), stale: state.participants.some(p => p.stale), updatedAt: state.lastCompleteUpdatedAt ?? null, unlockedMilestoneIds: [...state.unlockedMilestoneIds] };
 }
 export function applyParticipantSync(input, event) {
   const state = clone(input), p = state.participants.find(p => p.id === event.participantId);
@@ -44,6 +42,7 @@ export function applyParticipantSync(input, event) {
   if (event.generation !== p.generation) return state;
   if (event.status === 'deleted') {
     if (event.verified !== true) throw new Error('Supresión no autorizada');
+    state.lastCompleteUpdatedAt = null;
     p.activities = []; p.scopes = []; p.connected = false; p.deleted = true; p.stale = false; p.initialReconciled = false; p.syncedAt = null; p.generation++;
     if (event.purgeMilestones === true) state.unlockedMilestoneIds = [];
     return state;
@@ -77,6 +76,9 @@ export function applyParticipantSync(input, event) {
   p.activities = [...records.values()].sort((a,b) => a.id.localeCompare(b.id));
   p.syncedAt = new Date(event.syncedAt).toISOString(); p.stale = false;
   if (event.complete === true) p.initialReconciled = true;
+  if (state.participants.every(participant => participant.initialReconciled)) {
+    state.lastCompleteUpdatedAt = state.participants.map(participant => participant.syncedAt).sort()[0];
+  }
   const after = meters(state);
   if (!Number.isFinite(after)) throw new Error('Total fuera de rango');
   if (after > before) {

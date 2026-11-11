@@ -116,9 +116,9 @@ test('reconexión exige backfill completo incluso con último agregado conservad
  s=apply(s,{participantId:'slot-a',generation:0,status:'revoked'});
  assert.equal(view(s).distanceKm,1); assert.equal(view(s).stale,true); assert.equal(view(s).updatedAt,'2026-11-02T12:00:00.000Z');
  s=apply(s,{participantId:'slot-a',generation:1,status:'connected',scopes:['activity:read_all']});
- assert.equal(view(s).partial,true); assert.equal(view(s).updatedAt,null); assert.equal(view(s).distanceKm,1);
+ assert.equal(view(s).partial,true); assert.equal(view(s).updatedAt,'2026-11-02T12:00:00.000Z'); assert.equal(view(s).distanceKm,1);
  s=apply(s,sync('slot-a',[],{generation:1,complete:false}));
- assert.equal(view(s).partial,true); assert.equal(view(s).stale,false); assert.equal(view(s).updatedAt,null);
+ assert.equal(view(s).partial,true); assert.equal(view(s).stale,false); assert.equal(view(s).updatedAt,'2026-11-02T12:00:00.000Z');
  s=apply(s,sync('slot-a',[],{generation:1})); assert.equal(view(s).partial,false); assert.equal(view(s).distanceKm,0);
 });
 test('permiso privado ausente y estado stale se calculan independientemente del backfill', () => {
@@ -135,7 +135,7 @@ test('ampliar permisos necesita backfill nuevo; repetir mismos scopes no invalid
  assert.equal(view(s).partial,false);
  s=apply(s,{participantId:'slot-a',generation:0,status:'connected',scopes:['activity:read']});
  s=apply(s,{participantId:'slot-a',generation:0,status:'connected',scopes:['activity:read_all']});
- assert.equal(view(s).partial,true); assert.equal(view(s).stale,false); assert.equal(view(s).updatedAt,null);
+ assert.equal(view(s).partial,true); assert.equal(view(s).stale,false); assert.equal(view(s).updatedAt,'2026-11-02T12:00:00.000Z');
  s=apply(s,sync('slot-a',[],{complete:false})); assert.equal(view(s).partial,true);
  s=apply(s,sync('slot-a',[])); assert.equal(view(s).partial,false);
 });
