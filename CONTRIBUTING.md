@@ -50,7 +50,7 @@ git diff --check
 
 La aplicación se abre en <https://albertoybelen.ddev.site/frontend/>. Sin DDEV,
 consultar en [README.md](README.md) el servidor estático local y ejecutar
-`npm test` con Node.js 22 o posterior. La CI usa Node.js 24, igual que DDEV.
+`npm test` con Node.js 24. La CI usa Node.js 24, igual que DDEV.
 
 Las pruebas usan el ejecutor incorporado `node:test`. Incluyen cálculos de
 progreso, configuración JSON, fechas y zonas horarias, migración y precedencia
@@ -108,9 +108,10 @@ El workflow [CI frontend](.github/workflows/ci.yml) se ejecuta al abrir, reabrir
 o actualizar commits de una PR hacia `main`. Comprueba la sintaxis de todos los
 módulos JavaScript del frontend y ejecuta `npm test` con Node.js 24. Usa solo permisos de
 lectura y no necesita secretos. Las acciones oficiales están fijadas a un commit
-para que su actualización sea explícita y revisable. No instala paquetes ni usa
-caché porque el proyecto no tiene dependencias. La prueba de navegador sigue siendo una
-comprobación local; este workflow no instala Chromium.
+para que su actualización sea explícita y revisable. Instala las herramientas de desarrollo fijadas mediante `npm ci` y ejecuta
+también `npm run test:d1` con D1 exclusivamente local. El frontend sigue sin
+dependencias de runtime. El workflow separado de capturas instala Chromium y
+publica artifacts de revisión; no despliega la web.
 
 La persona responsable revisa alcance, pruebas, seguridad y capturas. Solicita
 correcciones o aprueba y realiza el merge cuando corresponda. `Closes #N` enlaza

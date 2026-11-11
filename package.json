@@ -11,7 +11,7 @@
     "d1:reset:local": "node scripts/reset-d1-local.mjs"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
   "devDependencies": {
     "esbuild": "0.28.2",

@@ -81,7 +81,7 @@ La dirección del proyecto es <https://albertoybelen.ddev.site/frontend/>.
 
 ## Pruebas automáticas
 
-Node.js 22 o posterior; sin instalación de dependencias:
+Node.js 24 (versión de DDEV y CI); sin instalación de dependencias para `npm test`:
 
 ```sh
 npm test
