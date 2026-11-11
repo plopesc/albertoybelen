@@ -72,7 +72,7 @@ export function applyParticipantSync(input, event) {
     records.set(id, { id, validMeters: eligibleMeters(activity, state.config, p.scopes) });
   }
   p.activities = [...records.values()].sort((a,b) => a.id.localeCompare(b.id));
-  p.syncedAt = event.syncedAt; p.stale = false;
+  p.syncedAt = new Date(event.syncedAt).toISOString(); p.stale = false;
   const after = meters(state);
   if (!Number.isFinite(after)) throw new Error('Total fuera de rango');
   if (after > before) {

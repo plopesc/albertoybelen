@@ -76,7 +76,7 @@ test('supresión verificada, idempotencia, no resurrección y purga de premios p
 test('revocación de snapshot cero conserva última fecha válida y marca parcial + stale', () => {
  let s=apply(connected(),sync('slot-a',[]));
  s=apply(s,{participantId:'slot-a',generation:0,status:'revoked'});
- assert.equal(view(s).updatedAt,'2026-11-02T12:00:00Z');
+ assert.equal(view(s).updatedAt,'2026-11-02T12:00:00.000Z');
  assert.equal(view(s).partial,true); assert.equal(view(s).stale,true);
 });
 
@@ -88,4 +88,10 @@ test('tras supresión solo consentimiento nuevo verificado habilita estado limpi
  assert.equal(view(s).distanceKm,0); assert.equal(s.participants[0].generation,2);
  assert.deepEqual(apply(s,sync('slot-a',[a('old',50000)],{generation:1})),s);
  s=apply(s,sync('slot-a',[a('new',1000)],{generation:2})); assert.equal(view(s).distanceKm,1);
+});
+
+test('fecha pública conservadora compara instantes normalizados con distintos offsets', () => {
+ let s=apply(connected(),sync('slot-a',[],{syncedAt:'2026-11-02T12:00:00+02:00'}));
+ s=apply(s,sync('slot-b',[],{syncedAt:'2026-11-02T11:00:00Z'}));
+ assert.equal(view(s).updatedAt,'2026-11-02T10:00:00.000Z');
 });
