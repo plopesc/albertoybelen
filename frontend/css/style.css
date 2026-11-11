@@ -75,7 +75,6 @@ progress::-moz-progress-bar { background: var(--accent); }
 .map-legend { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 18px; list-style: none; margin: 0; padding: 0; }
 .map-legend li { display: flex; align-items: center; gap: 8px; }
 .legend-icon { display: block; width: 24px; height: 26px; flex-shrink: 0; }
-.map-orientation { border-top: 1px solid var(--line); padding-top: 12px; margin: 14px 0 0; text-align: center; font-size: 10px; }
 .simulation-card { grid-area: sim; padding: 24px; background: linear-gradient(145deg, #2e4a3a, #24342c 75%); }
 .simulation-card .eyebrow { color: var(--accent); }
 .hint { color: var(--muted); font-size: 12px; line-height: 1.6; margin: 10px 0 18px; }

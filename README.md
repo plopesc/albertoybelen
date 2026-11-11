@@ -38,12 +38,12 @@ La dirección del proyecto es <https://albertoybelen.ddev.site/frontend/>.
 - **Explorar mapa** lleva al recorrido completo. La salida está abajo y la meta
   arriba: desplázate por bosque, río, cañón y montaña desde el primer día.
 - El paisaje aparece directamente, sin cabecera. La leyenda inferior reutiliza
-  los símbolos del mapa para posición, checkpoint bloqueado/desbloqueado y meta,
-  y recuerda la orientación del recorrido.
+  los símbolos del mapa para posición, checkpoint bloqueado/desbloqueado y meta.
 - Los checkpoints del 20/40/60/80 % cambian de **BLOQUEADO** a **DESBLOQUEADO**
   al alcanzar su porcentaje. Sus posiciones se calculan sobre el mismo trazado
   que el indicador. Cambiar la meta o reiniciar recalcula todos sus estados.
-- La meta al 100 % tiene un arco y un regalo misterioso decorativo. Los hitos
+- La meta al 100 % tiene un arco y un regalo misterioso decorativo con perspectiva,
+  papel verde con brocado y lazo dorado. Los hitos
   no abren contenido: fotografías, premio y celebración quedan para otras issues.
 - La salida y el arco de meta usan madera con vetas, tela, piedra y sombras,
   dibujadas en SVG para integrarse con el paisaje de 16 bits.
