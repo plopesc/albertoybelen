@@ -25,5 +25,9 @@ jobs:
       - name: Comprobar sintaxis del frontend
         run: |
           for module in frontend/js/*.js; do node --check "$module"; done
+      - name: Instalar herramientas locales fijadas
+        run: npm ci
       - name: Ejecutar pruebas
         run: npm test
+      - name: Probar D1 exclusivamente local
+        run: npm run test:d1

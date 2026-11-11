@@ -199,6 +199,24 @@ independiente. El selector devuelve ausencia de proveedor para `real`;
 una futura fuente remota necesitará un adaptador y gestión asíncrona. Ni los
 cálculos ni la geometría dependen del origen de datos.
 
+## Persistencia D1 exclusivamente local
+
+La [guía D1 local](docs/local-d1.md) explica migraciones, repositorio, reset y límites.
+Con esta rama en el checkout de DDEV, ejecutar dentro del contenedor:
+
+```sh
+npm ci
+npm run d1:migrate:local
+npm run d1:dev:local
+# En otra terminal del mismo contenedor:
+curl http://127.0.0.1:8788/api/progress
+npm test
+npm run test:d1
+```
+
+No necesita login, credenciales ni recursos remotos. No cambia el frontend ni
+activa el reto definitivo; el estado de fixtures queda aislado y gitignored.
+
 ## API y sincronización simuladas en local
 
 El [Worker local](docs/local-worker.md) sirve únicamente fixtures y expone el
