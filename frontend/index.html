@@ -3,69 +3,101 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#173e35">
-  <meta name="description" content="Tu próxima aventura empieza con un kilómetro. Explora un recorrido con distancias simuladas.">
-  <title>Strava Adventure · Cada kilómetro cuenta</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23173e35' d='M0 0h32v32H0z'/%3E%3Cpath fill='%23d5ed88' d='m4 25 12-19 12 19h-8l-4-7-4 7z'/%3E%3C/svg%3E">
+  <meta name="theme-color" content="#11152b">
+  <meta name="description" content="Juego Alberto: una carrera arcade donde cada kilómetro te acerca a la meta. Prototipo con distancias simuladas.">
+  <title>Juego Alberto · Kilómetro Arcade</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%2311152b' d='M0 0h32v32H0z'/%3E%3Cpath fill='%23ffe34a' d='M6 6h8v8h8v8h-8v4H6z'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="./css/style.css">
   <script type="module" src="./js/app.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#adventure">Saltar al recorrido</a>
   <header class="site-header">
-    <a class="brand" href="./" aria-label="Strava Adventure, inicio"><span class="brand-icon" aria-hidden="true">↗</span> STRAVA <span>ADVENTURE</span></a>
-    <span class="mode"><span aria-hidden="true">●</span> Modo simulado</span>
+    <a class="brand" href="./" aria-label="Juego Alberto, inicio"><span class="brand-icon" aria-hidden="true">➜</span><span>JUEGO ALBERTO<small>KILÓMETRO ARCADE</small></span></a>
+    <span class="mode"><span aria-hidden="true">■</span> MODO SIMULADO</span>
   </header>
-  <main id="adventure">
-    <div class="intro"><p class="eyebrow">UN CAMINO. TU RITMO.</p><h1>Cada kilómetro <br>es una aventura.</h1><p>Un paso más cerca de la meta. Mira hasta dónde puedes llegar.</p></div>
+  <main id="adventure" tabindex="-1">
+    <div class="intro"><div><p class="eyebrow">PULSA START. SUMA KILÓMETROS.</p><h1>LA META <span>TE ESPERA.</span></h1><p>Un recorrido. Cuatro checkpoints. Todo un mundo por delante.</p></div><a class="explore-link" href="#map-heading">EXPLORAR MAPA <span aria-hidden="true">↓</span></a></div>
     <div class="adventure-layout">
-      <section class="map-card" aria-labelledby="map-heading">
-        <div class="map-header"><div><p class="eyebrow">TU RECORRIDO</p><h2 id="map-heading">El sendero de los mil pasos</h2></div><span class="map-badge">RUTA 01</span></div>
-        <svg class="map" viewBox="0 0 640 570" role="img" aria-labelledby="map-title map-description">
-          <title id="map-title">Mapa de tu aventura</title>
-          <desc id="map-description">Un sendero sinuoso entre montañas y árboles, desde la salida hasta la meta. El marcador indica tu progreso.</desc>
-          <defs>
-            <path id="route" d="M95 485 C30 409 285 434 270 350 S99 321 140 246 S395 303 396 211 S298 107 366 78 S466 82 490 112"/>
-            <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#c8d3ba"/></pattern>
-            <g id="tree"><path d="M0 11V27" stroke="#769071" stroke-width="4"/><path d="M-15 15 0-16 15 15Z" fill="#9bb58b"/><path d="M-11 2 0-21 11 2Z" fill="#6d936f"/></g>
-          </defs>
-          <rect width="640" height="570" fill="#edf0df"/>
-          <rect width="640" height="570" fill="url(#grid)"/>
-          <g fill="none" stroke="#d7dfc9" stroke-width="1.5" aria-hidden="true"><path d="M-50 160Q90 20 200 130T470 80T710 150"/><path d="M-50 180Q90 40 200 150T470 100T710 170"/><path d="M-50 200Q90 60 200 170T470 120T710 190"/><path d="M-40 420Q100 300 260 450T700 390"/><path d="M-40 440Q100 320 260 470T700 410"/><path d="M-40 460Q100 340 260 490T700 430"/></g>
-          <g aria-hidden="true"><ellipse cx="493" cy="406" rx="66" ry="32" fill="#c2dcd6" transform="rotate(-25 493 406)"/><path d="m435 404 22 0m27 12 25 0m-6-28 20 0" stroke="#eaf3ea" stroke-width="3" stroke-linecap="round"/>
-            <path d="m64 168 45-77 46 77Z" fill="#c8d2b6"/><path d="m109 91-16 28 16-7 17 8Z" fill="#fbfaf0"/><path d="m128 177 32-54 33 54Z" fill="#b8c8a7"/>
-            <use href="#tree" x="72" y="303"/><use href="#tree" x="96" y="321"/><use href="#tree" x="526" y="230"/><use href="#tree" x="557" y="244"/><use href="#tree" x="460" y="114"/><use href="#tree" x="172" y="457"/><use href="#tree" x="195" y="474"/>
-            <text x="70" y="213" class="place-label">LAS CUMBRES</text><text x="455" y="465" class="place-label">LAGO SERENO</text>
-            <g transform="translate(576 70)" stroke="#6b8066" fill="none"><path d="M0-16V16M-10 0H10"/><path d="m0-12-4 11 4-3 4 3Z" fill="#6b8066"/></g><text x="576" y="45" text-anchor="middle" class="place-label">N</text>
-          </g>
-          <use href="#route" fill="none" stroke="#d1c9ae" stroke-width="22" stroke-linecap="round"/>
-          <use href="#route" fill="none" stroke="#fffdf3" stroke-width="15"/>
-          <use id="route-progress" href="#route" fill="none" stroke="#65886a" stroke-width="9" stroke-linecap="round"/>
-          <g aria-hidden="true"><circle cx="95" cy="485" r="8" fill="#173e35" stroke="#fffdf3" stroke-width="4"/><text x="95" y="525" text-anchor="middle" class="endpoint">SALIDA</text>
-            <path d="M490 112V67" stroke="#173e35" stroke-width="4"/><path d="m492 67 31 0-7 12 7 12h-31Z" fill="#173e35"/><text x="490" y="145" text-anchor="middle" class="endpoint">META</text></g>
-          <g id="traveler" transform="translate(95 485)" aria-hidden="true"><circle r="20" fill="#173e35" stroke="#fffdf3" stroke-width="4"/><circle cy="-5" r="4" fill="#d5ed88"/><path d="m-7 10 3-9 7 1 5 8M-4 1-9 5M3 2 8-2" fill="none" stroke="#d5ed88" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g>
-        </svg>
-        <div class="map-footer"><span><span class="legend-dot" aria-hidden="true"></span>Tu camino recorrido</span><span>La aventura la marcas tú</span></div>
+      <section class="progress-card" aria-labelledby="progress-heading">
+        <div class="panel-heading"><p class="eyebrow">EN PARTIDA</p><span aria-hidden="true">■ ■ ■</span></div>
+        <h2 id="progress-heading">Tu carrera</h2>
+        <div class="distance"><span id="distance">0</span><span>km<br>recorridos</span></div>
+        <div class="progress-label"><label for="progress">PROGRESO TOTAL</label><strong id="percentage">0 %</strong></div>
+        <progress id="progress" max="100" value="0">0 %</progress>
+        <dl class="stats"><div><dt>OBJETIVO</dt><dd><span id="goal">100</span> <small>km</small></dd></div><div><dt>RESTANTES</dt><dd><span id="remaining">100</span> <small>km</small></dd></div></dl>
+        <p id="journey-message" class="journey-message">Todo listo. ¡A por el primer kilómetro!</p>
+        <a class="controls-link" href="#simulation-heading">IR A LOS CONTROLES <span aria-hidden="true">↓</span></a>
       </section>
-      <aside class="dashboard" aria-label="Progreso y simulación">
-        <section class="progress-card" aria-labelledby="progress-heading"><p class="eyebrow">PASO A PASO</p><h2 id="progress-heading">Tu aventura, en números</h2>
-          <div class="distance"><span id="distance">0</span><span>km recorridos</span></div>
-          <div class="progress-label"><label for="progress">Progreso del recorrido</label><strong id="percentage">0 %</strong></div>
-          <progress id="progress" max="100" value="0">0 %</progress>
-          <dl class="stats"><div><dt>Objetivo</dt><dd><span id="goal">100</span> <small>km</small></dd></div><div><dt>Por recorrer</dt><dd><span id="remaining">100</span> <small>km</small></dd></div></dl>
-          <p id="journey-message" class="journey-message">Todo gran viaje empieza con un primer paso.</p>
-        </section>
-        <section class="simulation-card" aria-labelledby="simulation-heading"><p class="eyebrow">PRUEBA EL CAMINO</p><h2 id="simulation-heading">Suma una nueva aventura</h2><p class="hint">Añade kilómetros simulados y avanza por el mapa.</p>
-          <div class="distance-buttons"><button type="button" data-km="1">+1 <span>km</span></button><button type="button" data-km="5">+5 <span>km</span></button><button type="button" data-km="10">+10 <span>km</span></button></div>
-          <form id="goal-form" novalidate><label for="goal-input">¿Cuál es tu próxima meta?</label><div class="goal-controls"><div class="input-unit"><input id="goal-input" name="goal" type="number" min="0.1" step="0.1" value="100" required inputmode="decimal" aria-describedby="goal-error"><span aria-hidden="true">km</span></div><button class="goal-button" type="submit">Guardar meta</button></div><p id="goal-error" class="error" hidden></p></form>
-          <button id="reset" class="reset-button" type="button"><span aria-hidden="true">↺</span> Reiniciar kilómetros</button>
-          <p id="storage-note" class="storage-note">Tu progreso se guarda en este navegador.</p>
-        </section>
-      </aside>
+      <section class="map-card" aria-labelledby="map-heading">
+        <div class="map-header"><div><p class="eyebrow">EL MUNDO ESTÁ ABIERTO</p><h2 id="map-heading" tabindex="-1">De la salida a la cima</h2></div><span class="map-badge">RUTA<br><strong>01</strong></span></div>
+        <div class="map-guide"><span aria-hidden="true">↑</span> Meta arriba · Salida abajo · Explora a tu ritmo</div>
+        <svg class="map" viewBox="0 0 480 1280" role="img" aria-labelledby="map-title map-description">
+          <title id="map-title">El mundo de Kilómetro Arcade</title>
+          <desc id="map-description">Mapa vertical completo: salida en el bosque, río, cañón y montaña. Checkpoints al 20, 40, 60 y 80 por ciento y meta al 100 por ciento. El marcador indica tu posición; los hitos futuros están bloqueados.</desc>
+          <defs>
+            <path id="route" d="M240 1190 C260 1130 120 1150 120 1080 S350 1070 350 980 S120 950 120 870 S350 840 350 750 S120 710 120 640 S350 590 350 510 S120 470 120 400 S330 350 310 270 S240 215 240 160"/>
+            <linearGradient id="map-plate" x2="0" y2="1"><stop stop-color="#303c64"/><stop offset="1" stop-color="#121a32"/></linearGradient>
+            <linearGradient id="gold-metal" x2="1" y2="1"><stop stop-color="#fff4b0"/><stop offset=".45" stop-color="#efbf53"/><stop offset="1" stop-color="#a96832"/></linearGradient>
+            <pattern id="checks" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="16" height="16" fill="#fff9e8"/><path d="M0 0h8v8H0zM8 8h8v8H8z" fill="#18223d"/></pattern>
+            <g id="lock"><path d="M-5-3v-7H5v7M-8-2H8v13H-8z" fill="none" stroke="currentColor" stroke-width="4"/><path d="M0 2v5" stroke="currentColor" stroke-width="3"/></g>
+          </defs>
+          <image href="./assets/world-16bit.webp" width="480" height="1280" preserveAspectRatio="none" aria-hidden="true"/>
+          <g fill="none" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
+            <use href="#route" stroke="#263d3d" stroke-opacity=".65" stroke-width="27" transform="translate(1 3)"/>
+            <use href="#route" stroke="#786844" stroke-width="23"/>
+            <use href="#route" stroke="#fff0ba" stroke-width="19"/>
+            <use href="#route" stroke="#cda86c" stroke-width="14"/>
+            <use href="#route" stroke="#e8c68b" stroke-width="9"/>
+            <use id="route-progress" href="#route" stroke="#ffe77c" stroke-width="5"/>
+          </g>
+          <g aria-hidden="true" shape-rendering="crispEdges">
+            <rect x="210" y="1180" width="60" height="20" fill="url(#checks)"/>
+            <path d="M172 1216h136v28H172z" fill="#11152b"/><text x="240" y="1235" text-anchor="middle" class="endpoint">SALIDA / 0 %</text>
+            <path d="M184 164V108h112v56" stroke="#633d35" stroke-width="16" fill="none"/>
+            <path d="M184 164v-56h112v56" stroke="url(#gold-metal)" stroke-width="10" fill="none"/>
+            <rect x="178" y="96" width="124" height="20" fill="url(#checks)"/>
+            <rect x="174" y="64" width="132" height="28" fill="#11152b"/><text x="240" y="83" text-anchor="middle" class="endpoint">META / 100 %</text>
+            <g id="mystery-gift" transform="translate(282 188)">
+              <ellipse cy="20" rx="20" ry="5" fill="#12233a" opacity=".4"/>
+              <path d="M-16-12h32v32h-32z" fill="#30294c"/>
+              <path d="M-13-8h26v25h-26z" fill="#9471ce"/>
+              <path d="M-13-8h4v25h-4zM-9-8h22v4H-9z" fill="#d5b0f0"/>
+              <path d="M9-4h4v21H9zM-9 13H9v4H-9z" fill="#62498d"/>
+              <path d="M-18-12h36v8h-36z" fill="#b392e0"/>
+              <path d="M-18-12h36v3h-36zM-3-12h6v29h-6z" fill="#ffe694"/>
+              <path d="M-3-12h-9v-7h7v7H5v-7h7v7H3" fill="none" stroke="#ffe694" stroke-width="3"/>
+              <text x="-7" y="9" fill="#30294c" font-size="14" font-weight="bold">?</text>
+            </g>
+          </g>
+          <g id="checkpoints">
+            <g data-checkpoint="0.2" class="checkpoint"><path class="checkpoint-node" d="M-8-12H8l4 4V8l-4 4H-8l-4-4V-8z"/><path d="M-7-8H6l2 2" fill="none" stroke="#fff9e8" stroke-opacity=".55" stroke-width="2"/><g class="checkpoint-label"><rect width="156" height="48"/><text x="10" y="19">01 / 20 %</text><text class="checkpoint-state" x="10" y="36">BLOQUEADO</text><g class="checkpoint-lock" transform="translate(136 22)"><use href="#lock"/></g></g></g>
+            <g data-checkpoint="0.4" class="checkpoint"><path class="checkpoint-node" d="M-8-12H8l4 4V8l-4 4H-8l-4-4V-8z"/><path d="M-7-8H6l2 2" fill="none" stroke="#fff9e8" stroke-opacity=".55" stroke-width="2"/><g class="checkpoint-label"><rect width="156" height="48"/><text x="10" y="19">02 / 40 %</text><text class="checkpoint-state" x="10" y="36">BLOQUEADO</text><g class="checkpoint-lock" transform="translate(136 22)"><use href="#lock"/></g></g></g>
+            <g data-checkpoint="0.6" class="checkpoint"><path class="checkpoint-node" d="M-8-12H8l4 4V8l-4 4H-8l-4-4V-8z"/><path d="M-7-8H6l2 2" fill="none" stroke="#fff9e8" stroke-opacity=".55" stroke-width="2"/><g class="checkpoint-label"><rect width="156" height="48"/><text x="10" y="19">03 / 60 %</text><text class="checkpoint-state" x="10" y="36">BLOQUEADO</text><g class="checkpoint-lock" transform="translate(136 22)"><use href="#lock"/></g></g></g>
+            <g data-checkpoint="0.8" class="checkpoint"><path class="checkpoint-node" d="M-8-12H8l4 4V8l-4 4H-8l-4-4V-8z"/><path d="M-7-8H6l2 2" fill="none" stroke="#fff9e8" stroke-opacity=".55" stroke-width="2"/><g class="checkpoint-label"><rect width="156" height="48"/><text x="10" y="19">04 / 80 %</text><text class="checkpoint-state" x="10" y="36">BLOQUEADO</text><g class="checkpoint-lock" transform="translate(136 22)"><use href="#lock"/></g></g></g>
+          </g>
+          <g id="traveler" transform="translate(240 1190)" aria-hidden="true">
+            <ellipse cy="10" rx="17" ry="6" fill="#102c32" opacity=".45"/>
+            <path d="M0-26 18-8 0 16-18-8Z" fill="#182039" stroke="#fff2b5" stroke-width="2"/>
+            <path d="M0-22 14-8 0 11-14-8Z" fill="url(#gold-metal)"/>
+            <path d="M0-17 4-10 10-8 4-5 0 3-4-5-10-8-4-10Z" fill="#fff8d3"/>
+            <path d="M0-11 3-8 0-4-3-8Z" fill="#b06b38"/>
+          </g>
+        </svg>
+        <ol id="milestone-summary" class="sr-only" aria-label="Estado de los hitos"><li data-milestone="0.2">Checkpoint 20 %: bloqueado.</li><li data-milestone="0.4">Checkpoint 40 %: bloqueado.</li><li data-milestone="0.6">Checkpoint 60 %: bloqueado.</li><li data-milestone="0.8">Checkpoint 80 %: bloqueado.</li><li data-milestone="1">Meta 100 %: pendiente.</li></ol>
+        <div class="map-footer"><span><i class="legend-marker" aria-hidden="true"></i> Tu posición</span><span><i class="legend-node" aria-hidden="true"></i> Checkpoint</span><span>Todos los hitos son visibles</span></div>
+      </section>
+      <section class="simulation-card" aria-labelledby="simulation-heading">
+        <p class="eyebrow">MANDOS DE PRUEBA</p><h2 id="simulation-heading" tabindex="-1">Dale kilómetros.</h2><p class="hint">Simula tu avance por el recorrido.</p>
+        <div class="distance-buttons"><button type="button" data-km="1">+1 <span>km</span></button><button type="button" data-km="5">+5 <span>km</span></button><button type="button" data-km="10">+10 <span>km</span></button></div>
+        <form id="goal-form" novalidate><label for="goal-input">¿Cuál es tu próxima meta?</label><div class="goal-controls"><div class="input-unit"><input id="goal-input" name="goal" type="number" min="0.1" step="0.1" value="100" required inputmode="decimal" aria-describedby="goal-error"><span aria-hidden="true">km</span></div><button class="goal-button" type="submit">Guardar meta</button></div><p id="goal-error" class="error" hidden></p></form>
+        <button id="reset" class="reset-button" type="button">Reiniciar kilómetros</button>
+        <p id="storage-note" class="storage-note">Tu progreso se guarda en este navegador.</p>
+      </section>
     </div>
     <p id="status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
     <noscript><p class="error">Activa JavaScript para simular kilómetros y mover el personaje.</p></noscript>
   </main>
-  <footer class="site-footer"><span>Hecho para disfrutar del camino.</span><span>Prototipo · Datos simulados</span></footer>
+  <footer class="site-footer"><span>CADA KILÓMETRO CUENTA.</span><span>PROTOTIPO / DATOS SIMULADOS</span></footer>
 </body>
 </html>

@@ -12,6 +12,32 @@ const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 let displayedRatio = 0;
 let targetRatio = 0;
 let frame;
+const checkpoints = [...document.querySelectorAll('[data-checkpoint]')];
+
+// Los hitos y el indicador comparten la geometría; no dependen de participantes.
+for (const checkpoint of checkpoints) {
+  const point = path.getPointAtLength(pathLength * Number(checkpoint.dataset.checkpoint));
+  checkpoint.setAttribute('transform', `translate(${point.x} ${point.y})`);
+  checkpoint.querySelector('.checkpoint-label').setAttribute(
+    'transform', `translate(${point.x > 240 ? -180 : 24} -24)`,
+  );
+}
+
+function renderCheckpoints(ratio) {
+  const states = [];
+  for (const checkpoint of checkpoints) {
+    const threshold = Number(checkpoint.dataset.checkpoint);
+    const unlocked = ratio >= threshold;
+    checkpoint.classList.toggle('unlocked', unlocked);
+    checkpoint.querySelector('.checkpoint-state').textContent = unlocked ? 'DESBLOQUEADO' : 'BLOQUEADO';
+    states.push(`Checkpoint ${threshold * 100} %: ${unlocked ? 'desbloqueado' : 'bloqueado'}.`);
+  }
+  states.push(`Meta 100 %: ${ratio >= 1 ? 'alcanzada' : 'pendiente'}. Regalo misterioso sin revelar.`);
+  document.querySelectorAll('[data-milestone]').forEach((item, index) => {
+    item.textContent = states[index];
+  });
+  return states.join(' ');
+}
 
 function placeTraveler(ratio) {
   displayedRatio = ratio;
@@ -54,16 +80,17 @@ function render(state, animate = true) {
   $('progress').value = result.percentage;
   $('progress').textContent = `${number.format(result.percentage)} %`;
   $('journey-message').textContent = result.complete
-    ? '¡Meta alcanzada! Cada paso ha merecido la pena.'
+    ? '¡Recorrido completado! Has llegado a la cima.'
     : result.distanceKm === 0
-      ? 'Todo gran viaje empieza con un primer paso.'
-      : `¡Sigue así! Te quedan ${number.format(result.remainingKm)} km de aventura.`;
-  $('map-description').textContent = `Sendero de salida a meta. Has recorrido ${number.format(result.distanceKm)} de ${number.format(result.goalKm)} km (${number.format(result.percentage)} %).`;
+      ? 'Todo listo. ¡A por el primer kilómetro!'
+      : `¡Sigue sumando! Quedan ${number.format(result.remainingKm)} km hasta la cima.`;
+  const milestoneDescription = renderCheckpoints(result.ratio);
+  $('map-description').textContent = `Mapa vertical completo desde la salida abajo hasta la meta arriba, pasando por bosque, río, cañón y montaña. Has recorrido ${number.format(result.distanceKm)} de ${number.format(result.goalKm)} km (${number.format(result.percentage)} %). ${milestoneDescription}`;
   $('storage-note').textContent = provider.isPersistent()
     ? 'Tu progreso se guarda en este navegador.'
     : 'No se ha podido leer o guardar el progreso. Puedes seguir; los cambios podrían perderse al recargar.';
   moveTraveler(result.ratio, animate);
-  if (animate) $('status').textContent = `${number.format(result.distanceKm)} km recorridos. ${number.format(result.percentage)} % completado. ${$('journey-message').textContent}`;
+  if (animate) $('status').textContent = `${number.format(result.distanceKm)} km recorridos. ${number.format(result.percentage)} % completado. ${$('journey-message').textContent} ${milestoneDescription}`;
 }
 
 for (const button of document.querySelectorAll('[data-km]')) {
