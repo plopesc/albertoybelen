@@ -33,7 +33,7 @@ function meters(state) {
   return state.participants.reduce((sum, p) => sum + p.activities.reduce((subtotal, a) => subtotal + a.validMeters, 0), 0);
 }
 export function publicProgress(state) {
-  const timestamps = state.participants.filter(p => p.activities.length || p.connected).map(p => p.syncedAt).filter(Boolean).sort();
+  const timestamps = state.participants.filter(p => p.syncedAt !== null).map(p => p.syncedAt).filter(Boolean).sort();
   return { distanceKm: meters(state) / 1000, partial: state.participants.some(p => !p.connected || !p.scopes.includes('activity:read_all')), stale: state.participants.some(p => p.stale), updatedAt: timestamps[0] ?? null, unlockedMilestoneIds: [...state.unlockedMilestoneIds] };
 }
 export function applyParticipantSync(input, event) {
@@ -48,7 +48,7 @@ export function applyParticipantSync(input, event) {
     return state;
   }
   if (p.deleted) return state; // Reconexión tras supresión requiere un reto/estado nuevo autorizado.
-  if (event.status === 'revoked') { p.connected = false; p.scopes = []; p.generation++; return state; }
+  if (event.status === 'revoked') { p.connected = false; p.scopes = []; p.stale = true; p.generation++; return state; }
   if (event.status === 'connected') {
     p.connected = true; p.scopes = [...(event.scopes ?? [])];
     return state;

@@ -72,3 +72,10 @@ test('supresión verificada, idempotencia, no resurrección y purga de premios p
  assert.deepEqual(Object.keys(view(s)).sort(),['distanceKm','partial','stale','updatedAt','unlockedMilestoneIds'].sort());
  assert.equal(JSON.stringify(view(s)).includes('slot-'),false);
 });
+
+test('revocación de snapshot cero conserva última fecha válida y marca parcial + stale', () => {
+ let s=apply(connected(),sync('slot-a',[]));
+ s=apply(s,{participantId:'slot-a',generation:0,status:'revoked'});
+ assert.equal(view(s).updatedAt,'2026-11-02T12:00:00Z');
+ assert.equal(view(s).partial,true); assert.equal(view(s).stale,true);
+});

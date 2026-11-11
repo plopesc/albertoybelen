@@ -71,7 +71,8 @@ umbrales. Un total que desborde Number se rechaza.
 - Revocar OAuth detiene consultas y elimina credenciales en el adaptador futuro;
   en el modelo deshabilita el slot y aumenta su generación. Conserva provisionalmente
   sus metros dentro del agregado y marca `partial`, sin presentarlos como actuales.
-  Si además hubo un error transitorio, `stale` sigue representando ese hecho aparte.
+  La revocación marca también `stale` hasta una reconciliación correcta; una falta
+  inicial de autorización marca solo `partial`, salvo fallo temporal concurrente.
 - Reconectar requiere consentimiento nuevo y la generación actual. Un snapshot
   completo desde el inicio puede corregir/eliminar metros. Ningún premio se pierde
   por esta reconciliación ordinaria.
