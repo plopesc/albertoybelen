@@ -46,7 +46,14 @@ entre distintas plataformas de Chromium.
 
 Cuando está disponible la implementación de #16, también se pulsa **Abrir regalo
 final** al 100 % y se captura su contenido. La ausencia de ese botón en la versión
-anterior no falla: la cobertura de #9 funciona por sí sola. No se copia lógica ni
+anterior no falla: la cobertura de #9 funciona por sí sola. Para comprobar una
+rama independiente ya disponible en otro worktree sin copiar su implementación:
+
+```sh
+VISUAL_FRONTEND=/ruta/al/worktree/frontend VISUAL_OUTPUT=/tmp/capturas-integracion npm run capture:visual
+```
+
+Por defecto siempre usa el frontend del propio repositorio. No se copia lógica ni
 recursos de #16 a esta rama.
 
 ## Descargar desde GitHub

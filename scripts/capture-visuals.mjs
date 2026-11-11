@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { resolve, extname, sep } from 'node:path';
 import { chromium } from 'playwright';
 
-const root = resolve(fileURLToPath(new URL('../frontend/', import.meta.url)));
+const root = resolve(process.env.VISUAL_FRONTEND ?? fileURLToPath(new URL('../frontend/', import.meta.url)));
 const output = resolve(process.env.VISUAL_OUTPUT ?? 'artifacts/visual');
 const prefix = '/albertoybelen/';
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.webp': 'image/webp', '.jpeg': 'image/jpeg', '.svg': 'image/svg+xml' };
