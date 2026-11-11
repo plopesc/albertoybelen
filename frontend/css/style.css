@@ -59,7 +59,7 @@ progress::-moz-progress-bar { background: var(--cyan); }
 .controls-link { display: inline-block; padding-block: 6px; color: var(--cyan); }
 .map-card { grid-area: map; background: linear-gradient(110deg, #303852, #192039); overflow: hidden; }
 .map { display: block; width: 100%; height: auto; }
-.map image { image-rendering: pixelated; }
+.map > image { image-rendering: pixelated; }
 .endpoint { fill: #493c30; font: 800 12px system-ui, sans-serif; letter-spacing: .3px; }
 .checkpoint { color: #b2bdd8; }
 .checkpoint-node { fill: var(--checkpoint-fill, #252d49); stroke: var(--checkpoint-stroke, #fff9e8); stroke-width: 3px; }

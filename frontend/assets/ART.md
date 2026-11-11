@@ -9,6 +9,10 @@ El PNG generado se convirtió a WebP (calidad 88) con ImageMagick; el recurso se
 sirve localmente desde el repositorio, sin servicios externos en tiempo de ejecución.
 El camino, los hitos, sus estados y el indicador se dibujan por separado en SVG.
 
+`icono.jpeg` es la ilustración aportada por el usuario para el indicador de avance.
+Se conserva sin modificar; el SVG la ajusta y recorta en círculo mediante
+`preserveAspectRatio` y `clipPath`. El mismo símbolo se reutiliza en la leyenda.
+
 ## Prompt utilizado
 
 ```text

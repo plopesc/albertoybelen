@@ -43,6 +43,8 @@ La dirección del proyecto es <https://albertoybelen.ddev.site/frontend/>.
   no abren contenido: fotografías, premio y celebración quedan para otras issues.
 - La salida y el arco de meta usan madera con vetas, tela, piedra y sombras,
   dibujadas en SVG para integrarse con el paisaje de 16 bits.
+- El indicador de avance usa la ilustración aportada en `frontend/assets/icono.jpeg`,
+  ajustada a un círculo con borde claro; la leyenda comparte el mismo símbolo.
 - Suma +1, +5 o +10 km para mover el personaje por el camino.
 - Introduce una meta de al menos 0,1 km, en pasos de 0,1, y pulsa **Guardar meta**
   o Enter. Un valor inválido muestra un error sin cambiar la meta vigente.
@@ -111,7 +113,7 @@ Comprobaciones manuales con el servidor local:
 
 Capturas de referencia del rediseño: [escritorio](docs/screenshots/issue-4-desktop.png)
 y [móvil](docs/screenshots/issue-4-mobile.png). Son imágenes del prototipo local,
-con datos simulados; no contienen contenido personal ni recursos de terceros.
+con datos simulados y la ilustración aportada para el indicador.
 
 ## Organización
 

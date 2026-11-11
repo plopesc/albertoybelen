@@ -34,12 +34,13 @@
             <pattern id="finish-weave" width="12" height="12" patternUnits="userSpaceOnUse"><rect width="12" height="12" fill="#e8d8af"/><path d="M0 0h6v6H0zM6 6h6v6H6z" fill="#405966"/><path d="M0 1h12M0 7h12" stroke="#fff5d6" stroke-opacity=".25" stroke-width=".7"/></pattern>
             <g id="timber-post"><path d="M-7 0 4-2 7 3 6 80H-7z" fill="url(#gate-timber)"/><path d="M-7 0 4-2 7 3 6 80H-7z" fill="url(#wood-grain)"/><path d="M-5 3v72" stroke="#f9d392" stroke-width="1" opacity=".65"/><path d="M-8 10H7m-15 4H7m-15 48H7m-15 4H7" stroke="#6a6350" stroke-width="2"/><path d="M-8 9H6m-14 52H6" stroke="#e1cf99" stroke-width="1"/><circle cx="1" cy="12" r="1" fill="#403a32"/><circle cx="1" cy="64" r="1" fill="#403a32"/></g>
             <g id="lock"><path d="M-5-3v-7H5v7M-8-2H8v13H-8z" fill="none" stroke="currentColor" stroke-width="4"/><path d="M0 2v5" stroke="currentColor" stroke-width="3"/></g>
+            <clipPath id="position-clip" clipPathUnits="userSpaceOnUse"><circle r="24"/></clipPath>
             <g id="position-symbol">
-              <ellipse cy="10" rx="17" ry="6" fill="#102c32" opacity=".45"/>
-              <path d="M0-26 18-8 0 16-18-8Z" fill="#182039" stroke="#fff2b5" stroke-width="2"/>
-              <path d="M0-22 14-8 0 11-14-8Z" fill="url(#gold-metal)"/>
-              <path d="M0-17 4-10 10-8 4-5 0 3-4-5-10-8-4-10Z" fill="#fff8d3"/>
-              <path d="M0-11 3-8 0-4-3-8Z" fill="#b06b38"/>
+              <ellipse cy="25" rx="27" ry="7" fill="#102c32" opacity=".4"/>
+              <circle r="28" fill="#182039"/>
+              <circle r="26" fill="url(#gold-metal)"/>
+              <image href="./assets/icono.jpeg" x="-24" y="-24" width="48" height="48" preserveAspectRatio="xMidYMid slice" clip-path="url(#position-clip)"/>
+              <circle r="24" fill="none" stroke="#fff2b5" stroke-width="1"/>
             </g>
             <g id="checkpoint-symbol"><path class="checkpoint-node" d="M-8-12H8l4 4V8l-4 4H-8l-4-4V-8z"/><path d="M-7-8H6l2 2" fill="none" stroke="#fff9e8" stroke-opacity=".55" stroke-width="2"/></g>
           </defs>
@@ -116,7 +117,7 @@
         <ol id="milestone-summary" class="sr-only" aria-label="Estado de los hitos"><li data-milestone="0.2">Checkpoint 20 %: bloqueado.</li><li data-milestone="0.4">Checkpoint 40 %: bloqueado.</li><li data-milestone="0.6">Checkpoint 60 %: bloqueado.</li><li data-milestone="0.8">Checkpoint 80 %: bloqueado.</li><li data-milestone="1">Meta 100 %: pendiente.</li></ol>
         <div class="map-footer">
           <ul class="map-legend" aria-label="Leyenda: posición, checkpoints y meta">
-            <li><svg class="legend-icon" viewBox="-22 -30 44 50" aria-hidden="true"><use href="#position-symbol"/></svg><span>Tu posición</span></li>
+            <li><svg class="legend-icon" viewBox="-32 -32 64 68" aria-hidden="true"><use href="#position-symbol"/></svg><span>Tu posición</span></li>
             <li><svg class="legend-icon" viewBox="-16 -16 32 32" aria-hidden="true"><use href="#checkpoint-symbol"/></svg><span>Bloqueado</span></li>
             <li><svg class="legend-icon legend-unlocked" viewBox="-16 -16 32 32" aria-hidden="true"><use href="#checkpoint-symbol"/></svg><span>Desbloqueado</span></li>
             <li><svg class="legend-icon" viewBox="154 70 174 124" aria-hidden="true"><use href="#finish-gate"/></svg><span>Meta · 100 %</span></li>

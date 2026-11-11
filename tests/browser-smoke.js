@@ -24,10 +24,12 @@ async (page) => {
   await page.reload();
   await markerAt(0);
   await page.evaluate(async () => {
-    const background = new Image();
-    background.src = document.querySelector('.map image').getAttribute('href');
-    await background.decode();
-    if (!background.naturalWidth) throw new Error('Debe cargar el fondo local de 16 bits');
+    for (const asset of document.querySelectorAll('.map image')) {
+      const image = new Image();
+      image.src = asset.getAttribute('href');
+      await image.decode();
+      if (!image.naturalWidth) throw new Error('Deben cargar el fondo y la imagen del indicador');
+    }
   });
   assert(await text('distance') === '0', 'Debe empezar a cero');
   assert(await page.locator('.checkpoint.unlocked').count() === 0, 'Los cuatro checkpoints empiezan bloqueados');
