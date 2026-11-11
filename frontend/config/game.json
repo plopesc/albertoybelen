@@ -1,0 +1,13 @@
+{
+  "game": {
+    "title": "Alberto y Belén · Kilómetro Arcade",
+    "goalKm": 100,
+    "startDate": "2027-01-01",
+    "timeZone": "UTC",
+    "mode": "simulation"
+  },
+  "rewards": {
+    "checkpoints": [20, 40, 60, 80],
+    "finish": 100
+  }
+}

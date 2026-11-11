@@ -32,7 +32,10 @@ La dirección del proyecto es <https://albertoybelen.ddev.site/frontend/>.
 
 ## Usar el prototipo
 
-- Empieza con 0 km y una meta de 100 km.
+- Empieza con 0 km (o la distancia válida guardada) y la meta de `frontend/config/game.json`.
+- Título, meta, fecha inclusiva, zona horaria y modo se configuran únicamente en
+  ese JSON. Consulta [campos, ejemplos y migración](docs/configuration.md). La
+  fecha `2027-01-01` incluida es de ejemplo, no la fecha definitiva del reto.
 - En móvil se muestra primero el mapa y debajo el HUD con kilómetros, objetivo,
   porcentaje y restantes. **Ir a los controles** salta directamente a la simulación.
 - **Explorar mapa** lleva al recorrido completo. La salida está abajo y la meta
@@ -52,17 +55,21 @@ La dirección del proyecto es <https://albertoybelen.ddev.site/frontend/>.
 - El indicador de avance usa la ilustración aportada en `frontend/assets/icono.jpeg`,
   ajustada a un círculo con borde claro; la leyenda comparte el mismo símbolo.
 - Suma +1, +5 o +10 km para mover el personaje por el camino.
-- Introduce una meta de al menos 0,1 km, en pasos de 0,1, y pulsa **Guardar meta**
-  o Enter. Un valor inválido muestra un error sin cambiar la meta vigente.
+- La meta se cambia editando `game.goalKm` en el JSON y recargando; no hay
+  formulario público. El objetivo antiguo del navegador nunca prevalece sobre ella.
 - Al llegar o superar la meta, el marcador permanece al final y el progreso
   se limita al 100 %. Los kilómetros acumulados se conservan.
 - **Reiniciar kilómetros** vuelve a la salida y conserva la meta.
-- Los kilómetros y la meta se guardan en este navegador para la próxima visita.
+- Solo los kilómetros simulados se guardan en este navegador para la próxima visita;
+  el objetivo siempre se vuelve a leer del JSON.
   Si el almacenamiento está bloqueado o lleno, el juego continúa en memoria y
-  muestra un aviso. Un estado guardado dañado recupera los valores iniciales.
+  muestra un aviso. Un estado dañado recupera cero kilómetros con el objetivo del JSON.
 - Los controles funcionan con Tab, Mayús+Tab, Enter y Espacio según su control
   nativo. El foco es visible y los cambios se anuncian a lectores de pantalla.
   La preferencia de movimiento reducido desactiva la animación del marcador.
+- En modo `real` se informa de que todavía no hay proveedor: no se muestran
+  kilómetros simulados como reales ni controles de simulación. Un JSON ausente o
+  inválido muestra un error visible y no activa otro modo silenciosamente.
 
 ## Pruebas automáticas
 
@@ -76,9 +83,10 @@ git diff --check
 Desde tu máquina, dentro del proyecto DDEV, usa `ddev exec npm test` para
 ejecutar las mismas pruebas en el contenedor.
 
-Las pruebas usan `node:test` y cubren salida, progreso parcial, decimales, meta,
-objetivo superado, límites 0–100 %, objetivos/distancias inválidos, simulación,
-reinicio, persistencia, estados corruptos y almacenamiento bloqueado o lleno.
+Las pruebas usan `node:test` y cubren cálculos, validación del JSON versionado,
+fechas existentes y zonas horarias, precedencia del objetivo, migración v1/v2,
+selección real/simulado, persistencia y almacenamiento bloqueado/corrupto. No
+requieren instalación de dependencias.
 
 Con el servidor en marcha, se puede repetir la prueba de navegador usando el
 `playwright-cli` y Chromium ya disponibles en este entorno (herramientas de
@@ -90,37 +98,39 @@ playwright-cli -s=adventure run-code --filename=tests/browser-smoke.js
 playwright-cli -s=adventure close
 ```
 
-Esta prueba reinicia los datos simulados del origen local y comprueba controles,
-posición SVG, persistencia, errores, teclado, movimiento reducido, almacenamiento
-bloqueado y ausencia de desbordamientos a 320, 390, 768 y 1280 px. Comprueba también
-el indicador al 0/20/50/80/100 %, los cuatro umbrales justo antes y al alcanzarlos,
-sus etiquetas dentro del mapa, el bloqueo tras reiniciar y el orden mapa → datos
-→ controles en móvil.
+La prueba reinicia el estado local e intercepta temporalmente el JSON para
+comprobar título, meta, fecha/zona, modos, errores HTTP/red/JSON, migración y
+checkpoints configurables. Conserva las comprobaciones de posición sobre el SVG,
+teclado, movimiento reducido y tamaños 320/390/768/1280. No modifica el archivo.
+La [guía de configuración](docs/configuration.md) incluye comandos para repetirla
+bajo `/albertoybelen/` sin desplegar.
 
 Comprobaciones manuales con el servidor local:
 
-1. A 0 km, comprobar que el personaje está en SALIDA. Sumar 1, 5 y 10 km:
-   deben aparecer 16 km y 16 %. Recargar y comprobar que se mantienen.
-2. Cambiar la meta a 16: debe marcar 100 %, 0 km restantes y estar en META.
-   Sumar 10 más: conserva 26 km, 100 % y 0 restantes sin salir del camino.
-3. Probar una meta vacía, cero y negativa: se muestra el error, sin alterar
-   el objetivo. Reiniciar: vuelve a 0 km y conserva el último objetivo válido.
-4. Recorrer los controles con el teclado. Revisar a 320, 390 y 1280 px y con
-   zoom de texto. Activar movimiento reducido: el marcador salta a su posición
-   sin animarse. El recorrido mantiene sus proporciones al cambiar de ancho.
-5. Bloquear `localStorage` o introducir JSON inválido en la clave
-   `strava-adventure:simulation:v1`: la aplicación debe seguir siendo utilizable.
-6. Con meta 100, comprobar a 0/20/50/80/100 km: deben estar desbloqueados
-   0/1/2/4/4 checkpoints. Ningún tramo futuro desaparece ni se revela contenido.
-   A 125 km el indicador sigue en el arco. Reiniciar vuelve a bloquear los cuatro.
-7. Desde móvil, recorrer todo el mapa con desplazamiento normal y usar los enlaces
-   de salto con teclado. El mapa tiene descripción y una lista textual de estados
-   para lectores de pantalla; la indicación de bloqueo no depende solo del color.
+1. Editar solo `frontend/config/game.json` para cambiar título, objetivo, fecha o
+   zona y recargar. Deben cambiar los valores mostrados y conservarse la distancia.
+2. Sumar 1, 5 y 10 km: deben aparecer 16 km. Ajustar en JSON el objetivo a 16:
+   el marcador llega a la meta; al sumar 10 más conserva 26 km y limita al 100 %.
+3. Reiniciar vuelve a cero con el objetivo del JSON. Un estado v1 válido migra su
+   distancia e ignora su objetivo anterior; v2 solo guarda distancia y versión.
+4. Probar `mode: "real"`: aviso de no disponible, distancias `—`, sin marcador ni
+   controles. Volver a `simulation` recupera la distancia simulada que había.
+5. Una fecha imposible, modo desconocido, objetivo cero, JSON mal formado o archivo
+   ausente debe mostrar un error y mantener la partida sin iniciar.
+6. Probar teclado, móvil y movimiento reducido; recorrer todo el mapa y sus hitos
+   futuros. Cambiar checkpoints en JSON actualiza posiciones y estados.
+7. Bloquear `localStorage` o dañar v2: se puede continuar en memoria o recuperar a
+   cero sin reutilizar objetivos guardados ni resucitar el estado antiguo.
 
 Capturas de referencia del rediseño: [escritorio](docs/screenshots/issue-4-desktop.png)
 y [móvil](docs/screenshots/issue-4-mobile.png), además del
 [detalle de la meta al 100 %](docs/screenshots/issue-4-goal.png). Son imágenes del prototipo local,
 con datos simulados y la ilustración aportada para el indicador.
+
+Integración de configuración: [simulación móvil](docs/screenshots/issue-6-mobile.png),
+[escritorio](docs/screenshots/issue-6-desktop.png),
+[modo real no disponible](docs/screenshots/issue-6-real.png) y
+[error de configuración](docs/screenshots/issue-6-error.png).
 
 ## Organización
 
@@ -128,6 +138,8 @@ con datos simulados y la ilustración aportada para el indicador.
 frontend/index.html       HUD arcade, recorrido e hitos SVG
 frontend/assets/          Fondo original de 16 bits y prompt de generación
 frontend/css/style.css    Diseño responsive, foco y movimiento reducido
+frontend/config/game.json Configuración pública editable
+frontend/js/config.js     Carga relativa y validación sin DOM
 frontend/js/progress.js   Cálculos puros con validación, sin DOM ni persistencia
 frontend/js/game.js       Contrato DistanceProvider y proveedor simulado local
 frontend/js/app.js        Eventos, hitos y posición con getPointAtLength
@@ -137,11 +149,13 @@ CONTRIBUTING.md           Flujo de Issues, ramas, pruebas y revisión
 ```
 
 `app.js` consume el contrato `DistanceProvider` documentado en `game.js`:
-`getState()`, `addDistance(km)`, `setGoal(km)`, `reset()` e `isPersistent()`.
+`getState()`, `addDistance(km)`, `reset()` e `isPersistent()`. El objetivo es
+inmutable dentro del proveedor y procede de la configuración validada.
 Los métodos devuelven copias de `{ distanceKm, goalKm }` y rechazan valores no
 válidos antes de modificar el estado. El proveedor simulado es la única capa
-que conoce `localStorage`. Una futura fuente remota necesitará un adaptador y
-gestión asíncrona; ni los cálculos ni la geometría dependen del origen de datos.
+que conoce `localStorage`. El selector devuelve ausencia de proveedor para `real`;
+una futura fuente remota necesitará un adaptador y gestión asíncrona. Ni los
+cálculos ni la geometría dependen del origen de datos.
 
 ## Flujo de desarrollo
 

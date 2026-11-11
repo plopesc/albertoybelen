@@ -52,10 +52,12 @@ La aplicación se abre en <https://albertoybelen.ddev.site/frontend/>. Sin DDEV,
 consultar en [README.md](README.md) el servidor estático local y ejecutar
 `npm test` con Node.js 22 o posterior. La CI usa Node.js 24, igual que DDEV.
 
-Las 15 pruebas existentes usan el ejecutor incorporado `node:test`. Incluyen
-progreso de 0 %, parcial, 100 % y superior al 100 %, objetivo y distancia
-inválidos, además de simulación y persistencia. No se duplican esos tests ni se
-añaden dependencias porque ya cubren los cálculos exigidos.
+Las pruebas usan el ejecutor incorporado `node:test`. Incluyen cálculos de
+progreso, configuración JSON, fechas y zonas horarias, migración y precedencia
+del estado, selección de modo, simulación y persistencia. Mantener la cobertura
+de los cálculos y añadir pruebas para comportamientos nuevos sin duplicarlos ni
+añadir dependencias innecesarias. La configuración pública se documenta en
+[docs/configuration.md](docs/configuration.md).
 
 Si se cambia la interfaz, comprobar también el navegador y el diseño móvil,
 añadir capturas a la PR y ejecutar la prueba de navegador documentada en el
@@ -103,8 +105,8 @@ repetir las pruebas afectadas y subir el nuevo commit: la PR se actualiza.
 ## 5. CI, revisión y merge
 
 El workflow [CI frontend](.github/workflows/ci.yml) se ejecuta al abrir, reabrir
-o actualizar commits de una PR hacia `main`. Comprueba la sintaxis de los tres
-módulos del frontend y ejecuta `npm test` con Node.js 24. Usa solo permisos de
+o actualizar commits de una PR hacia `main`. Comprueba la sintaxis de todos los
+módulos JavaScript del frontend y ejecuta `npm test` con Node.js 24. Usa solo permisos de
 lectura y no necesita secretos. Las acciones oficiales están fijadas a un commit
 para que su actualización sea explícita y revisable. No instala paquetes ni usa
 caché porque el proyecto no tiene dependencias. La prueba de navegador sigue siendo una

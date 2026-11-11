@@ -14,7 +14,7 @@
   <a class="skip-link" href="#adventure">Saltar al recorrido</a>
   <header class="site-header">
     <a class="brand" href="./" aria-label="Alberto y Belén · Kilómetro Arcade, inicio"><span class="brand-icon" aria-hidden="true">A&amp;B</span><span>ALBERTO &amp; BELÉN<small>KILÓMETRO ARCADE</small></span></a>
-    <span class="mode"><span aria-hidden="true">■</span> MODO SIMULADO</span>
+    <span class="mode"><span aria-hidden="true">■</span> <span id="mode-label">CARGANDO</span></span>
   </header>
   <main id="adventure" tabindex="-1">
     <div class="intro"><div><p class="eyebrow">VERSIÓN DE PRUEBAS · DATOS SIMULADOS</p><h1>ALBERTO <span>&amp; BELÉN</span></h1><p>Una aventura juntos, kilómetro a kilómetro.</p></div><a class="explore-link" href="#map">EXPLORAR MAPA <span aria-hidden="true">↓</span></a></div>
@@ -64,7 +64,7 @@
             <use href="#route" stroke="#fff0ba" stroke-width="19"/>
             <use href="#route" stroke="#cda86c" stroke-width="14"/>
             <use href="#route" stroke="#e8c68b" stroke-width="9"/>
-            <use id="route-progress" href="#route" stroke="#ffe77c" stroke-width="5"/>
+            <use id="route-progress" stroke-dasharray="0 100000" href="#route" stroke="#ffe77c" stroke-width="5"/>
           </g>
           <g aria-hidden="true">
             <!-- Los hitos se apoyan en el terreno con materiales y sombras del paisaje. -->
@@ -141,13 +141,13 @@
               <text x="-17" y="12" text-anchor="middle" fill="#43513a" font-family="Georgia, serif" font-size="10" font-weight="bold" transform="rotate(18 -17 12)">?</text>
             </g>
           </g>
-          <g id="checkpoints">
+          <g id="checkpoints" visibility="hidden">
             <g data-checkpoint="0.2" class="checkpoint"><use href="#checkpoint-symbol"/><g class="checkpoint-label"><rect width="156" height="48"/><text x="10" y="19">01 / 20 %</text><text class="checkpoint-state" x="10" y="36">BLOQUEADO</text><g class="checkpoint-lock" transform="translate(136 22)"><use href="#lock"/></g></g></g>
             <g data-checkpoint="0.4" class="checkpoint"><use href="#checkpoint-symbol"/><g class="checkpoint-label"><rect width="156" height="48"/><text x="10" y="19">02 / 40 %</text><text class="checkpoint-state" x="10" y="36">BLOQUEADO</text><g class="checkpoint-lock" transform="translate(136 22)"><use href="#lock"/></g></g></g>
             <g data-checkpoint="0.6" class="checkpoint"><use href="#checkpoint-symbol"/><g class="checkpoint-label"><rect width="156" height="48"/><text x="10" y="19">03 / 60 %</text><text class="checkpoint-state" x="10" y="36">BLOQUEADO</text><g class="checkpoint-lock" transform="translate(136 22)"><use href="#lock"/></g></g></g>
             <g data-checkpoint="0.8" class="checkpoint"><use href="#checkpoint-symbol"/><g class="checkpoint-label"><rect width="156" height="48"/><text x="10" y="19">04 / 80 %</text><text class="checkpoint-state" x="10" y="36">BLOQUEADO</text><g class="checkpoint-lock" transform="translate(136 22)"><use href="#lock"/></g></g></g>
           </g>
-          <g id="traveler" transform="translate(240 1190)" aria-hidden="true"><use href="#position-symbol"/></g>
+          <g id="traveler" visibility="hidden" transform="translate(240 1190)" aria-hidden="true"><use href="#position-symbol"/></g>
         </svg>
         <ol id="milestone-summary" class="sr-only" aria-label="Estado de los hitos"><li data-milestone="0.2">Checkpoint 20 %: bloqueado.</li><li data-milestone="0.4">Checkpoint 40 %: bloqueado.</li><li data-milestone="0.6">Checkpoint 60 %: bloqueado.</li><li data-milestone="0.8">Checkpoint 80 %: bloqueado.</li><li data-milestone="1">Meta 100 %: pendiente.</li></ol>
         <div class="map-footer">
@@ -162,24 +162,24 @@
       <section class="progress-card" aria-labelledby="progress-heading">
         <div class="panel-heading"><p class="eyebrow">EN PARTIDA</p><span aria-hidden="true">■ ■ ■</span></div>
         <h2 id="progress-heading">Tu carrera</h2>
-        <div class="distance"><span id="distance">0</span><span>km<br>recorridos</span></div>
-        <div class="progress-label"><label for="progress">PROGRESO TOTAL</label><strong id="percentage">0 %</strong></div>
-        <progress id="progress" max="100" value="0">0 %</progress>
-        <dl class="stats"><div><dt>OBJETIVO</dt><dd><span id="goal">100</span> <small>km</small></dd></div><div><dt>RESTANTES</dt><dd><span id="remaining">100</span> <small>km</small></dd></div></dl>
-        <p id="journey-message" class="journey-message">Todo listo. ¡A por el primer kilómetro!</p>
-        <a class="controls-link" href="#simulation-heading">IR A LOS CONTROLES <span aria-hidden="true">↓</span></a>
+        <div class="distance"><span id="distance">—</span><span>km<br>recorridos</span></div>
+        <div class="progress-label"><label for="progress">PROGRESO TOTAL</label><strong id="percentage">—</strong></div>
+        <progress hidden id="progress" max="100" value="0">0 %</progress>
+        <dl class="stats"><div><dt>OBJETIVO</dt><dd><span id="goal">—</span> <small>km</small></dd></div><div><dt>RESTANTES</dt><dd><span id="remaining">—</span> <small>km</small></dd></div></dl>
+        <p class="game-start">Desde <time id="start-date">—</time> · <span id="time-zone">—</span> (inclusive)</p>
+        <p id="journey-message" class="journey-message">Esperando la configuración del juego.</p>
+        <a hidden class="controls-link" href="#simulation-heading">IR A LOS CONTROLES <span aria-hidden="true">↓</span></a>
       </section>
-      <section class="simulation-card" aria-labelledby="simulation-heading">
+      <section id="simulation-card" hidden class="simulation-card" aria-labelledby="simulation-heading">
         <p class="eyebrow">MANDOS DE PRUEBA</p><h2 id="simulation-heading" tabindex="-1">Dale kilómetros.</h2><p class="hint">Simula tu avance por el recorrido.</p>
         <div class="distance-buttons"><button type="button" data-km="1">+1 <span>km</span></button><button type="button" data-km="5">+5 <span>km</span></button><button type="button" data-km="10">+10 <span>km</span></button></div>
-        <form id="goal-form" novalidate><label for="goal-input">¿Cuál es tu próxima meta?</label><div class="goal-controls"><div class="input-unit"><input id="goal-input" name="goal" type="number" min="0.1" step="0.1" value="100" required inputmode="decimal" aria-describedby="goal-error"><span aria-hidden="true">km</span></div><button class="goal-button" type="submit">Guardar meta</button></div><p id="goal-error" class="error" hidden></p></form>
         <button id="reset" class="reset-button" type="button">Reiniciar kilómetros</button>
         <p id="storage-note" class="storage-note">Tu progreso se guarda en este navegador.</p>
       </section>
     </div>
     <p id="status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
-    <noscript><p class="error">Activa JavaScript para simular kilómetros y mover el personaje.</p></noscript>
+    <noscript><p class="error">Activa JavaScript para cargar la configuración del juego.</p></noscript>
   </main>
-  <footer class="site-footer"><span>CADA KILÓMETRO CUENTA.</span><span>PROTOTIPO / DATOS SIMULADOS</span></footer>
+  <footer class="site-footer"><span>CADA KILÓMETRO CUENTA.</span><span id="data-source">PROTOTIPO / SIN DATOS</span></footer>
 </body>
 </html>
