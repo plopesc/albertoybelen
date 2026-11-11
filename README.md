@@ -42,6 +42,8 @@ La dirección del proyecto es <https://albertoybelen.ddev.site/frontend/>.
 - Los checkpoints del 20/40/60/80 % cambian de **BLOQUEADO** a **DESBLOQUEADO**
   al alcanzar su porcentaje. Sus posiciones se calculan sobre el mismo trazado
   que el indicador. Cambiar la meta o reiniciar recalcula todos sus estados.
+  Los cinco tramos del 20 % tienen igual longitud siguiendo el camino; su altura
+  visible varía según las curvas.
 - La meta al 100 % tiene un arco y un regalo misterioso decorativo con perspectiva,
   papel verde con brocado y lazo dorado. Los hitos
   no abren contenido: fotografías, premio y celebración quedan para otras issues.
@@ -116,7 +118,8 @@ Comprobaciones manuales con el servidor local:
    para lectores de pantalla; la indicación de bloqueo no depende solo del color.
 
 Capturas de referencia del rediseño: [escritorio](docs/screenshots/issue-4-desktop.png)
-y [móvil](docs/screenshots/issue-4-mobile.png). Son imágenes del prototipo local,
+y [móvil](docs/screenshots/issue-4-mobile.png), además del
+[detalle de la meta al 100 %](docs/screenshots/issue-4-goal.png). Son imágenes del prototipo local,
 con datos simulados y la ilustración aportada para el indicador.
 
 ## Organización
