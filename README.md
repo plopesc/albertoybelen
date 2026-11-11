@@ -197,6 +197,20 @@ revisa y aprueba el merge; no hay merge automático. Pages solo publica tras
 la autorización y activación descritas a continuación; después publica los
 cambios que se fusionen en `main` mientras siga habilitado.
 
+## Capturas para revisión
+
+Consulta [Capturas visuales reproducibles](docs/visual-captures.md). Con las
+herramientas de desarrollo instaladas:
+
+```sh
+npm ci
+npx playwright install --with-deps chromium
+npm run capture:visual
+```
+
+El workflow de PR guarda las capturas como artifacts durante tres días, sin
+publicar la web ni modificar el progreso de los jugadores.
+
 ## Entorno de pruebas en GitHub Pages
 
 **Estado a 11 de noviembre de 2026: viable, pendiente de activación autorizada.**
@@ -295,17 +309,3 @@ consecución histórica, pero su contenido definitivo queda fuera de esta fase.
 
 Pages queda preparado e inactivo. No iniciar Strava, OAuth, Cloudflare ni el
 primer despliegue sin instrucciones explícitas.
-
-## Capturas para revisión
-
-Consulta [Capturas visuales reproducibles](docs/visual-captures.md). Con las
-herramientas de desarrollo instaladas:
-
-```sh
-npm ci
-npx playwright install --with-deps chromium
-npm run capture:visual
-```
-
-El workflow de PR guarda las capturas como artifacts durante tres días, sin
-publicar la web ni modificar el progreso de los jugadores.
