@@ -1,7 +1,7 @@
 import { createMilestoneQueue } from './milestones.js';
 import { milestonePhoto } from './milestone-photos.js';
 
-/** Sincronizar nunca abre; advance solo debe llamarse tras aumentar distancia. */
+/** Los avisos pendientes se muestran al entrar; las imágenes requieren una acción. */
 export function createMilestoneReveals({ root, dialog, milestones, history }) {
   const $ = id => dialog.querySelector(`#${id}`);
   const number = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 1 });
@@ -21,60 +21,72 @@ export function createMilestoneReveals({ root, dialog, milestones, history }) {
     const { pending } = queue.getState();
     $('reward-next').hidden = pending.length === 0;
     $('reward-next').textContent = `Siguiente hito (${pending.length})`;
-    $('reward-skip').hidden = phase === 'revealed';
+    $('reward-view').hidden = phase !== 'notice';
     $('reward-counter').textContent = pending.length ? `${pending.length} ${pending.length === 1 ? 'hito pendiente' : 'hitos pendientes'}` : 'Puedes volver a abrir esta imagen desde el mapa.';
   }
 
   function reveal() {
     clearTimers();
-    if (!dialog.open || queue.getState().current === null) return;
-    const skipHadFocus = document.activeElement === $('reward-skip');
+    if (queue.getState().current === null) return;
     phase = 'revealed';
     dialog.dataset.phase = phase;
-    $('reward-chest').classList.add('is-open');
+    $('reward-eyebrow').textContent = 'UN RECUERDO EN EL CAMINO';
+    $('reward-chest').toggleAttribute('hidden', true);
     $('reward-photo-wrap').hidden = false;
     $('reward-status').textContent = '';
     $('reward-status').hidden = true;
-    updateControls();
-    if (skipHadFocus) ($('reward-next').hidden ? $('reward-close') : $('reward-next')).focus();
-  }
-
-  function present(opener) {
-    const { current } = queue.getState();
-    const photo = photoFor(current);
-    if (!photo) return;
-    clearTimers();
-    const token = ++presentation;
-    phase = 'closed';
-    dialog.dataset.phase = phase;
-    $('reward-chest').classList.remove('is-open');
-    $('reward-photo-wrap').hidden = true;
-    $('reward-image-error').hidden = true;
-    $('reward-photo').hidden = false;
-    $('reward-title').textContent = `Hito ${number.format(definitions.get(current).percent)} %`;
-    $('reward-description').textContent = photo.title;
-    $('reward-status').hidden = false;
-    $('reward-status').textContent = 'Has llegado a un nuevo recuerdo. El cofre se está abriendo.';
-    $('reward-photo').alt = photo.alt;
+    const token = presentation;
     $('reward-photo').onerror = () => {
       if (token !== presentation) return;
       $('reward-photo').hidden = true;
       $('reward-image-error').hidden = false;
     };
-    $('reward-photo').src = photo.src;
+    $('reward-photo').src = photoFor(queue.getState().current).src;
+    updateControls();
+  }
+
+  function present(opener, directImage = false) {
+    const { current } = queue.getState();
+    const photo = photoFor(current);
+    if (!photo) return;
+    clearTimers();
+    ++presentation;
+    phase = 'notice';
+    dialog.dataset.phase = phase;
+    $('reward-eyebrow').textContent = 'UN NUEVO HITO';
+    $('reward-chest').toggleAttribute('hidden', false);
+    $('reward-chest').classList.remove('is-open');
+    $('reward-photo-wrap').hidden = true;
+    $('reward-image-error').hidden = true;
+    $('reward-photo').hidden = false;
+    $('reward-photo').onerror = null;
+    $('reward-photo').removeAttribute('src');
+    $('reward-title').textContent = `Hito ${number.format(definitions.get(current).percent)} %`;
+    $('reward-description').textContent = photo.title;
+    $('reward-status').hidden = false;
+    $('reward-status').textContent = '¡Has conseguido un nuevo hito! Abre el cofre para descubrir su imagen.';
+    $('reward-photo').alt = photo.alt;
+    if (directImage) reveal();
     if (!dialog.open) {
-      returnFocus = opener ?? document.activeElement;
+      returnFocus = opener ?? nodes().find(node => node.dataset.milestone === current) ?? document.activeElement;
       dialog.showModal();
     }
+    queue.acknowledgeCurrent();
     $('reward-close').focus();
     updateControls();
-    if (reducedMotion.matches) { reveal(); return; }
-    timers.push(setTimeout(() => {
-      if (token !== presentation || !dialog.open) return;
-      phase = 'opening'; dialog.dataset.phase = phase;
-      $('reward-chest').classList.add('is-open');
-    }, 180));
-    timers.push(setTimeout(() => { if (token === presentation) reveal(); }, 1050));
+  }
+
+  function openImage() {
+    if (phase !== 'notice') return;
+    if (reducedMotion.matches) { reveal(); $('reward-close').focus(); return; }
+    phase = 'opening';
+    dialog.dataset.phase = phase;
+    $('reward-chest').classList.add('is-open');
+    $('reward-status').textContent = 'Abriendo el cofre…';
+    updateControls();
+    $('reward-close').focus();
+    const token = presentation;
+    timers.push(setTimeout(() => { if (token === presentation) reveal(); }, 800));
   }
 
   function close() {
@@ -88,7 +100,7 @@ export function createMilestoneReveals({ root, dialog, milestones, history }) {
   function activate(node) {
     const id = node.dataset.milestone;
     if (!photoFor(id) || !queue.reopen(id)) return;
-    present(node);
+    present(node, true);
   }
   root.addEventListener('click', event => {
     const node = event.target.closest('[data-milestone]');
@@ -101,7 +113,7 @@ export function createMilestoneReveals({ root, dialog, milestones, history }) {
     event.preventDefault(); activate(node);
   });
   $('reward-close').addEventListener('click', close);
-  $('reward-skip').addEventListener('click', reveal);
+  $('reward-view').addEventListener('click', openImage);
   $('reward-next').addEventListener('click', () => {
     if (queue.next().current === null) close(); else present();
   });
@@ -120,9 +132,14 @@ export function createMilestoneReveals({ root, dialog, milestones, history }) {
     const box = dialog.getBoundingClientRect();
     if (event.target === dialog && (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom)) close();
   });
-  reducedMotion.addEventListener('change', () => { if (reducedMotion.matches && dialog.open) reveal(); });
+  reducedMotion.addEventListener('change', () => {
+    if (reducedMotion.matches && dialog.open && phase === 'opening') reveal();
+  });
 
   return {
+    showPending() {
+      if (queue.restorePending().current !== null) present();
+    },
     synchronize() {
       const before = queue.getState().current;
       const state = queue.synchronize();

@@ -136,7 +136,7 @@ progress::-moz-progress-bar { background: var(--accent); }
 .chest-glow, .chest-spark { opacity: 0; transition: opacity .5s steps(4, end); }
 .reward-chest.is-open .chest-lid { transform: translateY(-28px) scaleY(.66) rotate(-9deg); }
 .reward-chest.is-open .chest-glow, .reward-chest.is-open .chest-spark { opacity: 1; }
-.reward-dialog[data-phase="revealed"] .reward-chest { width: 130px; }
+.reward-dialog[data-phase="revealed"] .reward-stage { min-height: 0; }
 .reward-photo-wrap { margin: 8px 0 0; border: 2px solid #a98b53; padding: 6px; background: #182e23; box-shadow: 0 3px 0 #12261c; }
 .reward-photo-wrap img { display: block; width: 100%; height: auto; aspect-ratio: 20 / 13; object-fit: cover; }
 .reward-photo-wrap figcaption { color: var(--muted); font-size: 10px; line-height: 1.6; padding: 8px 4px 2px; }

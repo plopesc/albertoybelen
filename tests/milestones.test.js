@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createMilestoneHistory, createUnlockState, HISTORY_STORAGE_PREFIX } from '../frontend/js/milestone-history.js';
+import { createMilestoneHistory, createUnlockState, HISTORY_STORAGE_PREFIX, LEGACY_HISTORY_STORAGE_PREFIX } from '../frontend/js/milestone-history.js';
 import { createMilestoneQueue } from '../frontend/js/milestones.js';
 import { milestonePhoto } from '../frontend/js/milestone-photos.js';
 
@@ -119,7 +119,7 @@ test('historial corrupto no se sobrescribe al cargar; un avance permite recupera
   assert.equal(history.isPersistent(), false);
   history.advance(.4, .41, 1);
   assert.equal(history.isPersistent(), true);
-  assert.equal(JSON.parse(storage.getItem(key)).version, 1);
+  assert.equal(JSON.parse(storage.getItem(key)).version, 2);
 });
 test('fixture de backend compartido: dos dispositivos reciben los mismos IDs históricos', () => {
   const snapshot = Object.freeze({ unlockedIds: ['milestone-20', 'milestone-40', 'finish'] });
@@ -131,4 +131,81 @@ test('fixture de backend compartido: dos dispositivos reciben los mismos IDs his
   assert.deepEqual(deviceA.getUnlockedIds(), deviceB.getUnlockedIds());
   const copy = deviceA.getUnlockedIds(); copy.length = 0;
   assert.equal(deviceA.isUnlocked('finish'), true);
+});
+
+test('aviso mostrado se persiste aunque se cierre sin abrir la imagen', () => {
+  const { storage, history, queue } = fixture();
+  queue.advance(0, .2, 20);
+  assert.equal(history.hasSeenNotice('milestone-20'), false);
+  queue.acknowledgeCurrent(); queue.close();
+  const restored = createMilestoneHistory(storage, { ...settings, initialRatio: .2 });
+  assert.equal(restored.hasSeenNotice('milestone-20'), true);
+  assert.equal(createMilestoneQueue(milestones, restored).restorePending().current, null);
+  assert.equal(restored.isUnlocked('milestone-20'), true);
+});
+test('cerrar el primer aviso conserva los demás pendientes para la siguiente visita', () => {
+  const { storage, history, queue } = fixture();
+  queue.advance(0, .8, 80);
+  queue.acknowledgeCurrent(); queue.close();
+  assert.deepEqual(history.getSeenNoticeIds(), ['milestone-20']);
+  const restored = createMilestoneHistory(storage, { ...settings, initialRatio: .38 });
+  const nextQueue = createMilestoneQueue(milestones, restored);
+  assert.deepEqual(nextQueue.restorePending().pending, ['milestone-60', 'milestone-80']);
+  assert.equal(nextQueue.getState().current, 'milestone-40');
+  nextQueue.acknowledgeCurrent();
+  assert.equal(nextQueue.next().current, 'milestone-60');
+  assert.equal(restored.hasSeenNotice('milestone-60'), false, 'seleccionar no equivale a haber mostrado');
+});
+test('logros recibidos desde la última visita se anuncian, sin volver a calcular umbrales', () => {
+  const storage = memoryStorage({ [key]: JSON.stringify({ version: 2, gameId: settings.gameId, unlockedIds: ['milestone-20', 'milestone-40'], seenNoticeIds: ['milestone-20'] }) });
+  const history = createMilestoneHistory(storage, { ...settings, initialRatio: .1 });
+  const queue = createMilestoneQueue(milestones, history);
+  assert.equal(queue.restorePending().current, 'milestone-40');
+  assert.equal(history.isUnlocked('milestone-60'), false);
+});
+test('abrir manualmente una imagen también da su aviso por visto, sin consumir otros', () => {
+  const { history, queue } = fixture();
+  queue.advance(0, .4, 40); queue.close();
+  queue.reopen('milestone-40'); queue.acknowledgeCurrent(); queue.close();
+  assert.equal(queue.restorePending().current, 'milestone-20');
+  assert.equal(history.hasSeenNotice('milestone-40'), true);
+  history.markNoticeSeen('milestone-80');
+  assert.equal(history.hasSeenNotice('milestone-80'), false, 'un hito bloqueado no puede darse por visto');
+});
+test('migración v1 conserva logros y considera vistos los avisos antiguos sin modificar v1', () => {
+  const legacyKey = `${LEGACY_HISTORY_STORAGE_PREFIX}${settings.gameId}`;
+  const original = JSON.stringify({ version: 1, gameId: settings.gameId, unlockedIds: ['milestone-40', 'retirado', 'finish'] });
+  const storage = memoryStorage({ [legacyKey]: original });
+  const history = createMilestoneHistory(storage, { ...settings, initialRatio: .1 });
+  assert.deepEqual(history.getUnlockedIds(), ['milestone-40', 'retirado', 'finish']);
+  assert.deepEqual(history.getSeenNoticeIds(), history.getUnlockedIds());
+  assert.equal(createMilestoneQueue(milestones, history).restorePending().current, null);
+  assert.equal(storage.getItem(legacyKey), original);
+  assert.equal(JSON.parse(storage.getItem(key)).version, 2);
+  history.reset();
+  assert.deepEqual(history.getSeenNoticeIds(), []);
+  assert.deepEqual(createMilestoneHistory(storage, { ...settings, initialRatio: 1 }).getUnlockedIds(), [], 'v2 vacío prevalece sobre v1');
+});
+test('v2 corrupto no resucita logros de v1 ni avisos inválidos', () => {
+  const legacyKey = `${LEGACY_HISTORY_STORAGE_PREFIX}${settings.gameId}`;
+  const legacy = JSON.stringify({ version: 1, gameId: settings.gameId, unlockedIds: ['finish'] });
+  for (const saved of ['{', JSON.stringify({ version: 2, gameId: settings.gameId, unlockedIds: [], seenNoticeIds: ['milestone-40'] })]) {
+    const storage = memoryStorage({ [key]: saved, [legacyKey]: legacy });
+    const history = createMilestoneHistory(storage, settings);
+    assert.equal(history.isPersistent(), false);
+    assert.equal(history.isUnlocked('finish'), false);
+    assert.equal(storage.getItem(key), saved);
+  }
+});
+test('avisos vistos resisten cambios de porcentaje y archivo, reset limpia ambos conjuntos', () => {
+  const { storage, history, queue } = fixture();
+  queue.advance(0, .4, 40); queue.acknowledgeCurrent(); queue.next(); queue.acknowledgeCurrent();
+  const moved = [{ id: 'milestone-40', percent: 70 }];
+  const restored = createMilestoneHistory(storage, { ...settings, milestones: moved, initialRatio: .1 });
+  assert.equal(restored.hasSeenNotice('milestone-40'), true);
+  assert.equal(restored.hasSeenNotice('milestone-20'), true);
+  assert.equal(createMilestoneQueue(moved, restored).restorePending().current, null);
+  history.reset();
+  assert.deepEqual(history.getUnlockedIds(), []);
+  assert.deepEqual(history.getSeenNoticeIds(), []);
 });

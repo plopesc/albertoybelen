@@ -183,10 +183,10 @@
     <noscript><p class="error">Activa JavaScript para cargar la configuración del juego.</p></noscript>
   </main>
   <dialog id="milestone-dialog" class="reward-dialog" aria-labelledby="reward-title" aria-describedby="reward-description reward-counter reward-status">
-    <div class="reward-header"><div><p class="eyebrow">UN RECUERDO EN EL CAMINO</p><h2 id="reward-title">Hito desbloqueado</h2></div><button id="reward-close" class="reward-close" type="button" aria-label="Cerrar recuerdos">Cerrar <span aria-hidden="true">×</span></button></div>
+    <div class="reward-header"><div><p id="reward-eyebrow" class="eyebrow">UN NUEVO HITO</p><h2 id="reward-title">Hito desbloqueado</h2></div><button id="reward-close" class="reward-close" type="button" aria-label="Cerrar recuerdos">Cerrar <span aria-hidden="true">×</span></button></div>
     <p id="reward-description" class="reward-description"></p>
     <div class="reward-stage">
-      <svg id="reward-chest" class="reward-chest" viewBox="0 0 240 180" role="img" aria-label="Cofre verde y dorado que se abre al alcanzar el hito">
+      <svg id="reward-chest" class="reward-chest" viewBox="0 0 240 180" role="img" aria-label="Cofre verde y dorado del hito conseguido">
         <defs>
           <linearGradient id="chest-wood" x2="0" y2="1"><stop stop-color="#b28c54"/><stop offset=".4" stop-color="#86633e"/><stop offset="1" stop-color="#4e4330"/></linearGradient>
           <linearGradient id="chest-metal" x2=".8" y2="1"><stop stop-color="#fff0af"/><stop offset=".35" stop-color="#dbb66c"/><stop offset=".7" stop-color="#a8793d"/><stop offset="1" stop-color="#eed498"/></linearGradient>
@@ -222,7 +222,7 @@
       <p id="reward-image-error" class="error" hidden>No se pudo cargar esta imagen. Puedes cerrar el recuerdo y volver a intentarlo.</p>
     </div>
     <p id="reward-status" class="reward-status" role="status" aria-live="polite"></p>
-    <div class="reward-actions"><button id="reward-skip" type="button">Ver imagen ahora</button><button id="reward-next" type="button" hidden>Siguiente hito</button></div>
+    <div class="reward-actions"><button id="reward-view" type="button">Ver imagen</button><button id="reward-next" type="button" hidden>Siguiente hito</button></div>
     <p id="reward-counter" class="reward-counter"></p>
   </dialog>
   <footer class="site-footer"><span>CADA KILÓMETRO CUENTA.</span><span id="data-source">PROTOTIPO / SIN DATOS</span></footer>

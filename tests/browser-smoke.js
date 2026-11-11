@@ -9,7 +9,7 @@ async (page) => {
   });
   const currentKey = 'strava-adventure:simulation:v2';
   const legacyKey = 'strava-adventure:simulation:v1';
-  const historyPrefix = 'strava-adventure:milestones:v1:';
+  const historyPrefix = 'strava-adventure:milestones:';
   const configUrl = new URL('./config/game.json', page.url()).href;
   await page.unroute(configUrl);
   const base = await page.evaluate(async (url) => (await fetch(url, { cache: 'no-store' })).json(), configUrl);

@@ -177,6 +177,7 @@ async function start() {
     $('simulation-card').hidden = false;
     document.querySelector('.controls-link').hidden = false;
     $('progress').hidden = false;
+    reveals.showPending();
     render(provider.getState(), false);
   } catch (error) {
     $('game-title').textContent = 'Partida no disponible';

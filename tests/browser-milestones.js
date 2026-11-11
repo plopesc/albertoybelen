@@ -8,7 +8,7 @@ async page => {
   base.game = { ...base.game, id: 'browser-milestones', goalKm: 100, mode: 'simulation' };
   base.rewards.milestones = [20, 40, 60, 80].map(percent => ({ id: `milestone-${percent}`, percent }));
   let configured = structuredClone(base);
-  const historyKey = 'strava-adventure:milestones:v1:browser-milestones';
+  const historyKey = 'strava-adventure:milestones:v2:browser-milestones';
   const distanceKey = 'strava-adventure:simulation:v2';
   const errors = [], resources = [];
   page.on('pageerror', error => errors.push(error.message));
@@ -22,7 +22,7 @@ async page => {
   const isClosed = async () => assert(!await dialog.isVisible(), 'No debe abrirse un cofre automáticamente');
   const title = percent => page.waitForFunction(percent => document.getElementById('milestone-dialog').open && document.getElementById('reward-title').textContent === `Hito ${percent} %`, percent);
   const reveal = async id => {
-    if (await page.locator('#reward-skip').isVisible()) await page.locator('#reward-skip').click();
+    if (await page.locator('#reward-view').isVisible()) await page.locator('#reward-view').click();
     await page.locator('#reward-photo-wrap').waitFor({ state: 'visible' });
     await page.locator('#reward-photo').evaluate(image => image.decode());
     assert((await page.locator('#reward-photo').getAttribute('src')).endsWith(`${id}.webp`), `Imagen correspondiente a ${id}`);
@@ -31,15 +31,19 @@ async page => {
   try {
     await page.evaluate(({ historyKey }) => {
       localStorage.removeItem(historyKey);
+      localStorage.removeItem('strava-adventure:milestones:v1:browser-milestones');
       localStorage.removeItem('strava-adventure:simulation:v1');
     }, { historyKey });
     await distance(19); await reload(); await isClosed();
     assert(await node('milestone-20').getAttribute('aria-disabled') === 'true', '19 % debe estar bloqueado');
     await node('milestone-20').dispatchEvent('click'); await isClosed();
     await add(1); await title(20);
-    assert(await page.locator('#reward-photo-wrap').isHidden(), 'Primero debe verse el cofre, antes de la foto');
+    await page.waitForTimeout(1200);
+    assert(await dialog.getAttribute('data-phase') === 'notice', 'El aviso no cambia por esperar');
+    assert(await page.locator('#reward-photo-wrap').isHidden(), 'El aviso espera una acción explícita');
+    assert(await page.locator('#reward-photo').getAttribute('src') === null, 'No cargar la imagen antes de pulsar Ver imagen');
     await reveal('milestone-20');
-    assert(await page.evaluate(() => document.getElementById('milestone-dialog').contains(document.activeElement)), 'Saltar animación debe conservar el foco en el modal');
+    assert(await page.evaluate(() => document.getElementById('milestone-dialog').contains(document.activeElement)), 'Ver imagen debe conservar el foco en el modal');
     for (let i = 0; i < 4; i++) {
       await page.keyboard.press('Tab');
       assert(await page.evaluate(() => document.getElementById('milestone-dialog').contains(document.activeElement)), 'Tab debe permanecer en el modal');
@@ -49,15 +53,16 @@ async page => {
     await page.keyboard.press('Escape'); await isClosed();
     assert(await page.locator('[data-km="1"]').evaluate(button => button === document.activeElement), 'Escape devuelve foco al control que hizo avanzar');
     await node('milestone-20').focus(); await page.keyboard.press('Enter'); await title(20);
+    assert(await dialog.getAttribute('data-phase') === 'revealed', 'Enter abre directamente la imagen');
     await page.keyboard.press('Escape'); await isClosed();
     assert(await node('milestone-20').evaluate(element => element === document.activeElement), 'Reapertura devuelve foco al hito');
     await page.waitForTimeout(1100); await isClosed();
     await reload(); await isClosed();
     await node('milestone-20').click(); await title(20);
-    await page.waitForFunction(() => document.getElementById('milestone-dialog').dataset.phase === 'opening');
-    await page.locator('#reward-photo-wrap').waitFor({ state: 'visible' });
-    await page.locator('#reward-photo').evaluate(image => image.decode());
-    assert(await page.locator('#reward-chest').evaluate(chest => chest.classList.contains('is-open')), 'La animación automática abre el cofre antes de revelar');
+    assert(await dialog.getAttribute('data-phase') === 'revealed', 'El mapa abre directamente la imagen sin aviso');
+    assert(await page.locator('#reward-chest').isHidden(), 'La consulta manual no muestra el cofre');
+    assert(await page.locator('#reward-view').isHidden(), 'La consulta manual no pide otro clic');
+    await reveal('milestone-20');
     await page.mouse.click(1, 1); await isClosed();
     assert(await node('milestone-20').evaluate(element => element === document.activeElement), 'Cerrar desde el fondo restaura el foco');
 
@@ -85,9 +90,17 @@ async page => {
     await close();
     assert(await page.evaluate(key => JSON.parse(localStorage.getItem(key)).unlockedIds.includes('finish'), historyKey), 'La meta final también se conserva históricamente');
     await page.getByRole('button', { name: 'Reiniciar kilómetros', exact: true }).click();
-    await add(10); await title(20); await close();
+    await add(10); await title(20);
+    await page.locator('#reward-view').click();
+    await page.keyboard.press('Escape'); await isClosed();
+    await page.waitForTimeout(1000); await isClosed();
     await add(1); await isClosed();
-    await node('milestone-80').click(); await title(80); await close();
+    await node('milestone-80').click(); await title(80); await reveal('milestone-80'); await close();
+    await reload(); await title(40);
+    assert(await dialog.getAttribute('data-phase') === 'notice', 'Al volver se avisa del primer hito pendiente');
+    await close();
+    await reload(); await title(60); await close();
+    await reload(); await isClosed();
 
     configured.game.goalKm = 500; await distance(500); await reload(); await isClosed();
     configured.game.goalKm = 700; await reload(); await isClosed();
@@ -115,7 +128,7 @@ async page => {
     configured.rewards.milestones = [{ id: 'imagen-ausente', percent: 90, image: 'assets/milestones/no-existe.webp' }];
     configured.game.goalKm = 100; await distance(95); await reload(); await isClosed();
     await add(1); await title(90);
-    await page.locator('#reward-skip').click();
+    await page.locator('#reward-view').click();
     await page.locator('#reward-image-error').waitFor({ state: 'visible' });
     assert(await page.locator('#reward-photo').isHidden(), 'Imagen ausente muestra aviso, nunca una foto anterior');
     await close();
@@ -125,7 +138,9 @@ async page => {
     await distance(19); await reload();
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await add(1); await title(20);
-    assert(await dialog.getAttribute('data-phase') === 'revealed', 'Movimiento reducido revela sin temporizadores ni transición');
+    assert(await dialog.getAttribute('data-phase') === 'notice', 'Movimiento reducido también espera a Ver imagen');
+    await reveal('milestone-20');
+    assert(await dialog.getAttribute('data-phase') === 'revealed', 'Tras pulsar, movimiento reducido revela sin espera');
     for (const width of [320, 390, 768, 1280]) {
       await page.setViewportSize({ width, height: 844 });
       const fits = await dialog.evaluate(element => {
@@ -137,6 +152,18 @@ async page => {
     }
     await close();
     await node('milestone-20').focus(); await page.keyboard.press('Space'); await title(20); await close();
+    await page.evaluate(({ historyKey, distanceKey }) => {
+      localStorage.setItem(distanceKey, JSON.stringify({ version: 2, distanceKm: 40 }));
+      localStorage.setItem(historyKey, JSON.stringify({ version: 2, gameId: 'browser-milestones', unlockedIds: ['milestone-20', 'milestone-40'], seenNoticeIds: ['milestone-20'] }));
+    }, { historyKey, distanceKey });
+    await reload(); await title(40);
+    await page.waitForTimeout(1200);
+    assert(await page.locator('#reward-photo-wrap').isHidden(), 'Un logro desde la última visita solo muestra el aviso');
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    assert(await dialog.getAttribute('data-phase') === 'notice', 'Cambiar movimiento reducido no abre la imagen');
+    await close(); await reload(); await isClosed();
+    await node('milestone-40').click(); await reveal('milestone-40'); await close();
     const session = await page.context().newCDPSession(page);
     const tree = await session.send('Accessibility.getFullAXTree');
     assert(tree.nodes.some(item => item.role?.value === 'button' && item.name?.value?.includes('Hito 20')), 'El árbol accesible debe exponer los botones SVG');
@@ -153,14 +180,14 @@ async page => {
       assert(!await touchPage.locator('#milestone-dialog').isVisible(), 'Recarga móvil con progreso no abre');
       await touchPage.locator('[data-milestone="milestone-40"]').tap();
       await touchPage.locator('#milestone-dialog').waitFor({ state: 'visible' });
-      await touchPage.locator('#reward-skip').tap();
+      assert(await touchPage.locator('#milestone-dialog').getAttribute('data-phase') === 'revealed', 'El toque abre directamente la imagen');
       await touchPage.locator('#reward-photo').evaluate(image => image.decode());
       await touchPage.locator('#reward-close').tap();
       assert(!await touchPage.locator('#milestone-dialog').isVisible(), 'Apertura y cierre táctil');
     } finally { await touchContext.close(); }
     assert(errors.length === 0, `Errores JavaScript: ${errors.join(', ')}`);
     assert(resources.length === 0, `Recursos fallidos: ${resources.join(', ')}`);
-    return 'OK: 19→20 %, clic/teclado/táctil, cofre→foto, cola 20/40/60/80, Escape/foco, recarga sin autoapertura, retroceso 40→38→40, meta 500→700, IDs/imágenes estables, imagen ausente y movimiento reducido.';
+    return 'OK: 19→20 %, clic/teclado/táctil, aviso→Ver imagen, mapa→imagen directa, avisos pendientes entre visitas, cola 20/40/60/80, Escape/foco, recarga sin repetir avisos vistos, retroceso 40→38→40, meta 500→700, IDs/imágenes estables, imagen ausente y movimiento reducido.';
   } finally {
     await page.unroute(url);
     await page.reload();
