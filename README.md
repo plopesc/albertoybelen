@@ -156,6 +156,19 @@ Cofres e historial de la issue #9: [móvil](docs/screenshots/issue-9-mobile.png)
 La [guía de hitos](docs/milestones.md) explica cómo sustituir imágenes y conservar
 sus identidades al editar la configuración.
 
+## Celebración y regalo final
+
+La [guía del regalo final](docs/final-reward.md) explica su contenido provisional,
+el estado histórico y cómo verificarlo. Con el servidor local y el navegador
+de pruebas abiertos según los comandos anteriores:
+
+```sh
+playwright-cli -s=adventure run-code --filename=tests/browser-finale.js
+```
+
+La celebración se ejecuta solo ante el primer desbloqueo; recargas, retrocesos y
+cambios de meta conservan el acceso al regalo sin repetir la celebración.
+
 ## Organización
 
 ```text
@@ -296,16 +309,3 @@ consecución histórica, pero su contenido definitivo queda fuera de esta fase.
 
 Pages queda preparado e inactivo. No iniciar Strava, OAuth, Cloudflare ni el
 primer despliegue sin instrucciones explícitas.
-
-## Celebración y regalo final
-
-La [guía del regalo final](docs/final-reward.md) explica su contenido provisional,
-el estado histórico y cómo verificarlo. Con el servidor local y el navegador
-de pruebas abiertos según los comandos anteriores:
-
-```sh
-playwright-cli -s=adventure run-code --filename=tests/browser-finale.js
-```
-
-La celebración se ejecuta solo ante el primer desbloqueo; recargas, retrocesos y
-cambios de meta conservan el acceso al regalo sin repetir la celebración.
