@@ -304,7 +304,7 @@ indicador son SVG independientes del fondo. Se conserva el
 [prompt y procedencia del arte](frontend/assets/ART.md). No hay fuentes externas,
 animaciones de carrera. Las imágenes provisionales de los cofres también son
 paisajes generados y locales; sus [prompts y procedencia](frontend/assets/milestones/ART.md)
-quedan documentados. El regalo final sigue siendo decorativo; se guarda su
+quedan documentados. El regalo final usa una imagen y un mensaje provisionales; se guarda su
 consecución histórica, pero su contenido definitivo queda fuera de esta fase.
 
 Pages queda preparado e inactivo. No iniciar Strava, OAuth, Cloudflare ni el
