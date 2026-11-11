@@ -45,6 +45,7 @@ try {
     });
     async function state(km, unseen = false) {
       await page.goto(url);
+      await page.locator('#simulation-card').waitFor({ state: 'visible' });
       await page.evaluate(({ km, ids, unseen }) => {
         localStorage.clear();
         localStorage.setItem('strava-adventure:simulation:v2', JSON.stringify({ version: 2, distanceKm: km }));
