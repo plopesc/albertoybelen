@@ -27,7 +27,7 @@ button:active { transform: translateY(2px); }
 .brand small { display: block; margin-top: 4px; color: var(--accent); font: 10px ui-monospace, monospace; letter-spacing: .18em; }
 .brand-icon { display: grid; place-items: center; width: 42px; height: 42px; flex-shrink: 0; background: linear-gradient(#e2bc81, #c58f4d); color: var(--ink); font: bold 16px Georgia, serif; border: 2px solid #e9d2a9; border-radius: 5px; box-shadow: 2px 3px 0 #795332; }
 .mode { color: var(--accent); font: bold 10px ui-monospace, monospace; letter-spacing: .04em; border: 1px solid var(--line); padding: 10px; white-space: nowrap; }
-.mode span { margin-right: 5px; }
+.mode > span[aria-hidden] { margin-right: 5px; }
 main { padding: 36px 32px 0; }
 .intro { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 30px; }
 .eyebrow { color: var(--accent); font: bold 10px ui-monospace, monospace; letter-spacing: .12em; line-height: 1.6; margin: 0 0 10px; }
@@ -64,16 +64,16 @@ progress::-moz-progress-bar { background: var(--accent); }
 .map { display: block; width: 100%; height: auto; }
 .map > image { image-rendering: pixelated; }
 .endpoint { fill: #493c30; font: 800 12px system-ui, sans-serif; letter-spacing: .3px; }
-.checkpoint { color: #c9cfc5; }
-.checkpoint-node { fill: var(--checkpoint-fill, #24342c); stroke: var(--checkpoint-stroke, #f5efdc); stroke-width: 3px; }
-.checkpoint-label > rect { fill: url(#map-plate); stroke: #c9cfc5; stroke-width: 2px; rx: 3px; }
-.checkpoint-label text { fill: #f5efdc; font: bold 18px ui-monospace, monospace; }
-.checkpoint-label .checkpoint-state { fill: #c9cfc5; font-size: 14px; }
-.checkpoint.unlocked { color: #e2bc81; }
-.checkpoint.unlocked, .legend-unlocked { --checkpoint-fill: #e2bc81; --checkpoint-stroke: #24342c; }
-.checkpoint.unlocked .checkpoint-label > rect { stroke: #e2bc81; }
-.checkpoint.unlocked .checkpoint-state { fill: #e2bc81; }
-.checkpoint.unlocked .checkpoint-lock { display: none; }
+.milestone { color: #c9cfc5; }
+.milestone-node { fill: var(--milestone-fill, #24342c); stroke: var(--milestone-stroke, #f5efdc); stroke-width: 3px; }
+.milestone-label > rect { fill: url(#map-plate); stroke: #c9cfc5; stroke-width: 2px; rx: 3px; }
+.milestone-label text { fill: #f5efdc; font: bold 18px ui-monospace, monospace; }
+.milestone-label .milestone-state { fill: #c9cfc5; font-size: 14px; }
+.milestone.unlocked { color: #e2bc81; }
+.milestone.unlocked, .legend-unlocked { --milestone-fill: #e2bc81; --milestone-stroke: #24342c; }
+.milestone.unlocked .milestone-label > rect { stroke: #e2bc81; }
+.milestone.unlocked .milestone-state { fill: #e2bc81; }
+.milestone.unlocked .milestone-lock { display: none; }
 .map-footer { padding: 16px 20px; color: var(--muted); font-size: 11px; line-height: 1.6; border-top: 2px solid var(--ink); }
 .map-legend { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 18px; list-style: none; margin: 0; padding: 0; }
 .map-legend li { display: flex; align-items: center; gap: 8px; }
@@ -109,10 +109,48 @@ progress::-moz-progress-bar { background: var(--accent); }
 @media (max-width: 360px) {
   .site-header { padding-inline: 14px; gap: 10px; }
   main { padding-inline: 14px; }
-  .mode span { display: none; }
+  .mode > span[aria-hidden] { display: none; }
   .brand { font-size: 10px; }
   .progress-card, .simulation-card { padding: 18px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
 }
+
+/* Recuerdos de hitos: interacción del mapa y diálogo nativo. */
+.milestone[role="button"] { cursor: not-allowed; outline: none; }
+.milestone.milestone-reopen { cursor: pointer; }
+.milestone[role="button"]:focus-visible .milestone-label > rect { stroke: #fff0b4; stroke-width: 4px; }
+.milestone.milestone-reopen:hover .milestone-label > rect { stroke: #fff0b4; }
+.reward-dialog { width: min(92vw, 620px); max-height: 90dvh; overflow-y: auto; padding: 24px; color: var(--white); background: linear-gradient(140deg, #304e3c, #20382c); border: 2px solid #c8a66e; border-radius: 8px; box-shadow: inset 0 0 0 3px #62724c, 0 12px 48px #09170dcc; }
+.reward-dialog::backdrop { background: #081b14d9; }
+.reward-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.reward-header .eyebrow { margin-bottom: 5px; }
+.reward-header h2 { font-size: 27px; }
+.reward-close { flex-shrink: 0; padding: 8px 12px; border: 1px solid #a48d5b; color: var(--white); background: #24342c; border-radius: 4px; font-size: 12px; }
+.reward-close span { font-size: 19px; margin-left: 5px; }
+.reward-description { color: var(--muted); font-size: 14px; margin: 12px 0 0; }
+.reward-stage { position: relative; text-align: center; min-height: 180px; margin-top: 12px; }
+.reward-chest { display: block; width: min(75%, 300px); height: auto; margin-inline: auto; shape-rendering: crispEdges; }
+.chest-lid { transform-box: fill-box; transform-origin: 50% 100%; transition: transform .8s steps(6, end); }
+.chest-glow, .chest-spark { opacity: 0; transition: opacity .5s steps(4, end); }
+.reward-chest.is-open .chest-lid { transform: translateY(-28px) scaleY(.66) rotate(-9deg); }
+.reward-chest.is-open .chest-glow, .reward-chest.is-open .chest-spark { opacity: 1; }
+.reward-dialog[data-phase="revealed"] .reward-stage { min-height: 0; }
+.reward-photo-wrap { margin: 8px 0 0; border: 2px solid #a98b53; padding: 6px; background: #182e23; box-shadow: 0 3px 0 #12261c; }
+.reward-photo-wrap img { display: block; width: 100%; height: auto; aspect-ratio: 20 / 13; object-fit: cover; }
+.reward-photo-wrap figcaption { color: var(--muted); font-size: 10px; line-height: 1.6; padding: 8px 4px 2px; }
+.reward-status { color: #e8ce9e; font-size: 12px; line-height: 1.6; margin: 12px 0; }
+.reward-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.reward-actions button { flex: 1; padding: 10px 14px; border: 2px solid #e9d2a9; border-bottom-color: #a87332; border-radius: 4px; background: linear-gradient(#e2bc81, #c58f4d); color: #24342c; font-size: 12px; font-weight: 700; }
+.reward-counter { color: var(--muted); font-size: 11px; line-height: 1.6; margin: 14px 0 0; }
+@media (max-width: 420px) {
+  .reward-dialog { width: calc(100vw - 24px); padding: 18px; }
+  .reward-header { gap: 10px; }
+  .reward-header h2 { font-size: 23px; }
+  .reward-header .eyebrow { font-size: 8px; }
+  .reward-close { padding-inline: 9px; }
+}
+
+.unlocks-note { color: var(--accent); font-size: 11px; line-height: 1.6; margin: 18px 0 0; }
+body:has(.reward-dialog[open]) { overflow: hidden; }

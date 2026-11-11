@@ -9,11 +9,13 @@ async (page) => {
   });
   const currentKey = 'strava-adventure:simulation:v2';
   const legacyKey = 'strava-adventure:simulation:v1';
+  const historyPrefix = 'strava-adventure:milestones:';
   const configUrl = new URL('./config/game.json', page.url()).href;
+  await page.unroute(configUrl);
   const base = await page.evaluate(async (url) => (await fetch(url, { cache: 'no-store' })).json(), configUrl);
   base.game.mode = 'simulation';
   base.game.goalKm = 100;
-  base.rewards = { checkpoints: [20, 40, 60, 80], finish: 100 };
+  base.rewards = { milestones: [20, 40, 60, 80], finish: 100 };
   let requested = 0;
   let configured = structuredClone(base);
   let failure = null;
@@ -36,6 +38,7 @@ async (page) => {
   }, ratio);
 
   await page.evaluate(({ currentKey, legacyKey }) => { localStorage.removeItem(currentKey); localStorage.removeItem(legacyKey); }, { currentKey, legacyKey });
+  await page.evaluate(prefix => { for (const key of Object.keys(localStorage)) if (key.startsWith(prefix)) localStorage.removeItem(key); }, historyPrefix);
   await reload();
   assert(requested > 0, 'Debe pedir el JSON desde la subruta del sitio');
   assert(await text('distance') === '0' && await text('goal') === String(base.game.goalKm), 'El objetivo debe venir del JSON');
@@ -66,12 +69,13 @@ async (page) => {
   configured = structuredClone(base);
   configured.game.goalKm = 100;
   for (const km of [0, 19.9, 20, 39.9, 40, 50, 59.9, 60, 79.9, 80, 100, 125]) {
+    await page.evaluate(prefix => { for (const key of Object.keys(localStorage)) if (key.startsWith(prefix)) localStorage.removeItem(key); }, historyPrefix);
     await saveState(km); await reload(); await markerAt(Math.min(km / 100, 1));
-    assert(await page.locator('[data-checkpoint].unlocked').count() === [20, 40, 60, 80].filter(p => km >= p).length, `Estados a ${km} km`);
+    assert(await page.locator('[data-milestone].unlocked').count() === [20, 40, 60, 80].filter(p => km >= p).length, `Estados a ${km} km`);
     const geometry = await page.evaluate(() => {
       const path = document.getElementById('route');
-      return [...document.querySelectorAll('[data-checkpoint]')].every((element) => {
-        const point = path.getPointAtLength(path.getTotalLength() * Number(element.dataset.checkpoint));
+      return [...document.querySelectorAll('[data-milestone]')].every((element) => {
+        const point = path.getPointAtLength(path.getTotalLength() * Number(element.dataset.percent) / 100);
         const matrix = element.transform.baseVal.consolidate().matrix;
         const box = element.getBBox();
         return Math.hypot(matrix.e - point.x, matrix.f - point.y) < 0.1 && box.x + matrix.e >= 0 && box.x + box.width + matrix.e <= 480;
@@ -81,10 +85,10 @@ async (page) => {
   }
   configured.game.goalKm = 200;
   await reload();
-  assert(await page.locator('[data-checkpoint].unlocked').count() === 3, 'El objetivo nuevo debe recalcular los hitos sobre la distancia conservada');
+  assert(await page.locator('[data-milestone].unlocked').count() === 4, 'El objetivo nuevo conserva los hitos históricos aunque cambie el progreso actual');
   await page.getByRole('button', { name: 'Reiniciar kilómetros' }).focus();
   await page.keyboard.press('Space'); await markerAt(0);
-  assert(await text('goal') === '200' && await page.locator('[data-checkpoint].unlocked').count() === 0, 'Reiniciar conserva configuración y bloquea hitos');
+  assert(await text('goal') === '200' && await page.locator('[data-milestone].unlocked').count() === 0, 'Reiniciar conserva configuración y bloquea hitos');
   await page.getByRole('button', { name: '+1 km', exact: true }).focus();
   await page.keyboard.press('Enter'); await markerAt(1 / 200);
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -99,7 +103,7 @@ async (page) => {
     await page.setViewportSize({ width, height: 900 });
     assert(await page.evaluate(() => {
       const viewport = document.documentElement.clientWidth;
-      return document.documentElement.scrollWidth <= viewport && [...document.querySelectorAll('button:not([hidden])')].every(element => {
+      return document.documentElement.scrollWidth <= viewport && [...document.querySelectorAll('button:not([hidden])')].filter(element => element.getClientRects().length).every(element => {
         const box = element.getBoundingClientRect(); return box.x >= 0 && box.right <= viewport && box.height >= 44;
       });
     }), `Sin desbordamientos a ${width} px`);
@@ -118,12 +122,12 @@ async (page) => {
   await reload();
   assert(await text('distance') === '0', 'Debe recuperarse de v2 corrupto sin resucitar v1');
 
-  configured.rewards.checkpoints = [25, 50, 75];
+  configured.rewards.milestones = [25, 50, 75];
   await saveState(25); await reload();
-  assert(await page.locator('[data-checkpoint]').count() === 3 && await page.locator('[data-checkpoint].unlocked').count() === 2, 'Los checkpoints también proceden del JSON');
-  configured.rewards.checkpoints = [];
+  assert(await page.locator('[data-milestone]').count() === 3 && await page.locator('[data-milestone].unlocked').count() === 0, 'Los hitos nuevos del JSON no se descubren retroactivamente');
+  configured.rewards.milestones = [];
   await reload();
-  assert(await page.locator('[data-checkpoint]').count() === 0, 'Lista vacía de checkpoints válida');
+  assert(await page.locator('[data-milestone]').count() === 0, 'Lista vacía de milestones válida');
 
   configured = structuredClone(base); configured.game.mode = 'real';
   await saveState(88); await page.reload();
@@ -134,12 +138,12 @@ async (page) => {
   assert(await page.locator('#traveler').getAttribute('visibility') === 'hidden', 'Sin posición inventada');
   assert(await page.evaluate(key => JSON.parse(localStorage.getItem(key)).distanceKm, currentKey) === 88, 'Real no modifica simulación guardada');
 
-  for (const scenario of ['http', 'json', 'network', 'goal', 'date', 'mode', 'checkpoints']) {
+  for (const scenario of ['http', 'json', 'network', 'goal', 'date', 'mode', 'milestones']) {
     configured = structuredClone(base); failure = ['http', 'json', 'network'].includes(scenario) ? scenario : null;
     if (scenario === 'goal') configured.game.goalKm = 0;
     if (scenario === 'date') configured.game.startDate = '2027-02-29';
     if (scenario === 'mode') configured.game.mode = 'other';
-    if (scenario === 'checkpoints') configured.rewards.checkpoints = [20, 20];
+    if (scenario === 'milestones') configured.rewards.milestones = [20, 20];
     await page.reload();
     await page.waitForFunction(() => document.getElementById('setup-message').getAttribute('role') === 'alert');
     assert((await text('setup-message')).includes('No se puede iniciar'), `Error visible: ${scenario}`);

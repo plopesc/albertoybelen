@@ -20,9 +20,9 @@
     <div class="intro"><div><p class="eyebrow">VERSIÓN DE PRUEBAS · DATOS SIMULADOS</p><h1>ALBERTO <span>&amp; BELÉN</span></h1><p>Una aventura juntos, kilómetro a kilómetro.</p></div><a class="explore-link" href="#map">EXPLORAR MAPA <span aria-hidden="true">↓</span></a></div>
     <div class="adventure-layout">
       <section id="map" class="map-card" aria-label="Mapa del recorrido" tabindex="-1">
-        <svg class="map" viewBox="0 0 480 1280" role="img" aria-labelledby="map-title map-description">
+        <svg class="map" viewBox="0 0 480 1280" role="group" aria-roledescription="mapa interactivo" aria-labelledby="map-title map-description">
           <title id="map-title">La aventura de Alberto y Belén</title>
-          <desc id="map-description">Mapa vertical completo: salida en el bosque, río, cañón y montaña. Checkpoints al 20, 40, 60 y 80 por ciento y meta al 100 por ciento. El marcador indica tu posición; los hitos futuros están bloqueados.</desc>
+          <desc id="map-description">Mapa vertical completo: salida en el bosque, río, cañón y montaña. Milestones al 20, 40, 60 y 80 por ciento y meta al 100 por ciento. El marcador indica tu posición; los hitos futuros están bloqueados.</desc>
           <defs>
             <path id="route" d="M240 1190 C260 1130 120 1150 120 1080 S350 1070 350 980 S120 950 120 870 S350 840 350 750 S120 710 120 640 S350 590 350 510 S120 470 120 400 S330 350 310 270 S240 215 240 160"/>
             <linearGradient id="map-plate" x2="0" y2="1"><stop stop-color="#2e4a3a"/><stop offset="1" stop-color="#24342c"/></linearGradient>
@@ -55,7 +55,7 @@
               <image href="./assets/icono.jpeg" x="-24" y="-24" width="48" height="48" preserveAspectRatio="xMidYMid slice" clip-path="url(#position-clip)"/>
               <circle r="24" fill="none" stroke="#fff2b5" stroke-width="1"/>
             </g>
-            <g id="checkpoint-symbol"><path class="checkpoint-node" d="M-8-12H8l4 4V8l-4 4H-8l-4-4V-8z"/><path d="M-7-8H6l2 2" fill="none" stroke="#fff9e8" stroke-opacity=".55" stroke-width="2"/></g>
+            <g id="milestone-symbol"><path class="milestone-node" d="M-8-12H8l4 4V8l-4 4H-8l-4-4V-8z"/><path d="M-7-8H6l2 2" fill="none" stroke="#fff9e8" stroke-opacity=".55" stroke-width="2"/></g>
           </defs>
           <image href="./assets/world-16bit.webp" width="480" height="1280" preserveAspectRatio="none" aria-hidden="true"/>
           <g fill="none" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
@@ -141,20 +141,20 @@
               <text x="-17" y="12" text-anchor="middle" fill="#43513a" font-family="Georgia, serif" font-size="10" font-weight="bold" transform="rotate(18 -17 12)">?</text>
             </g>
           </g>
-          <g id="checkpoints" visibility="hidden">
-            <g data-checkpoint="0.2" class="checkpoint"><use href="#checkpoint-symbol"/><g class="checkpoint-label"><rect width="156" height="48"/><text x="10" y="19">01 / 20 %</text><text class="checkpoint-state" x="10" y="36">BLOQUEADO</text><g class="checkpoint-lock" transform="translate(136 22)"><use href="#lock"/></g></g></g>
-            <g data-checkpoint="0.4" class="checkpoint"><use href="#checkpoint-symbol"/><g class="checkpoint-label"><rect width="156" height="48"/><text x="10" y="19">02 / 40 %</text><text class="checkpoint-state" x="10" y="36">BLOQUEADO</text><g class="checkpoint-lock" transform="translate(136 22)"><use href="#lock"/></g></g></g>
-            <g data-checkpoint="0.6" class="checkpoint"><use href="#checkpoint-symbol"/><g class="checkpoint-label"><rect width="156" height="48"/><text x="10" y="19">03 / 60 %</text><text class="checkpoint-state" x="10" y="36">BLOQUEADO</text><g class="checkpoint-lock" transform="translate(136 22)"><use href="#lock"/></g></g></g>
-            <g data-checkpoint="0.8" class="checkpoint"><use href="#checkpoint-symbol"/><g class="checkpoint-label"><rect width="156" height="48"/><text x="10" y="19">04 / 80 %</text><text class="checkpoint-state" x="10" y="36">BLOQUEADO</text><g class="checkpoint-lock" transform="translate(136 22)"><use href="#lock"/></g></g></g>
+          <g id="milestones" visibility="hidden">
+            <g data-milestone="milestone-20" data-percent="20" class="milestone"><use href="#milestone-symbol"/><g class="milestone-label"><rect width="156" height="48"/><text x="10" y="19">01 / 20 %</text><text class="milestone-state" x="10" y="36">BLOQUEADO</text><g class="milestone-lock" transform="translate(136 22)"><use href="#lock"/></g></g></g>
+            <g data-milestone="milestone-40" data-percent="40" class="milestone"><use href="#milestone-symbol"/><g class="milestone-label"><rect width="156" height="48"/><text x="10" y="19">02 / 40 %</text><text class="milestone-state" x="10" y="36">BLOQUEADO</text><g class="milestone-lock" transform="translate(136 22)"><use href="#lock"/></g></g></g>
+            <g data-milestone="milestone-60" data-percent="60" class="milestone"><use href="#milestone-symbol"/><g class="milestone-label"><rect width="156" height="48"/><text x="10" y="19">03 / 60 %</text><text class="milestone-state" x="10" y="36">BLOQUEADO</text><g class="milestone-lock" transform="translate(136 22)"><use href="#lock"/></g></g></g>
+            <g data-milestone="milestone-80" data-percent="80" class="milestone"><use href="#milestone-symbol"/><g class="milestone-label"><rect width="156" height="48"/><text x="10" y="19">04 / 80 %</text><text class="milestone-state" x="10" y="36">BLOQUEADO</text><g class="milestone-lock" transform="translate(136 22)"><use href="#lock"/></g></g></g>
           </g>
           <g id="traveler" visibility="hidden" transform="translate(240 1190)" aria-hidden="true"><use href="#position-symbol"/></g>
         </svg>
-        <ol id="milestone-summary" class="sr-only" aria-label="Estado de los hitos"><li data-milestone="0.2">Checkpoint 20 %: bloqueado.</li><li data-milestone="0.4">Checkpoint 40 %: bloqueado.</li><li data-milestone="0.6">Checkpoint 60 %: bloqueado.</li><li data-milestone="0.8">Checkpoint 80 %: bloqueado.</li><li data-milestone="1">Meta 100 %: pendiente.</li></ol>
+        <ol id="milestone-summary" class="sr-only" aria-label="Estado de los hitos"><li data-milestone-summary="0.2">Hito 20 %: bloqueado.</li><li data-milestone-summary="0.4">Hito 40 %: bloqueado.</li><li data-milestone-summary="0.6">Hito 60 %: bloqueado.</li><li data-milestone-summary="0.8">Hito 80 %: bloqueado.</li><li data-milestone-summary="1">Meta 100 %: pendiente.</li></ol>
         <div class="map-footer">
-          <ul class="map-legend" aria-label="Leyenda: posición, checkpoints y meta">
+          <ul class="map-legend" aria-label="Leyenda: posición, milestones y meta">
             <li><svg class="legend-icon" viewBox="-32 -32 64 68" aria-hidden="true"><use href="#position-symbol"/></svg><span>Tu posición</span></li>
-            <li><svg class="legend-icon" viewBox="-16 -16 32 32" aria-hidden="true"><use href="#checkpoint-symbol"/></svg><span>Bloqueado</span></li>
-            <li><svg class="legend-icon legend-unlocked" viewBox="-16 -16 32 32" aria-hidden="true"><use href="#checkpoint-symbol"/></svg><span>Desbloqueado</span></li>
+            <li><svg class="legend-icon" viewBox="-16 -16 32 32" aria-hidden="true"><use href="#milestone-symbol"/></svg><span>Bloqueado</span></li>
+            <li><svg class="legend-icon legend-unlocked" viewBox="-16 -16 32 32" aria-hidden="true"><use href="#milestone-symbol"/></svg><span>Desbloqueado</span></li>
             <li><svg class="legend-icon" viewBox="154 70 174 124" aria-hidden="true"><use href="#finish-gate"/></svg><span>Meta · 100 %</span></li>
           </ul>
         </div>
@@ -167,19 +167,64 @@
         <progress hidden id="progress" max="100" value="0">0 %</progress>
         <dl class="stats"><div><dt>OBJETIVO</dt><dd><span id="goal">—</span> <small>km</small></dd></div><div><dt>RESTANTES</dt><dd><span id="remaining">—</span> <small>km</small></dd></div></dl>
         <p class="game-start">Desde <time id="start-date">—</time> · <span id="time-zone">—</span> (inclusive)</p>
+        <p id="unlocks-note" class="unlocks-note" hidden></p>
         <p id="journey-message" class="journey-message">Esperando la configuración del juego.</p>
         <a hidden class="controls-link" href="#simulation-heading">IR A LOS CONTROLES <span aria-hidden="true">↓</span></a>
       </section>
       <section id="simulation-card" hidden class="simulation-card" aria-labelledby="simulation-heading">
         <p class="eyebrow">MANDOS DE PRUEBA</p><h2 id="simulation-heading" tabindex="-1">Dale kilómetros.</h2><p class="hint">Simula tu avance por el recorrido.</p>
         <div class="distance-buttons"><button type="button" data-km="1">+1 <span>km</span></button><button type="button" data-km="5">+5 <span>km</span></button><button type="button" data-km="10">+10 <span>km</span></button></div>
-        <button id="reset" class="reset-button" type="button">Reiniciar kilómetros</button>
+        <button id="reset" aria-describedby="reset-hint" class="reset-button" type="button">Reiniciar kilómetros</button>
+        <p id="reset-hint" class="hint">Reinicia también los hitos conseguidos de esta simulación.</p>
         <p id="storage-note" class="storage-note">Tu progreso se guarda en este navegador.</p>
       </section>
     </div>
     <p id="status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
     <noscript><p class="error">Activa JavaScript para cargar la configuración del juego.</p></noscript>
   </main>
+  <dialog id="milestone-dialog" class="reward-dialog" aria-labelledby="reward-title" aria-describedby="reward-description reward-counter reward-status">
+    <div class="reward-header"><div><p id="reward-eyebrow" class="eyebrow">UN NUEVO HITO</p><h2 id="reward-title">Hito desbloqueado</h2></div><button id="reward-close" class="reward-close" type="button" aria-label="Cerrar recuerdos">Cerrar <span aria-hidden="true">×</span></button></div>
+    <p id="reward-description" class="reward-description"></p>
+    <div class="reward-stage">
+      <svg id="reward-chest" class="reward-chest" viewBox="0 0 240 180" role="img" aria-label="Cofre verde y dorado del hito conseguido">
+        <defs>
+          <linearGradient id="chest-wood" x2="0" y2="1"><stop stop-color="#b28c54"/><stop offset=".4" stop-color="#86633e"/><stop offset="1" stop-color="#4e4330"/></linearGradient>
+          <linearGradient id="chest-metal" x2=".8" y2="1"><stop stop-color="#fff0af"/><stop offset=".35" stop-color="#dbb66c"/><stop offset=".7" stop-color="#a8793d"/><stop offset="1" stop-color="#eed498"/></linearGradient>
+          <linearGradient id="chest-green" x2=".3" y2="1"><stop stop-color="#70845b"/><stop offset="1" stop-color="#294b38"/></linearGradient>
+          <radialGradient id="chest-light"><stop stop-color="#ffedb0" stop-opacity=".75"/><stop offset="1" stop-color="#ffedb0" stop-opacity="0"/></radialGradient>
+          <pattern id="chest-grain" width="24" height="16" patternUnits="userSpaceOnUse"><path d="M2 4h14v1H2zM8 11h14v1H8z" fill="#f5d393" opacity=".2"/></pattern>
+        </defs>
+        <ellipse cx="120" cy="157" rx="87" ry="11" fill="#102c22" opacity=".4"/>
+        <ellipse class="chest-glow" cx="120" cy="86" rx="96" ry="76" fill="url(#chest-light)"/>
+        <path d="m43 91 142-10 17 12-1 57-20 10-138-9z" fill="url(#chest-wood)" stroke="#243c2b" stroke-width="3"/>
+        <path d="m43 91 138 9v60L43 151z" fill="url(#chest-green)"/>
+        <path d="m181 100 21-7-1 57-20 10z" fill="#263f2e"/>
+        <path d="m48 99 128 8v46l-128-8z" fill="url(#chest-grain)"/>
+        <path d="m49 121 127 8m-125 13 125 8" fill="none" stroke="#223f2c" stroke-width="2" opacity=".7"/>
+        <path d="m54 95 12 1v58l-12-1zM157 99l12 1v59l-12-1zM43 145l138 9v7l-138-9zM181 154l21-10v7l-21 10z" fill="url(#chest-metal)"/>
+        <path d="m57 99 3 0v51h-3zM160 105h3v49h-3z" fill="#fff0af" opacity=".7"/>
+        <g fill="#7c6139"><circle cx="60" cy="107" r="2"/><circle cx="60" cy="141" r="2"/><circle cx="163" cy="112" r="2"/><circle cx="163" cy="147" r="2"/></g>
+        <path d="m98 103 27 2v30l-27-2z" fill="url(#chest-metal)" stroke="#7c6139" stroke-width="1"/>
+        <path d="m109 112 6 1v7l-2 2v4h-4v-5l-2-2v-5z" fill="#344632"/>
+        <g class="chest-lid">
+          <path d="M40 88V68h5V56h8V46h13v-7h97v4h15v7h12v12h9v18h5v17l-22 10L40 98z" fill="url(#chest-wood)" stroke="#2d3f2c" stroke-width="3"/>
+          <path d="M45 84V68h5V57h8v-9h12v-4h90v5h15v8h10v11h9v16l-14 11z" fill="url(#chest-green)"/>
+          <path d="M45 84V68h5V57h8v-9h12v-4h90v5h15v8h10v11h9v16l-14 11z" fill="url(#chest-grain)"/>
+          <path d="M55 89V68h5V56h8v-8h10v-4h11v6H77v10h-8v13h-4v17zM151 45h11v5h10v9h9v14h5v21l-11 5V77h-5V64h-8V54h-11z" fill="url(#chest-metal)"/>
+          <path d="m40 88 142 9v10L40 98zM182 97l22-10v10l-22 10z" fill="url(#chest-metal)"/>
+          <path d="m45 91 131 9" stroke="#fff0b4" stroke-width="1.5"/>
+          <path d="M94 61h38v3H94zM89 70h47v2H89zM91 80h40v2H91z" fill="#a9b375" opacity=".5"/>
+          <g fill="#7c6139"><circle cx="75" cy="52" r="2"/><circle cx="60" cy="82" r="2"/><circle cx="158" cy="52" r="2"/><circle cx="179" cy="86" r="2"/></g>
+        </g>
+        <path class="chest-spark" d="m116 17 3 8 8 3-8 3-3 8-3-8-8-3 8-3zM66 15l2 5 5 2-5 2-2 5-2-5-5-2 5-2zM174 21l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="#ffe5a0"/>
+      </svg>
+      <figure id="reward-photo-wrap" class="reward-photo-wrap" hidden><img id="reward-photo" width="800" height="520" alt=""><figcaption>Imagen provisional · Versión de pruebas</figcaption></figure>
+      <p id="reward-image-error" class="error" hidden>No se pudo cargar esta imagen. Puedes cerrar el recuerdo y volver a intentarlo.</p>
+    </div>
+    <p id="reward-status" class="reward-status" role="status" aria-live="polite"></p>
+    <div class="reward-actions"><button id="reward-view" type="button">Ver imagen</button><button id="reward-next" type="button" hidden>Siguiente hito</button></div>
+    <p id="reward-counter" class="reward-counter"></p>
+  </dialog>
   <footer class="site-footer"><span>CADA KILÓMETRO CUENTA.</span><span id="data-source">PROTOTIPO / SIN DATOS</span></footer>
 </body>
 </html>

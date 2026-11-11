@@ -41,15 +41,21 @@ La dirección del proyecto es <https://albertoybelen.ddev.site/frontend/>.
 - **Explorar mapa** lleva al recorrido completo. La salida está abajo y la meta
   arriba: desplázate por bosque, río, cañón y montaña desde el primer día.
 - El paisaje aparece directamente, sin cabecera. La leyenda inferior reutiliza
-  los símbolos del mapa para posición, checkpoint bloqueado/desbloqueado y meta.
-- Los checkpoints del 20/40/60/80 % cambian de **BLOQUEADO** a **DESBLOQUEADO**
-  al alcanzar su porcentaje. Sus posiciones se calculan sobre el mismo trazado
-  que el indicador. Cambiar la meta o reiniciar recalcula todos sus estados.
+  los símbolos del mapa para posición, hito bloqueado/desbloqueado y meta.
+- Los hitos del 20/40/60/80 % muestran un cofre animado y una imagen al
+  alcanzarlos aumentando kilómetros. Clic, toque, Enter o Espacio permiten reabrir
+  los desbloqueados directamente; los bloqueados no abren. El aviso de un hito
+  nuevo espera a **Ver imagen** y no vuelve a mostrarse en visitas posteriores.
+  Los avisos de otros hitos aún no mostrados quedan pendientes para otra visita.
+  Son imágenes provisionales públicas, sin personas.
+- Las posiciones de los hitos se calculan sobre el mismo trazado que el indicador.
   Los cinco tramos del 20 % tienen igual longitud siguiendo el camino; su altura
-  visible varía según las curvas.
-- La meta al 100 % tiene un arco y un regalo misterioso decorativo con perspectiva,
-  papel verde con brocado y lazo dorado. Los hitos
-  no abren contenido: fotografías, premio y celebración quedan para otras issues.
+  visible varía según las curvas. El historial conserva los hitos ganados aunque
+  retroceda el progreso o cambie la meta. Al volver solo se anuncian logros
+  pendientes de aviso; cargar no crea desbloqueos por el porcentaje actual.
+- La meta al 100 % tiene un arco y un regalo decorativo con perspectiva, papel
+  verde con brocado y lazo dorado. Se conserva su consecución histórica aunque
+  suba la meta; el contenido definitivo del premio queda para otra fase.
 - La salida y el arco de meta usan madera con vetas, tela, piedra y sombras,
   dibujadas en SVG para integrarse con el paisaje de 16 bits.
 - El indicador de avance usa la ilustración aportada en `frontend/assets/icono.jpeg`,
@@ -59,8 +65,9 @@ La dirección del proyecto es <https://albertoybelen.ddev.site/frontend/>.
   formulario público. El objetivo antiguo del navegador nunca prevalece sobre ella.
 - Al llegar o superar la meta, el marcador permanece al final y el progreso
   se limita al 100 %. Los kilómetros acumulados se conservan.
-- **Reiniciar kilómetros** vuelve a la salida y conserva la meta.
-- Solo los kilómetros simulados se guardan en este navegador para la próxima visita;
+- **Reiniciar kilómetros** vuelve a la salida y limpia los hitos simulados para
+  repetir los cofres; conserva la configuración del JSON.
+- Los kilómetros y los IDs de hitos desbloqueados se guardan en este navegador;
   el objetivo siempre se vuelve a leer del JSON.
   Si el almacenamiento está bloqueado o lleno, el juego continúa en memoria y
   muestra un aviso. Un estado dañado recupera cero kilómetros con el objetivo del JSON.
@@ -85,6 +92,8 @@ ejecutar las mismas pruebas en el contenedor.
 
 Las pruebas usan `node:test` y cubren cálculos, validación del JSON versionado,
 fechas existentes y zonas horarias, precedencia del objetivo, migración v1/v2,
+historial permanente, avisos vistos y pendientes, migración de hitos v1/v2,
+cola de cofres y mapeo de imágenes por ID,
 selección real/simulado, persistencia y almacenamiento bloqueado/corrupto. No
 requieren instalación de dependencias.
 
@@ -95,12 +104,16 @@ desarrollo opcionales, no son dependencias de la aplicación):
 ```sh
 playwright-cli -s=adventure open http://127.0.0.1:8000 --config=.ddev/playwright-cli/cli.config.json
 playwright-cli -s=adventure run-code --filename=tests/browser-smoke.js
+playwright-cli -s=adventure run-code --filename=tests/browser-milestones.js
 playwright-cli -s=adventure close
 ```
 
 La prueba reinicia el estado local e intercepta temporalmente el JSON para
 comprobar título, meta, fecha/zona, modos, errores HTTP/red/JSON, migración y
-checkpoints configurables. Conserva las comprobaciones de posición sobre el SVG,
+hitos configurables. La segunda prueba verifica cofres, imágenes, teclado/táctil,
+avisos pendientes al volver, apertura manual de imágenes, retroceso 40→38→40,
+cambios de objetivo y recompensa final histórica.
+Conserva las comprobaciones de posición sobre el SVG,
 teclado, movimiento reducido y tamaños 320/390/768/1280. No modifica el archivo.
 La [guía de configuración](docs/configuration.md) incluye comandos para repetirla
 bajo `/albertoybelen/` sin desplegar.
@@ -118,7 +131,9 @@ Comprobaciones manuales con el servidor local:
 5. Una fecha imposible, modo desconocido, objetivo cero, JSON mal formado o archivo
    ausente debe mostrar un error y mantener la partida sin iniciar.
 6. Probar teclado, móvil y movimiento reducido; recorrer todo el mapa y sus hitos
-   futuros. Cambiar checkpoints en JSON actualiza posiciones y estados.
+   futuros. Cambiar `milestones` en JSON actualiza las posiciones sin borrar el historial.
+   Reabrir los hitos conseguidos con clic, toque, Enter o Espacio; los bloqueados
+   no abren. Subir o bajar la meta no abre cofres ni quita recompensas históricas.
 7. Bloquear `localStorage` o dañar v2: se puede continuar en memoria o recuperar a
    cero sin reutilizar objetivos guardados ni resucitar el estado antiguo.
 
@@ -132,6 +147,14 @@ Integración de configuración: [simulación móvil](docs/screenshots/issue-6-mo
 [modo real no disponible](docs/screenshots/issue-6-real.png) y
 [error de configuración](docs/screenshots/issue-6-error.png).
 
+Cofres e historial de la issue #9: [móvil](docs/screenshots/issue-9-mobile.png),
+[escritorio](docs/screenshots/issue-9-desktop.png),
+[aviso de un nuevo hito](docs/screenshots/issue-9-new-milestone.png),
+[imagen desbloqueada](docs/screenshots/issue-9-chest-open.png) y
+[hito 40 % conservado al retroceder a 38 %](docs/screenshots/issue-9-history.png).
+La [guía de hitos](docs/milestones.md) explica cómo sustituir imágenes y conservar
+sus identidades al editar la configuración.
+
 ## Organización
 
 ```text
@@ -142,6 +165,10 @@ frontend/config/game.json Configuración pública editable
 frontend/js/config.js     Carga relativa y validación sin DOM
 frontend/js/progress.js   Cálculos puros con validación, sin DOM ni persistencia
 frontend/js/game.js       Contrato DistanceProvider y proveedor simulado local
+frontend/js/milestone-history.js Historial versionado separado del progreso
+frontend/js/milestones.js Cola de revelaciones por ID estable
+frontend/js/milestone-photos.js Rutas de imágenes desde la configuración
+frontend/js/milestone-dialog.js Modal, animación, teclado y foco
 frontend/js/app.js        Eventos, hitos y posición con getPointAtLength
 tests/                   Pruebas de cálculos y proveedor con node:test
 .github/                 Plantilla de PR y workflow de CI
@@ -152,8 +179,9 @@ CONTRIBUTING.md           Flujo de Issues, ramas, pruebas y revisión
 `getState()`, `addDistance(km)`, `reset()` e `isPersistent()`. El objetivo es
 inmutable dentro del proveedor y procede de la configuración validada.
 Los métodos devuelven copias de `{ distanceKm, goalKm }` y rechazan valores no
-válidos antes de modificar el estado. El proveedor simulado es la única capa
-que conoce `localStorage`. El selector devuelve ausencia de proveedor para `real`;
+válidos antes de modificar el estado. El proveedor simulado guarda la distancia;
+el adaptador `milestone-history.js` guarda los IDs históricos por juego de forma
+independiente. El selector devuelve ausencia de proveedor para `real`;
 una futura fuente remota necesitará un adaptador y gestión asíncrona. Ni los
 cálculos ni la geometría dependen del origen de datos.
 
@@ -260,7 +288,10 @@ El paisaje original se generó con `image_gen` y se sirve como WebP local; la
 ilustración del indicador fue aportada para el juego. El camino, los hitos y el
 indicador son SVG independientes del fondo. Se conserva el
 [prompt y procedencia del arte](frontend/assets/ART.md). No hay fuentes externas,
-animaciones de carrera ni sistema de fotos.
+animaciones de carrera. Las imágenes provisionales de los cofres también son
+paisajes generados y locales; sus [prompts y procedencia](frontend/assets/milestones/ART.md)
+quedan documentados. El regalo final sigue siendo decorativo; se guarda su
+consecución histórica, pero su contenido definitivo queda fuera de esta fase.
 
 Pages queda preparado e inactivo. No iniciar Strava, OAuth, Cloudflare ni el
 primer despliegue sin instrucciones explícitas.

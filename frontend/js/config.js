@@ -1,13 +1,14 @@
 /** Configuración pública, independiente del DOM y del estado persistido. */
 export const CONFIG_URL = new URL('../config/game.json', import.meta.url);
-const DEFAULT_CHECKPOINTS = [20, 40, 60, 80];
+const DEFAULT_MILESTONES = [20, 40, 60, 80];
 const isObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
 
 export function validateGameConfig(value) {
   if (!isObject(value) || !isObject(value.game)) {
     throw new Error('La configuración debe incluir el objeto game.');
   }
-  const { title, goalKm, startDate, mode, timeZone = 'UTC' } = value.game;
+  const { id = 'alberto-belen', title, goalKm, startDate, mode, timeZone = 'UTC' } = value.game;
+  if (typeof id !== 'string' || !/^[a-z][a-z0-9-]{0,63}$/.test(id)) throw new Error('game.id debe ser un identificador estable con letras minúsculas, números y guiones.');
   if (typeof title !== 'string' || !title.trim()) {
     throw new Error('game.title debe ser un texto no vacío.');
   }
@@ -33,16 +34,32 @@ export function validateGameConfig(value) {
   if (value.rewards !== undefined && !isObject(value.rewards)) {
     throw new Error('rewards debe ser un objeto.');
   }
-  const { checkpoints = DEFAULT_CHECKPOINTS, finish = 100 } = value.rewards ?? {};
-  if (!Array.isArray(checkpoints) || checkpoints.some((percent, index) =>
-    !Number.isFinite(percent) || percent <= 0 || percent >= 100 ||
-    (index > 0 && percent <= checkpoints[index - 1]))) {
-    throw new Error('rewards.checkpoints debe contener porcentajes únicos, crecientes y mayores que 0 y menores que 100.');
-  }
+  if (value.rewards && Object.hasOwn(value.rewards, 'checkpoints')) throw new Error('La clave anterior rewards.checkpoints debe renombrarse a rewards.milestones.');
+  const { milestones: input = DEFAULT_MILESTONES, finish = 100 } = value.rewards ?? {};
+  if (!Array.isArray(input)) throw new Error('rewards.milestones debe ser una lista de hitos.');
+  const ids = new Set();
+  const milestones = input.map((raw, index) => {
+    const item = typeof raw === 'number' ? { id: `milestone-${raw}`, percent: raw } : raw;
+    if (!isObject(item) || !Number.isFinite(item.percent) || item.percent <= 0 || item.percent >= 100 ||
+      (index > 0 && item.percent <= (typeof input[index - 1] === 'number' ? input[index - 1] : input[index - 1]?.percent))) {
+      throw new Error('rewards.milestones debe contener porcentajes únicos, crecientes y mayores que 0 y menores que 100.');
+    }
+    // La forma numérica admite decimales; los IDs automáticos usan guiones.
+    const milestoneId = typeof raw === 'number' ? `milestone-${String(raw).replace('.', '-')}` : item.id;
+    if (typeof milestoneId !== 'string' || !/^[a-z][a-z0-9-]{0,63}$/.test(milestoneId) || milestoneId === 'finish' || ids.has(milestoneId)) {
+      throw new Error('Cada hito de rewards.milestones necesita un id único y estable; finish está reservado.');
+    }
+    ids.add(milestoneId);
+    for (const field of ['title', 'alt']) if (item[field] !== undefined && (typeof item[field] !== 'string' || !item[field].trim())) throw new Error(`milestones.${field} debe ser texto no vacío.`);
+    if (item.image !== undefined && (typeof item.image !== 'string' || !item.image.trim() || /[\\:?#]/.test(item.image) || item.image.startsWith('/') || item.image.split('/').includes('..'))) {
+      throw new Error('milestones.image debe ser una ruta local relativa, sin salir del frontend.');
+    }
+    return Object.freeze({ id: milestoneId, percent: item.percent, ...(item.image !== undefined ? { image: item.image } : {}), ...(item.title !== undefined ? { title: item.title.trim() } : {}), ...(item.alt !== undefined ? { alt: item.alt.trim() } : {}) });
+  });
   if (finish !== 100) throw new Error('rewards.finish debe ser 100.');
   return Object.freeze({
-    game: Object.freeze({ title: title.trim(), goalKm, startDate, timeZone, mode }),
-    rewards: Object.freeze({ checkpoints: Object.freeze([...checkpoints]), finish }),
+    game: Object.freeze({ id, title: title.trim(), goalKm, startDate, timeZone, mode }),
+    rewards: Object.freeze({ milestones: Object.freeze([...milestones]), finish }),
   });
 }
 

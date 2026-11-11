@@ -10,7 +10,9 @@ test('valida la configuración y normaliza valores opcionales sin modificar el o
   input.game.futureField = true;
   const result = validateGameConfig(input);
   assert.equal(result.game.timeZone, 'UTC');
-  assert.deepEqual(result.rewards, { checkpoints: [20, 40, 60, 80], finish: 100 });
+  assert.deepEqual(result.rewards.milestones.map(item => item.percent), [20, 40, 60, 80]);
+  assert.equal(result.game.id, 'alberto-belen');
+  assert.equal(result.rewards.finish, 100);
   assert.equal(input.rewards, undefined);
   assert.ok(Object.isFrozen(result.game));
 });
@@ -48,14 +50,14 @@ test('valida zona horaria explícita y modo real sin cambiarlo a simulación', (
     assert.throws(() => validateGameConfig(input), /timeZone/);
   }
 });
-test('valida checkpoints opcionales, orden, límites y meta fija', () => {
-  for (const checkpoints of [[], [25, 50, 75], [0.1, 99.9]]) {
-    const input = config(); input.rewards = { checkpoints, finish: 100 };
-    assert.deepEqual(validateGameConfig(input).rewards.checkpoints, checkpoints);
+test('valida hitos opcionales, orden, límites y meta fija', () => {
+  for (const milestones of [[], [25, 50, 75], [0.1, 99.9]]) {
+    const input = config(); input.rewards = { milestones, finish: 100 };
+    assert.deepEqual(validateGameConfig(input).rewards.milestones.map(item => item.percent), milestones);
   }
-  for (const checkpoints of [null, '20,40', [0, 20], [20, 100], [20, 20], [40, 20], [NaN], [Infinity], ['20']]) {
-    const input = config(); input.rewards = { checkpoints };
-    assert.throws(() => validateGameConfig(input), /checkpoints/);
+  for (const milestones of [null, '20,40', [0, 20], [20, 100], [20, 20], [40, 20], [NaN], [Infinity], ['20']]) {
+    const input = config(); input.rewards = { milestones };
+    assert.throws(() => validateGameConfig(input), /milestones/);
   }
   for (const rewards of [null, [], { finish: 80 }, { finish: '100' }]) {
     const input = config(); input.rewards = rewards;
@@ -81,4 +83,21 @@ test('hace visibles los errores de HTTP, red, JSON y validación sin configuraci
 test('el JSON versionado cumple la validación usada en producción', async () => {
   const raw = await readFile(new URL('../frontend/config/game.json', import.meta.url), 'utf8');
   assert.doesNotThrow(() => validateGameConfig(JSON.parse(raw)));
+});
+
+test('identidades explícitas estables y rutas locales, sin alias ambiguo', () => {
+  const input = config();
+  input.rewards = { milestones: [{ id: 'recuerdo-bosque', percent: 29, image: 'assets/milestones/milestone-20.webp', title: '  Bosque  ', alt: 'Árboles.' }] };
+  const milestone = validateGameConfig(input).rewards.milestones[0];
+  assert.deepEqual(milestone, { id: 'recuerdo-bosque', percent: 29, image: 'assets/milestones/milestone-20.webp', title: 'Bosque', alt: 'Árboles.' });
+  for (const list of [[{ id: 'same', percent: 20 }, { id: 'same', percent: 40 }], [{ id: 'finish', percent: 20 }], [{ id: '../bad', percent: 20 }], [{ percent: 20 }]]) {
+    input.rewards.milestones = list;
+    assert.throws(() => validateGameConfig(input), /id/);
+  }
+  for (const image of ['https://example.com/a.webp', '/assets/a.webp', '../private.webp', 'data:image/png;base64,a', '']) {
+    input.rewards.milestones = [{ id: 'safe', percent: 20, image }];
+    assert.throws(() => validateGameConfig(input), /image/);
+  }
+  input.rewards = { checkpoints: [20, 40] };
+  assert.throws(() => validateGameConfig(input), /renombrarse/);
 });

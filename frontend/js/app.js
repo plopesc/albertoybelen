@@ -1,8 +1,12 @@
 import { calculateProgress } from './progress.js';
 import { createDistanceProvider } from './game.js';
 import { loadGameConfig } from './config.js';
+import { createMilestoneHistory, FINISH_MILESTONE_ID } from './milestone-history.js';
+import { createMilestoneReveals } from './milestone-dialog.js';
 
 let provider;
+let history;
+let reveals;
 const number = new Intl.NumberFormat('es-ES', { maximumSignificantDigits: 12 });
 const percentageNumber = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 1 });
 const $ = (id) => document.getElementById(id);
@@ -23,43 +27,42 @@ const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 let displayedRatio = 0;
 let targetRatio = 0;
 let frame;
-let checkpoints = [];
+let milestones = [];
 
-function initializeCheckpoints(percentages) {
-  const template = document.querySelector('[data-checkpoint]').cloneNode(true);
-  checkpoints = percentages.map((percent, index) => {
-    const checkpoint = template.cloneNode(true);
-    const ratio = percent / 100;
-    checkpoint.dataset.checkpoint = ratio;
-    checkpoint.querySelector('.checkpoint-label > text').textContent = `${String(index + 1).padStart(2, '0')} / ${number.format(percent)} %`;
-    const point = path.getPointAtLength(pathLength * ratio);
-    checkpoint.setAttribute('transform', `translate(${point.x} ${point.y})`);
-    checkpoint.querySelector('.checkpoint-label').setAttribute('transform', `translate(${point.x > 240 ? -180 : 24} -24)`);
-    return checkpoint;
+function initializeMilestones(definitions) {
+  const template = document.querySelector('[data-milestone]').cloneNode(true);
+  milestones = definitions.map((definition, index) => {
+    const node = template.cloneNode(true);
+    node.dataset.milestone = definition.id;
+    node.dataset.percent = definition.percent;
+    node.querySelector('.milestone-label > text').textContent = `${String(index + 1).padStart(2, '0')} / ${number.format(definition.percent)} %`;
+    const point = path.getPointAtLength(pathLength * definition.percent / 100);
+    node.setAttribute('transform', `translate(${point.x} ${point.y})`);
+    node.querySelector('.milestone-label').setAttribute('transform', `translate(${point.x > 240 ? -180 : 24} -24)`);
+    return node;
   });
-  $('checkpoints').replaceChildren(...checkpoints);
-  $('checkpoints').setAttribute('visibility', 'visible');
-  const milestones = [...percentages, 100].map((percent) => {
-    const item = document.createElement('li');
-    item.dataset.milestone = percent / 100;
-    return item;
-  });
-  $('milestone-summary').replaceChildren(...milestones);
+  $('milestones').replaceChildren(...milestones);
+  $('milestones').setAttribute('visibility', 'visible');
+  $('milestone-summary').replaceChildren(...[...definitions.map(item => item.id), FINISH_MILESTONE_ID].map(id => {
+    const item = document.createElement('li'); item.dataset.milestoneSummary = id; return item;
+  }));
 }
 
-function renderCheckpoints(ratio) {
-  const states = [];
-  for (const checkpoint of checkpoints) {
-    const threshold = Number(checkpoint.dataset.checkpoint);
-    const unlocked = ratio !== null && ratio >= threshold;
-    checkpoint.classList.toggle('unlocked', unlocked);
-    checkpoint.querySelector('.checkpoint-state').textContent = ratio === null ? 'SIN DATOS' : unlocked ? 'DESBLOQUEADO' : 'BLOQUEADO';
-    states.push(`Checkpoint ${number.format(threshold * 100)} %: ${ratio === null ? 'sin datos' : unlocked ? 'desbloqueado' : 'bloqueado'}.`);
-  }
-  states.push(`Meta 100 %: ${ratio === null ? 'sin datos' : ratio >= 1 ? 'alcanzada' : 'pendiente'}. Regalo misterioso sin revelar.`);
-  document.querySelectorAll('[data-milestone]').forEach((item, index) => {
-    item.textContent = states[index];
+function renderMilestones(ratio) {
+  const states = milestones.map(node => {
+    const unlocked = Boolean(history?.isUnlocked(node.dataset.milestone));
+    node.classList.toggle('unlocked', unlocked);
+    node.querySelector('.milestone-state').textContent = ratio === null ? 'SIN DATOS' : unlocked ? 'DESBLOQUEADO' : 'BLOQUEADO';
+    return `Hito ${number.format(Number(node.dataset.percent))} %: ${ratio === null ? 'sin datos' : unlocked ? 'conseguido históricamente' : 'bloqueado'}.`;
   });
+  const finishUnlocked = Boolean(history?.isUnlocked(FINISH_MILESTONE_ID));
+  states.push(`Meta 100 %: ${ratio === null ? 'sin datos' : finishUnlocked ? 'conseguida históricamente' : 'pendiente'}. Regalo misterioso sin revelar.`);
+  document.querySelectorAll('#milestone-summary li').forEach((item, index) => { item.textContent = states[index]; });
+  if (history) {
+    const count = milestones.filter(node => history.isUnlocked(node.dataset.milestone)).length;
+    $('unlocks-note').hidden = false;
+    $('unlocks-note').textContent = `${count} ${count === 1 ? 'hito conseguido' : 'hitos conseguidos'} en este recorrido.${finishUnlocked ? ' Meta conseguida anteriormente; el regalo permanece conseguido.' : ''} Los cofres conseguidos se conservan aunque retroceda el progreso.`;
+  }
   return states.join(' ');
 }
 
@@ -108,11 +111,12 @@ function render(state, animate = true) {
     : result.distanceKm === 0
       ? 'Todo listo. ¡A por el primer kilómetro!'
       : `¡Sigue sumando! Quedan ${number.format(result.remainingKm)} km hasta la cima.`;
-  const milestoneDescription = renderCheckpoints(result.ratio);
+  const milestoneDescription = renderMilestones(result.ratio);
+  reveals?.synchronize();
   $('map-description').textContent = `Mapa vertical completo desde la salida abajo hasta la meta arriba, pasando por bosque, río, cañón y montaña. Has recorrido ${number.format(result.distanceKm)} de ${number.format(result.goalKm)} km (${percentageNumber.format(result.percentage)} %). ${milestoneDescription}`;
-  $('storage-note').textContent = provider.isPersistent()
+  $('storage-note').textContent = (provider.isPersistent() && (!history || history.isPersistent()))
     ? 'Tu progreso se guarda en este navegador.'
-    : 'No se ha podido leer o guardar el progreso. Puedes seguir; los cambios podrían perderse al recargar.';
+    : 'No se ha podido leer o guardar todo el avance y los hitos. Puedes seguir; los cambios podrían perderse al recargar.';
   $('traveler').setAttribute('visibility', 'visible');
   moveTraveler(result.ratio, animate);
   if (animate) $('status').textContent = `${number.format(result.distanceKm)} km recorridos. ${percentageNumber.format(result.percentage)} % completado. ${$('journey-message').textContent} ${milestoneDescription}`;
@@ -137,7 +141,7 @@ async function start() {
     $('time-zone').textContent = game.timeZone;
     $('mode-label').textContent = game.mode === 'simulation' ? 'MODO SIMULADO' : 'MODO REAL';
     $('data-source').textContent = game.mode === 'simulation' ? 'PROTOTIPO / DATOS SIMULADOS' : 'PROTOTIPO / MODO REAL NO DISPONIBLE';
-    initializeCheckpoints(rewards.checkpoints);
+    initializeMilestones(rewards.milestones);
     let storage;
     if (game.mode === 'simulation') {
       try { storage = window.localStorage; } catch { /* Puede estar bloqueado. */ }
@@ -147,18 +151,33 @@ async function start() {
       const message = 'Modo real aún no disponible. No hay datos de Strava para mostrar.';
       showNotice(message);
       $('journey-message').textContent = 'Progreso no disponible en modo real.';
-      const milestones = renderCheckpoints(null);
+      const milestones = renderMilestones(null);
       $('map-description').textContent = `Mapa completo de salida a meta. Progreso real no disponible. ${milestones}`;
       return;
     }
+    const initialState = provider.getState();
+    history = createMilestoneHistory(storage, { gameId: game.id, milestones: rewards.milestones, initialRatio: calculateProgress(initialState.distanceKm, initialState.goalKm).ratio });
+    reveals = createMilestoneReveals({ root: $('milestones'), dialog: $('milestone-dialog'), milestones: rewards.milestones, history });
     for (const button of document.querySelectorAll('[data-km]')) {
-      button.addEventListener('click', () => render(provider.addDistance(Number(button.dataset.km))));
+      button.addEventListener('click', () => {
+        const before = provider.getState();
+        const next = provider.addDistance(Number(button.dataset.km));
+        const distanceDelta = next.distanceKm - before.distanceKm;
+        reveals.advance(calculateProgress(before.distanceKm, before.goalKm).ratio, calculateProgress(next.distanceKm, next.goalKm).ratio, distanceDelta, button);
+        render(next);
+      });
     }
-    $('reset').addEventListener('click', () => render(provider.reset()));
+    $('reset').addEventListener('click', () => {
+      const next = provider.reset();
+      history.reset();
+      reveals.close();
+      render(next);
+    });
     $('setup-message').hidden = true;
     $('simulation-card').hidden = false;
     document.querySelector('.controls-link').hidden = false;
     $('progress').hidden = false;
+    reveals.showPending();
     render(provider.getState(), false);
   } catch (error) {
     $('game-title').textContent = 'Partida no disponible';
