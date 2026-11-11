@@ -116,3 +116,38 @@ progress::-moz-progress-bar { background: var(--accent); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
 }
+
+/* Recuerdos de hitos: interacción del mapa y diálogo nativo. */
+.checkpoint[role="button"] { cursor: not-allowed; outline: none; }
+.checkpoint.milestone-reopen { cursor: pointer; }
+.checkpoint[role="button"]:focus-visible .checkpoint-label > rect { stroke: #fff0b4; stroke-width: 4px; }
+.checkpoint.milestone-reopen:hover .checkpoint-label > rect { stroke: #fff0b4; }
+.reward-dialog { width: min(92vw, 620px); max-height: 90dvh; overflow-y: auto; padding: 24px; color: var(--white); background: linear-gradient(140deg, #304e3c, #20382c); border: 2px solid #c8a66e; border-radius: 8px; box-shadow: inset 0 0 0 3px #62724c, 0 12px 48px #09170dcc; }
+.reward-dialog::backdrop { background: #081b14d9; }
+.reward-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.reward-header .eyebrow { margin-bottom: 5px; }
+.reward-header h2 { font-size: 27px; }
+.reward-close { flex-shrink: 0; padding: 8px 12px; border: 1px solid #a48d5b; color: var(--white); background: #24342c; border-radius: 4px; font-size: 12px; }
+.reward-close span { font-size: 19px; margin-left: 5px; }
+.reward-description { color: var(--muted); font-size: 14px; margin: 12px 0 0; }
+.reward-stage { position: relative; text-align: center; min-height: 180px; margin-top: 12px; }
+.reward-chest { display: block; width: min(75%, 300px); height: auto; margin-inline: auto; shape-rendering: crispEdges; }
+.chest-lid { transform-box: fill-box; transform-origin: 50% 100%; transition: transform .8s steps(6, end); }
+.chest-glow, .chest-spark { opacity: 0; transition: opacity .5s steps(4, end); }
+.reward-chest.is-open .chest-lid { transform: translateY(-28px) scaleY(.66) rotate(-9deg); }
+.reward-chest.is-open .chest-glow, .reward-chest.is-open .chest-spark { opacity: 1; }
+.reward-dialog[data-phase="revealed"] .reward-chest { width: 130px; }
+.reward-photo-wrap { margin: 8px 0 0; border: 2px solid #a98b53; padding: 6px; background: #182e23; box-shadow: 0 3px 0 #12261c; }
+.reward-photo-wrap img { display: block; width: 100%; height: auto; aspect-ratio: 20 / 13; object-fit: cover; }
+.reward-photo-wrap figcaption { color: var(--muted); font-size: 10px; line-height: 1.6; padding: 8px 4px 2px; }
+.reward-status { color: #e8ce9e; font-size: 12px; line-height: 1.6; margin: 12px 0; }
+.reward-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.reward-actions button { flex: 1; padding: 10px 14px; border: 2px solid #e9d2a9; border-bottom-color: #a87332; border-radius: 4px; background: linear-gradient(#e2bc81, #c58f4d); color: #24342c; font-size: 12px; font-weight: 700; }
+.reward-counter { color: var(--muted); font-size: 11px; line-height: 1.6; margin: 14px 0 0; }
+@media (max-width: 420px) {
+  .reward-dialog { width: calc(100vw - 24px); padding: 18px; }
+  .reward-header { gap: 10px; }
+  .reward-header h2 { font-size: 23px; }
+  .reward-header .eyebrow { font-size: 8px; }
+  .reward-close { padding-inline: 9px; }
+}
