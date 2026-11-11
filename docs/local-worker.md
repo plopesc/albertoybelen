@@ -76,7 +76,10 @@ la generación y detiene la cuenta, conserva el agregado y marca partial+stale.
 Los eventos antiguos no se aplican. Reconectar con generación vigente y snapshot
 completo corrige desde la fecha inicial. Borrar requiere autorización verificada
 simulada, elimina aportación y bloquea cualquier job pendiente aun con generación
-actual. El backend real deberá autenticar esa orden: aceptar verified del público
+actual mientras esté suprimido. Solo un consentimiento nuevo explícito y verificado
+(connected con newConsent:true, verified:true y generación vigente) inicia un
+estado limpio y aumenta otra vez la generación. Los jobs anteriores siguen
+bloqueados; no se recuperan snapshots borrados. El backend real deberá autenticar esa orden: aceptar verified del público
 sería inseguro. No existe ruta pública de borrado ni callback real en este Worker.
 
 ## Plan futuro inactivo

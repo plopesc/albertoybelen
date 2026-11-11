@@ -44,6 +44,9 @@ test('revocación y supresión bloquean jobs antiguos; otro slot sigue actualiza
  const deletion={participantId:'slot-b',generation:0,status:'deleted',verified:true};await w.applyLocalEvent(deletion);await w.applyLocalEvent(deletion);
  await w.scheduled({});assert.equal((await body(w)).distanceKm,0);
  assert.equal((await w.fetch(new Request('http://localhost/api/delete',{method:'POST'}))).status,404);
+ await w.applyLocalEvent({participantId:'slot-b',generation:1,status:'connected',newConsent:true,verified:true,scopes:['activity:read_all']});
+ await w.applyLocalEvent({...defaultFixtureEvents()[3],generation:1}); assert.equal((await body(w)).distanceKm,0);
+ await w.applyLocalEvent({...defaultFixtureEvents()[3],generation:2}); assert.equal((await body(w)).distanceKm,2.75025);
 });
 test('scheduled espera waitUntil, serializa carreras y no hace fetch externo', async()=>{
  const original=globalThis.fetch;let calls=0;globalThis.fetch=()=>{calls++;throw new Error('Network forbidden');};
