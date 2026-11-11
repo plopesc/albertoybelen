@@ -1,0 +1,39 @@
+name: Capturas visuales
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  screenshots:
+    name: Capturas Chromium (fixtures)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Obtener código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Preparar Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
+      - run: npm run capture:visual
+      - name: Guardar capturas para revisión
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: capturas-pr-${{ github.event.pull_request.number }}-${{ github.run_attempt }}
+          path: |
+            artifacts/visual/*.jpg
+            artifacts/visual/manifest.json
+          retention-days: 3
+          if-no-files-found: error
+          compression-level: 6
