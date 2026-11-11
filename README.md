@@ -151,7 +151,9 @@ entrega mediante una PR hacia `main`, con un título
 El ciclo completo, los comandos y las responsabilidades están documentados en
 [CONTRIBUTING.md](CONTRIBUTING.md). GitHub Actions comprueba la sintaxis y ejecuta
 `npm test` cuando se abre o actualiza una PR hacia `main`. La persona responsable
-revisa y aprueba el merge; no hay merge ni despliegue automático.
+revisa y aprueba el merge; no hay merge automático. Pages solo publica tras
+la autorización y activación descritas a continuación; después publica los
+cambios que se fusionen en `main` mientras siga habilitado.
 
 ## Entorno de pruebas en GitHub Pages
 
