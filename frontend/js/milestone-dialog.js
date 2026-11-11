@@ -1,13 +1,15 @@
 import { createMilestoneQueue } from './milestones.js';
-import { MILESTONE_PHOTOS } from './milestone-photos.js';
+import { milestonePhoto } from './milestone-photos.js';
 
 /** Sincronizar nunca abre; advance solo debe llamarse tras aumentar distancia. */
-export function createMilestoneReveals({ root, dialog, photos = MILESTONE_PHOTOS }) {
+export function createMilestoneReveals({ root, dialog, milestones, history }) {
   const $ = id => dialog.querySelector(`#${id}`);
   const number = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 1 });
-  const photoFor = threshold => photos.find(photo => photo.ratio === threshold);
-  const nodes = () => [...root.querySelectorAll('[data-checkpoint]')];
-  const queue = createMilestoneQueue(nodes().map(node => Number(node.dataset.checkpoint)).filter(threshold => photoFor(threshold)));
+  const definitions = new Map(milestones.map(item => [item.id, item]));
+  const photos = new Map(milestones.map(item => [item.id, milestonePhoto(item)]));
+  const photoFor = id => photos.get(id);
+  const nodes = () => [...root.querySelectorAll('[data-milestone]')];
+  const queue = createMilestoneQueue(milestones, history);
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let timers = [];
   let returnFocus = null;
@@ -48,7 +50,7 @@ export function createMilestoneReveals({ root, dialog, photos = MILESTONE_PHOTOS
     $('reward-photo-wrap').hidden = true;
     $('reward-image-error').hidden = true;
     $('reward-photo').hidden = false;
-    $('reward-title').textContent = `Hito ${number.format(current * 100)} %`;
+    $('reward-title').textContent = `Hito ${number.format(definitions.get(current).percent)} %`;
     $('reward-description').textContent = photo.title;
     $('reward-status').textContent = 'Has llegado a un nuevo recuerdo. El cofre se está abriendo.';
     $('reward-photo').alt = photo.alt;
@@ -82,17 +84,17 @@ export function createMilestoneReveals({ root, dialog, photos = MILESTONE_PHOTOS
   }
 
   function activate(node) {
-    const threshold = Number(node.dataset.checkpoint);
-    if (!photoFor(threshold) || !queue.reopen(threshold)) return;
+    const id = node.dataset.milestone;
+    if (!photoFor(id) || !queue.reopen(id)) return;
     present(node);
   }
   root.addEventListener('click', event => {
-    const node = event.target.closest('[data-checkpoint]');
+    const node = event.target.closest('[data-milestone]');
     if (node && root.contains(node)) activate(node);
   });
   root.addEventListener('keydown', event => {
     if (event.key !== 'Enter' && event.key !== ' ') return;
-    const node = event.target.closest('[data-checkpoint]');
+    const node = event.target.closest('[data-milestone]');
     if (!node || !root.contains(node)) return;
     event.preventDefault(); activate(node);
   });
@@ -100,6 +102,16 @@ export function createMilestoneReveals({ root, dialog, photos = MILESTONE_PHOTOS
   $('reward-skip').addEventListener('click', reveal);
   $('reward-next').addEventListener('click', () => {
     if (queue.next().current === null) close(); else present();
+  });
+  dialog.addEventListener('keydown', event => {
+    if (event.key !== 'Tab') return;
+    const controls = [...dialog.querySelectorAll('button')].filter(button => !button.hidden && !button.disabled && button.getClientRects().length);
+    const first = controls[0], last = controls.at(-1);
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault(); last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault(); first.focus();
+    }
   });
   dialog.addEventListener('cancel', event => { event.preventDefault(); close(); });
   dialog.addEventListener('click', event => {
@@ -109,22 +121,23 @@ export function createMilestoneReveals({ root, dialog, photos = MILESTONE_PHOTOS
   reducedMotion.addEventListener('change', () => { if (reducedMotion.matches && dialog.open) reveal(); });
 
   return {
-    synchronize(ratio) {
+    synchronize() {
       const before = queue.getState().current;
-      const state = queue.synchronize(ratio);
+      const state = queue.synchronize();
       for (const node of nodes()) {
-        const threshold = Number(node.dataset.checkpoint);
-        const available = Boolean(photoFor(threshold));
-        const unlocked = queue.isUnlocked(threshold);
+        const id = node.dataset.milestone;
+        const definition = definitions.get(id);
+        const available = Boolean(photoFor(id));
+        const unlocked = queue.isUnlocked(id);
         node.setAttribute('role', 'button');
         node.setAttribute('tabindex', '0');
         node.setAttribute('aria-disabled', String(!available || !unlocked));
-        node.setAttribute('aria-label', `Hito ${number.format(threshold * 100)} %: ${!available ? 'imagen todavía sin configurar' : unlocked ? 'abrir imagen desbloqueada' : 'bloqueado'}`);
+        node.setAttribute('aria-label', `Hito ${number.format(definition.percent)} %: ${!available ? 'imagen todavía sin configurar' : unlocked ? 'abrir imagen desbloqueada' : 'bloqueado'}`);
         node.classList.toggle('milestone-reopen', available && unlocked);
-        if (!node.querySelector('.checkpoint-hit-area')) {
+        if (!node.querySelector('.milestone-hit-area')) {
           const box = node.getBBox();
           const hit = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-          hit.setAttribute('class', 'checkpoint-hit-area');
+          hit.setAttribute('class', 'milestone-hit-area');
           hit.setAttribute('x', box.x - 4); hit.setAttribute('y', '-38');
           hit.setAttribute('width', box.width + 8); hit.setAttribute('height', '76');
           hit.setAttribute('fill', 'transparent');
@@ -134,10 +147,10 @@ export function createMilestoneReveals({ root, dialog, photos = MILESTONE_PHOTOS
       if (before !== null && state.current === null) close();
       updateControls();
     },
-    advance(previousRatio, nextRatio) {
+    advance(previousRatio, nextRatio, distanceDelta, opener) {
       const before = queue.getState().current;
-      const state = queue.advance(previousRatio, nextRatio);
-      if (state.current !== null && (before !== state.current || !dialog.open)) present();
+      const state = queue.advance(previousRatio, nextRatio, distanceDelta);
+      if (state.current !== null && (before !== state.current || !dialog.open)) present(opener);
       else updateControls();
     },
     close,

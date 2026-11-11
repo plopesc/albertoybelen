@@ -1,5 +1,6 @@
 {
   "game": {
+    "id": "alberto-belen",
     "title": "Alberto y Belén · Kilómetro Arcade",
     "goalKm": 100,
     "startDate": "2027-01-01",
@@ -7,7 +8,12 @@
     "mode": "simulation"
   },
   "rewards": {
-    "checkpoints": [20, 40, 60, 80],
+    "milestones": [
+      { "id": "milestone-20", "percent": 20, "title": "Un camino entre árboles", "alt": "Imagen provisional de un bosque luminoso, sin personas." },
+      { "id": "milestone-40", "percent": 40, "title": "Junto al río", "alt": "Imagen provisional de un río turquesa entre montañas, sin personas." },
+      { "id": "milestone-60", "percent": 60, "title": "La luz del cañón", "alt": "Imagen provisional de un cañón de roca dorada, sin personas." },
+      { "id": "milestone-80", "percent": 80, "title": "Cerca de las cumbres", "alt": "Imagen provisional de montañas nevadas bajo el cielo, sin personas." }
+    ],
     "finish": 100
   }
 }
