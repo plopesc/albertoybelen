@@ -58,30 +58,24 @@ progress::-moz-progress-bar { background: var(--cyan); }
 .journey-message { border-top: 1px solid var(--line); padding-top: 16px; margin: 20px 0 12px; color: var(--muted); font-size: 12px; line-height: 1.6; }
 .controls-link { display: inline-block; padding-block: 6px; color: var(--cyan); }
 .map-card { grid-area: map; background: linear-gradient(110deg, #303852, #192039); overflow: hidden; }
-.map-header { padding: 20px 22px; display: flex; justify-content: space-between; align-items: center; gap: 14px; }
-.map-header .eyebrow { font-size: 9px; margin-bottom: 6px; }
-.map-header h2 { font-size: 20px; }
-.map-badge { text-align: center; color: var(--yellow); border-left: 1px solid var(--line); padding-left: 16px; font: 9px ui-monospace, monospace; }
-.map-badge strong { font-size: 26px; }
-.map-guide { background: #10172d; text-align: center; padding: 12px 8px; color: var(--muted); font-size: 11px; line-height: 1.5; }
-.map-guide > span { color: var(--yellow); margin-right: 6px; }
 .map { display: block; width: 100%; height: auto; }
 .map image { image-rendering: pixelated; }
 .endpoint { fill: #493c30; font: 800 12px system-ui, sans-serif; letter-spacing: .3px; }
 .checkpoint { color: #b2bdd8; }
-.checkpoint-node { fill: #252d49; stroke: #fff9e8; stroke-width: 3px; }
+.checkpoint-node { fill: var(--checkpoint-fill, #252d49); stroke: var(--checkpoint-stroke, #fff9e8); stroke-width: 3px; }
 .checkpoint-label > rect { fill: url(#map-plate); stroke: #b2bdd8; stroke-width: 2px; rx: 3px; }
 .checkpoint-label text { fill: #fff9e8; font: bold 18px ui-monospace, monospace; }
 .checkpoint-label .checkpoint-state { fill: #b2bdd8; font-size: 14px; }
 .checkpoint.unlocked { color: #51e4ed; }
-.checkpoint.unlocked .checkpoint-node { fill: #51e4ed; stroke: #11152b; }
+.checkpoint.unlocked, .legend-unlocked { --checkpoint-fill: #51e4ed; --checkpoint-stroke: #11152b; }
 .checkpoint.unlocked .checkpoint-label > rect { stroke: #51e4ed; }
 .checkpoint.unlocked .checkpoint-state { fill: #51e4ed; }
 .checkpoint.unlocked .checkpoint-lock { display: none; }
-.map-footer { display: flex; flex-wrap: wrap; gap: 12px 18px; padding: 16px 20px; color: var(--muted); font-size: 10px; line-height: 1.6; border-top: 2px solid var(--ink); }
-.map-footer > span { display: inline-flex; align-items: center; gap: 7px; }
-.legend-marker, .legend-node { display: inline-block; width: 10px; height: 10px; background: var(--yellow); }
-.legend-node { background: transparent; border: 2px solid var(--muted); }
+.map-footer { padding: 16px 20px; color: var(--muted); font-size: 11px; line-height: 1.6; border-top: 2px solid var(--ink); }
+.map-legend { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 18px; list-style: none; margin: 0; padding: 0; }
+.map-legend li { display: flex; align-items: center; gap: 8px; }
+.legend-icon { display: block; width: 24px; height: 26px; flex-shrink: 0; }
+.map-orientation { border-top: 1px solid var(--line); padding-top: 12px; margin: 14px 0 0; text-align: center; font-size: 10px; }
 .simulation-card { grid-area: sim; padding: 24px; background: linear-gradient(145deg, #29314b, #171e34 75%); }
 .simulation-card .eyebrow { color: var(--yellow); }
 .hint { color: var(--muted); font-size: 12px; line-height: 1.6; margin: 10px 0 18px; }
@@ -116,8 +110,6 @@ form label { font-size: 12px; display: block; margin-bottom: 10px; }
   .progress-card, .simulation-card { padding: 22px; }
   .distance { margin: 18px 0; }
   .distance > span:first-child { font-size: 56px; }
-  .map-header { padding: 18px; }
-  .map-header h2 { font-size: 18px; }
   .site-footer { padding: 24px 20px; flex-wrap: wrap; gap: 8px; }
 }
 @media (max-width: 360px) {
@@ -126,9 +118,6 @@ form label { font-size: 12px; display: block; margin-bottom: 10px; }
   .mode span { display: none; }
   .brand { font-size: 10px; }
   .progress-card, .simulation-card { padding: 18px; }
-  .map-header { padding: 14px; }
-  .map-header h2 { font-size: 16px; }
-  .map-guide { font-size: 10px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }

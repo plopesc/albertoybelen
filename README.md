@@ -33,6 +33,9 @@ La dirección del proyecto es <https://albertoybelen.ddev.site/frontend/>.
   porcentaje y restantes. **Ir a los controles** salta directamente a la simulación.
 - **Explorar mapa** lleva al recorrido completo. La salida está abajo y la meta
   arriba: desplázate por bosque, río, cañón y montaña desde el primer día.
+- El paisaje aparece directamente, sin cabecera. La leyenda inferior reutiliza
+  los símbolos del mapa para posición, checkpoint bloqueado/desbloqueado y meta,
+  y recuerda la orientación del recorrido.
 - Los checkpoints del 20/40/60/80 % cambian de **BLOQUEADO** a **DESBLOQUEADO**
   al alcanzar su porcentaje. Sus posiciones se calculan sobre el mismo trazado
   que el indicador. Cambiar la meta o reiniciar recalcula todos sus estados.

@@ -17,11 +17,9 @@
     <span class="mode"><span aria-hidden="true">■</span> MODO SIMULADO</span>
   </header>
   <main id="adventure" tabindex="-1">
-    <div class="intro"><div><p class="eyebrow">PULSA START. SUMA KILÓMETROS.</p><h1>LA META <span>TE ESPERA.</span></h1><p>Un recorrido. Cuatro checkpoints. Todo un mundo por delante.</p></div><a class="explore-link" href="#map-heading">EXPLORAR MAPA <span aria-hidden="true">↓</span></a></div>
+    <div class="intro"><div><p class="eyebrow">PULSA START. SUMA KILÓMETROS.</p><h1>LA META <span>TE ESPERA.</span></h1><p>Un recorrido. Cuatro checkpoints. Todo un mundo por delante.</p></div><a class="explore-link" href="#map">EXPLORAR MAPA <span aria-hidden="true">↓</span></a></div>
     <div class="adventure-layout">
-      <section class="map-card" aria-labelledby="map-heading">
-        <div class="map-header"><div><p class="eyebrow">EL MUNDO ESTÁ ABIERTO</p><h2 id="map-heading" tabindex="-1">De la salida a la cima</h2></div><span class="map-badge">RUTA<br><strong>01</strong></span></div>
-        <div class="map-guide"><span aria-hidden="true">↑</span> Meta arriba · Salida abajo · Explora a tu ritmo</div>
+      <section id="map" class="map-card" aria-label="Mapa del recorrido" tabindex="-1">
         <svg class="map" viewBox="0 0 480 1280" role="img" aria-labelledby="map-title map-description">
           <title id="map-title">El mundo de Kilómetro Arcade</title>
           <desc id="map-description">Mapa vertical completo: salida en el bosque, río, cañón y montaña. Checkpoints al 20, 40, 60 y 80 por ciento y meta al 100 por ciento. El marcador indica tu posición; los hitos futuros están bloqueados.</desc>
@@ -36,6 +34,14 @@
             <pattern id="finish-weave" width="12" height="12" patternUnits="userSpaceOnUse"><rect width="12" height="12" fill="#e8d8af"/><path d="M0 0h6v6H0zM6 6h6v6H6z" fill="#405966"/><path d="M0 1h12M0 7h12" stroke="#fff5d6" stroke-opacity=".25" stroke-width=".7"/></pattern>
             <g id="timber-post"><path d="M-7 0 4-2 7 3 6 80H-7z" fill="url(#gate-timber)"/><path d="M-7 0 4-2 7 3 6 80H-7z" fill="url(#wood-grain)"/><path d="M-5 3v72" stroke="#f9d392" stroke-width="1" opacity=".65"/><path d="M-8 10H7m-15 4H7m-15 48H7m-15 4H7" stroke="#6a6350" stroke-width="2"/><path d="M-8 9H6m-14 52H6" stroke="#e1cf99" stroke-width="1"/><circle cx="1" cy="12" r="1" fill="#403a32"/><circle cx="1" cy="64" r="1" fill="#403a32"/></g>
             <g id="lock"><path d="M-5-3v-7H5v7M-8-2H8v13H-8z" fill="none" stroke="currentColor" stroke-width="4"/><path d="M0 2v5" stroke="currentColor" stroke-width="3"/></g>
+            <g id="position-symbol">
+              <ellipse cy="10" rx="17" ry="6" fill="#102c32" opacity=".45"/>
+              <path d="M0-26 18-8 0 16-18-8Z" fill="#182039" stroke="#fff2b5" stroke-width="2"/>
+              <path d="M0-22 14-8 0 11-14-8Z" fill="url(#gold-metal)"/>
+              <path d="M0-17 4-10 10-8 4-5 0 3-4-5-10-8-4-10Z" fill="#fff8d3"/>
+              <path d="M0-11 3-8 0-4-3-8Z" fill="#b06b38"/>
+            </g>
+            <g id="checkpoint-symbol"><path class="checkpoint-node" d="M-8-12H8l4 4V8l-4 4H-8l-4-4V-8z"/><path d="M-7-8H6l2 2" fill="none" stroke="#fff9e8" stroke-opacity=".55" stroke-width="2"/></g>
           </defs>
           <image href="./assets/world-16bit.webp" width="480" height="1280" preserveAspectRatio="none" aria-hidden="true"/>
           <g fill="none" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true">
@@ -100,21 +106,23 @@
             </g>
           </g>
           <g id="checkpoints">
-            <g data-checkpoint="0.2" class="checkpoint"><path class="checkpoint-node" d="M-8-12H8l4 4V8l-4 4H-8l-4-4V-8z"/><path d="M-7-8H6l2 2" fill="none" stroke="#fff9e8" stroke-opacity=".55" stroke-width="2"/><g class="checkpoint-label"><rect width="156" height="48"/><text x="10" y="19">01 / 20 %</text><text class="checkpoint-state" x="10" y="36">BLOQUEADO</text><g class="checkpoint-lock" transform="translate(136 22)"><use href="#lock"/></g></g></g>
-            <g data-checkpoint="0.4" class="checkpoint"><path class="checkpoint-node" d="M-8-12H8l4 4V8l-4 4H-8l-4-4V-8z"/><path d="M-7-8H6l2 2" fill="none" stroke="#fff9e8" stroke-opacity=".55" stroke-width="2"/><g class="checkpoint-label"><rect width="156" height="48"/><text x="10" y="19">02 / 40 %</text><text class="checkpoint-state" x="10" y="36">BLOQUEADO</text><g class="checkpoint-lock" transform="translate(136 22)"><use href="#lock"/></g></g></g>
-            <g data-checkpoint="0.6" class="checkpoint"><path class="checkpoint-node" d="M-8-12H8l4 4V8l-4 4H-8l-4-4V-8z"/><path d="M-7-8H6l2 2" fill="none" stroke="#fff9e8" stroke-opacity=".55" stroke-width="2"/><g class="checkpoint-label"><rect width="156" height="48"/><text x="10" y="19">03 / 60 %</text><text class="checkpoint-state" x="10" y="36">BLOQUEADO</text><g class="checkpoint-lock" transform="translate(136 22)"><use href="#lock"/></g></g></g>
-            <g data-checkpoint="0.8" class="checkpoint"><path class="checkpoint-node" d="M-8-12H8l4 4V8l-4 4H-8l-4-4V-8z"/><path d="M-7-8H6l2 2" fill="none" stroke="#fff9e8" stroke-opacity=".55" stroke-width="2"/><g class="checkpoint-label"><rect width="156" height="48"/><text x="10" y="19">04 / 80 %</text><text class="checkpoint-state" x="10" y="36">BLOQUEADO</text><g class="checkpoint-lock" transform="translate(136 22)"><use href="#lock"/></g></g></g>
+            <g data-checkpoint="0.2" class="checkpoint"><use href="#checkpoint-symbol"/><g class="checkpoint-label"><rect width="156" height="48"/><text x="10" y="19">01 / 20 %</text><text class="checkpoint-state" x="10" y="36">BLOQUEADO</text><g class="checkpoint-lock" transform="translate(136 22)"><use href="#lock"/></g></g></g>
+            <g data-checkpoint="0.4" class="checkpoint"><use href="#checkpoint-symbol"/><g class="checkpoint-label"><rect width="156" height="48"/><text x="10" y="19">02 / 40 %</text><text class="checkpoint-state" x="10" y="36">BLOQUEADO</text><g class="checkpoint-lock" transform="translate(136 22)"><use href="#lock"/></g></g></g>
+            <g data-checkpoint="0.6" class="checkpoint"><use href="#checkpoint-symbol"/><g class="checkpoint-label"><rect width="156" height="48"/><text x="10" y="19">03 / 60 %</text><text class="checkpoint-state" x="10" y="36">BLOQUEADO</text><g class="checkpoint-lock" transform="translate(136 22)"><use href="#lock"/></g></g></g>
+            <g data-checkpoint="0.8" class="checkpoint"><use href="#checkpoint-symbol"/><g class="checkpoint-label"><rect width="156" height="48"/><text x="10" y="19">04 / 80 %</text><text class="checkpoint-state" x="10" y="36">BLOQUEADO</text><g class="checkpoint-lock" transform="translate(136 22)"><use href="#lock"/></g></g></g>
           </g>
-          <g id="traveler" transform="translate(240 1190)" aria-hidden="true">
-            <ellipse cy="10" rx="17" ry="6" fill="#102c32" opacity=".45"/>
-            <path d="M0-26 18-8 0 16-18-8Z" fill="#182039" stroke="#fff2b5" stroke-width="2"/>
-            <path d="M0-22 14-8 0 11-14-8Z" fill="url(#gold-metal)"/>
-            <path d="M0-17 4-10 10-8 4-5 0 3-4-5-10-8-4-10Z" fill="#fff8d3"/>
-            <path d="M0-11 3-8 0-4-3-8Z" fill="#b06b38"/>
-          </g>
+          <g id="traveler" transform="translate(240 1190)" aria-hidden="true"><use href="#position-symbol"/></g>
         </svg>
         <ol id="milestone-summary" class="sr-only" aria-label="Estado de los hitos"><li data-milestone="0.2">Checkpoint 20 %: bloqueado.</li><li data-milestone="0.4">Checkpoint 40 %: bloqueado.</li><li data-milestone="0.6">Checkpoint 60 %: bloqueado.</li><li data-milestone="0.8">Checkpoint 80 %: bloqueado.</li><li data-milestone="1">Meta 100 %: pendiente.</li></ol>
-        <div class="map-footer"><span><i class="legend-marker" aria-hidden="true"></i> Tu posición</span><span><i class="legend-node" aria-hidden="true"></i> Checkpoint</span><span>Todos los hitos son visibles</span></div>
+        <div class="map-footer">
+          <ul class="map-legend" aria-label="Leyenda: posición, checkpoints y meta">
+            <li><svg class="legend-icon" viewBox="-22 -30 44 50" aria-hidden="true"><use href="#position-symbol"/></svg><span>Tu posición</span></li>
+            <li><svg class="legend-icon" viewBox="-16 -16 32 32" aria-hidden="true"><use href="#checkpoint-symbol"/></svg><span>Bloqueado</span></li>
+            <li><svg class="legend-icon legend-unlocked" viewBox="-16 -16 32 32" aria-hidden="true"><use href="#checkpoint-symbol"/></svg><span>Desbloqueado</span></li>
+            <li><svg class="legend-icon" viewBox="154 70 174 124" aria-hidden="true"><use href="#finish-gate"/></svg><span>Meta · 100 %</span></li>
+          </ul>
+          <p class="map-orientation">Salida abajo · Meta arriba</p>
+        </div>
       </section>
       <section class="progress-card" aria-labelledby="progress-heading">
         <div class="panel-heading"><p class="eyebrow">EN PARTIDA</p><span aria-hidden="true">■ ■ ■</span></div>
