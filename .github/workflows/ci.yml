@@ -24,8 +24,6 @@ jobs:
           package-manager-cache: false
       - name: Comprobar sintaxis del frontend
         run: |
-          node --check frontend/js/app.js
-          node --check frontend/js/game.js
-          node --check frontend/js/progress.js
+          for module in frontend/js/*.js; do node --check "$module"; done
       - name: Ejecutar pruebas
         run: npm test
