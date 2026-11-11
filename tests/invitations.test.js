@@ -209,6 +209,7 @@ test('segunda supresión con purga adicional cumple la nueva orden y mantiene ge
   assert.equal(m.state().slots[0].generation, 2);
   m.issue(); m.begin(); const consent = await apply(m.callback());
   assert.equal(consent.result.ok, true); assert.equal(m.state().slots[0].generation, 3);
-  await worker.applyLocalEvent({ participantId: 'slot-a', generation: 3, status: 'success', complete: true, syncedAt: '2026-11-01T10:00:00Z', activities: [] });
+  await worker.applyLocalEvent({ participantId: 'slot-a', generation: 3, status: 'success', complete: true, syncedAt: '2026-11-01T10:00:00Z', activities: [{ id: 'fresh-after-purge', sport_type: 'Run', manual: false, private: false, start_date: '2026-11-01T09:00:00Z', distance: 1000 }] });
+  assert.equal((await progress()).distanceKm, 1, 'la generación del consentimiento nuevo debe coincidir en Worker y auth');
   assert.equal(m.state().slots[0].milestonesPurged, false);
 });
