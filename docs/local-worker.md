@@ -42,7 +42,9 @@ Producción prevista: 500 km desde 2026-11-28 Europe/Madrid, con estado independ
 responsabilidad del frontend futuro. `partial` y `stale` son booleanos independientes:
 una cuenta sin autorización y otra con fallo temporal puede producir ambos true.
 La fecha es la última sincronización correcta conservadora del agregado, null
-mientras falte la reconciliación inicial completa de alguna cuenta. Estar
+hasta haber reconciliado por primera vez ambas cuentas. Después conserva la
+última fecha conjunta válida ante reconexión/backfill pendiente o errores; una
+supresión la limpia junto al agregado previo. Estar
 conectadas ambas no declara el total completo: partial permanece true hasta
 snapshots completos válidos de las dos. Una página complete:false no termina
 el backfill. No haber importado todavía no inventa un error: stale sigue siendo

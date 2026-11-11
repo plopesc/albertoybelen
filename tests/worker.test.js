@@ -76,9 +76,9 @@ test('HTTP no presenta autorización como backfill completo de las dos cuentas',
  assert.equal(v.distanceKm,4.00075); assert.equal(v.partial,false); assert.equal(v.stale,false); assert.equal(v.updatedAt,'2026-11-02T12:00:00.000Z');
  events=[{participantId:'slot-b',generation:0,status:'revoked'}];await w.scheduled({});
  events=[{...fixture[2],generation:1}];await w.scheduled({});v=await body(w);
- assert.equal(v.distanceKm,4.00075);assert.equal(v.partial,true);assert.equal(v.stale,true);assert.equal(v.updatedAt,null);
+ assert.equal(v.distanceKm,4.00075);assert.equal(v.partial,true);assert.equal(v.stale,true);assert.equal(v.updatedAt,'2026-11-02T12:00:00.000Z');
  events=[{...fixture[3],generation:1,complete:false}];await w.scheduled({});v=await body(w);
- assert.equal(v.partial,true);assert.equal(v.stale,false);assert.equal(v.updatedAt,null);
+ assert.equal(v.partial,true);assert.equal(v.stale,false);assert.equal(v.updatedAt,'2026-11-02T12:00:00.000Z');
  events=[{...fixture[3],generation:1}];await w.scheduled({});v=await body(w);
  assert.equal(v.partial,false);assert.equal(v.stale,false);
  assert.equal(JSON.stringify(v).includes('slot-'),false);
