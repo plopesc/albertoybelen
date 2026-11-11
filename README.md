@@ -295,3 +295,17 @@ consecución histórica, pero su contenido definitivo queda fuera de esta fase.
 
 Pages queda preparado e inactivo. No iniciar Strava, OAuth, Cloudflare ni el
 primer despliegue sin instrucciones explícitas.
+
+## Capturas para revisión
+
+Consulta [Capturas visuales reproducibles](docs/visual-captures.md). Con las
+herramientas de desarrollo instaladas:
+
+```sh
+npm ci
+npx playwright install --with-deps chromium
+npm run capture:visual
+```
+
+El workflow de PR guarda las capturas como artifacts durante tres días, sin
+publicar la web ni modificar el progreso de los jugadores.
