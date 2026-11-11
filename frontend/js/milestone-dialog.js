@@ -1,4 +1,5 @@
 import { createMilestoneQueue } from './milestones.js';
+import { FINISH_MILESTONE_ID } from './milestone-history.js';
 import { milestonePhoto } from './milestone-photos.js';
 
 /** Los avisos pendientes se muestran al entrar; las imágenes requieren una acción. */
@@ -15,6 +16,7 @@ export function createMilestoneReveals({ root, dialog, milestones, history }) {
   let returnFocus = null;
   let presentation = 0;
   let phase = 'closed';
+  let celebrateFinal = false;
   const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
 
   function updateControls() {
@@ -41,6 +43,8 @@ export function createMilestoneReveals({ root, dialog, milestones, history }) {
       $('reward-photo').hidden = true;
       $('reward-image-error').hidden = false;
     };
+    $('reward-message').textContent = photoFor(queue.getState().current).message ?? '';
+    $('reward-message').hidden = !$('reward-message').textContent;
     $('reward-photo').src = photoFor(queue.getState().current).src;
     updateControls();
   }
@@ -48,12 +52,16 @@ export function createMilestoneReveals({ root, dialog, milestones, history }) {
   function present(opener, directImage = false) {
     const { current } = queue.getState();
     const photo = photoFor(current);
+    const isFinal = current === FINISH_MILESTONE_ID;
     if (!photo) return;
     clearTimers();
     ++presentation;
     phase = 'notice';
     dialog.dataset.phase = phase;
-    $('reward-eyebrow').textContent = 'UN NUEVO HITO';
+    dialog.classList.toggle('is-celebrating', isFinal && celebrateFinal);
+    if (isFinal) celebrateFinal = false;
+    $('reward-message').hidden = true;
+    $('reward-eyebrow').textContent = isFinal ? 'LA META ES SOLO EL PRINCIPIO' : 'UN NUEVO HITO';
     $('reward-chest').toggleAttribute('hidden', false);
     $('reward-chest').classList.remove('is-open');
     $('reward-photo-wrap').hidden = true;
@@ -61,7 +69,7 @@ export function createMilestoneReveals({ root, dialog, milestones, history }) {
     $('reward-photo').hidden = false;
     $('reward-photo').onerror = null;
     $('reward-photo').removeAttribute('src');
-    $('reward-title').textContent = `Hito ${number.format(definitions.get(current).percent)} %`;
+    $('reward-title').textContent = isFinal ? '¡Reto completado!' : `Hito ${number.format(definitions.get(current).percent)} %`;
     $('reward-description').textContent = photo.title;
     $('reward-status').hidden = false;
     $('reward-status').textContent = '¡Has conseguido un nuevo hito! Abre el cofre para descubrir su imagen.';
@@ -92,6 +100,8 @@ export function createMilestoneReveals({ root, dialog, milestones, history }) {
   function close() {
     clearTimers(); presentation++;
     queue.close();
+    celebrateFinal = false;
+    dialog.classList.remove('is-celebrating');
     if (dialog.open) dialog.close();
     if (returnFocus?.isConnected && typeof returnFocus.focus === 'function') returnFocus.focus({ preventScroll: true });
     returnFocus = null;
@@ -137,6 +147,9 @@ export function createMilestoneReveals({ root, dialog, milestones, history }) {
   });
 
   return {
+    openFinal(opener) {
+      if (queue.reopen(FINISH_MILESTONE_ID)) present(opener);
+    },
     showPending() {
       if (queue.restorePending().current !== null) present();
     },
@@ -168,7 +181,9 @@ export function createMilestoneReveals({ root, dialog, milestones, history }) {
     },
     advance(previousRatio, nextRatio, distanceDelta, opener) {
       const before = queue.getState().current;
+      const hadFinal = history.isUnlocked(FINISH_MILESTONE_ID);
       const state = queue.advance(previousRatio, nextRatio, distanceDelta);
+      if (!hadFinal && history.isUnlocked(FINISH_MILESTONE_ID)) celebrateFinal = true;
       if (state.current !== null && (before !== state.current || !dialog.open)) present(opener);
       else updateControls();
     },
