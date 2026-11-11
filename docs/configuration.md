@@ -8,6 +8,7 @@ definitivos del reto**. El título conserva los nombres de Alberto y Belén.
 ```json
 {
   "game": {
+    "id": "alberto-belen",
     "title": "Alberto y Belén · Kilómetro Arcade",
     "goalKm": 100,
     "startDate": "2027-01-01",
@@ -15,7 +16,12 @@ definitivos del reto**. El título conserva los nombres de Alberto y Belén.
     "mode": "simulation"
   },
   "rewards": {
-    "checkpoints": [20, 40, 60, 80],
+    "milestones": [
+      { "id": "milestone-20", "percent": 20 },
+      { "id": "milestone-40", "percent": 40 },
+      { "id": "milestone-60", "percent": 60 },
+      { "id": "milestone-80", "percent": 80 }
+    ],
     "finish": 100
   }
 }
@@ -23,17 +29,31 @@ definitivos del reto**. El título conserva los nombres de Alberto y Belén.
 
 | Campo | Interpretación y validación |
 | --- | --- |
+| `game.id` | Identidad estable del reto y de su historial. Opcional: `alberto-belen`. Letras minúsculas, números y guiones, empieza por letra, máximo 64 caracteres. No cambiar al editar título o meta. |
 | `game.title` | Texto no vacío para el título de la página y el encabezado del juego. Se muestra como texto, sin interpretar HTML. |
 | `game.goalKm` | Número JSON positivo y finito, sin comillas. Fuente de verdad del objetivo. |
 | `game.startDate` | Fecha existente en formato exacto `YYYY-MM-DD`; admite años 0001–9999 y comprueba años bisiestos. |
 | `game.timeZone` | Zona horaria reconocida por `Intl.DateTimeFormat`, como `UTC` o `Europe/Madrid`. Opcional: por defecto `UTC`. |
 | `game.mode` | Exactamente `simulation` o `real`, en minúsculas. No hay selección automática ni modo de reserva. |
-| `rewards.checkpoints` | Lista opcional de porcentajes numéricos, únicos, estrictamente crecientes y entre 0 y 100 sin incluir extremos. Por defecto 20/40/60/80. `[]` muestra solo salida y meta. |
+| `rewards.milestones` | Lista opcional de objetos `{id, percent, image?, title?, alt?}`. IDs únicos con el mismo formato que `game.id`; `finish` está reservado. Porcentajes únicos, crecientes y entre 0 y 100 sin extremos. Por defecto 20/40/60/80 con IDs `milestone-20`, etc. `[]` muestra solo salida y meta. |
 | `rewards.finish` | Si se incluye, debe ser el número 100. |
 
 El objeto `rewards` es opcional. Se toleran campos adicionales para futuras
 ampliaciones, pero todavía no se utilizan. Los campos obligatorios de `game`
 son título, objetivo, fecha y modo.
+
+Usamos **hitos** en la interfaz y **milestones** en JSON y código. La antigua clave
+`rewards.checkpoints` debe renombrarse a `rewards.milestones`; se rechaza con un
+error claro para evitar ignorar una configuración antigua. Se admite la forma
+abreviada `[20, 40, 60, 80]`, que genera IDs `milestone-20`, etc. Para poder mover
+porcentajes conservando fotografías e historial, usar objetos con IDs explícitos.
+
+`image` es una ruta local relativa a `frontend/`, por ejemplo
+`assets/milestones/mi-imagen.webp`; no admite URL externa, ruta absoluta ni `..`.
+Sin `image`, se usa `assets/milestones/<id>.webp`. `title` y `alt` son textos
+opcionales no vacíos. Solo se incluyen cuatro imágenes iniciales: un ID nuevo
+necesita su archivo o una ruta `image` existente. Si falta, el modal informa del
+error sin mostrar otra imagen. Consulta [imágenes e historial de hitos](milestones.md).
 
 ## Fecha inclusiva y zona horaria
 
@@ -52,7 +72,10 @@ en el estado simulado desde las que recalcularlos.
 
 La configuración nunca se toma de `localStorage`. La interfaz pública ya no
 incluye un formulario para cambiar el objetivo. Cambiar `goalKm` en JSON y
-recargar conserva distancia y recalcula progreso, restantes y checkpoints.
+recargar conserva distancia y recalcula progreso, posición y restantes. Conserva
+los hitos conseguidos históricamente, incluido `finish`, sin abrir ningún cofre.
+Los hitos todavía no registrados se descubren únicamente tras otro aumento real
+de kilómetros; editar el objetivo o los porcentajes no los desbloquea al cargar.
 
 El estado v2 usa la clave `strava-adventure:simulation:v2` y guarda solo:
 
@@ -65,7 +88,8 @@ migra su distancia numérica, finita y no negativa. Se ignora por completo su
 objetivo, incluso si era inválido. Se escribe v2 sin borrar el original v1. Una
 vez existe v2, este prevalece; si está dañado se recupera a cero con aviso, sin
 resucitar una distancia antigua. Reiniciar escribe cero en v2 y conserva la
-configuración del JSON.
+configuración del JSON. También limpia explícitamente los hitos simulados para
+poder repetir las revelaciones, sin equivaler a una corrección del progreso.
 
 Si el almacenamiento está bloqueado o lleno, la simulación funciona en memoria
 y muestra un aviso. Si falla la escritura al migrar, la distancia recuperada se
@@ -96,14 +120,15 @@ configuración guardada por el navegador. Un CDN o un despliegue aún en curso
 pueden tardar en entregar el archivo nuevo: confirmar el JSON servido en la
 pestaña de red y recargar después de terminar una publicación autorizada.
 
-La preparación de Pages se gestiona por separado en la PR de la issue #7. Editar
+Pages se preparó en la issue #7 y mantiene su activación separada. Editar
 este JSON no autoriza activar Pages, hacer merge ni desplegar. El workflow de
-Pages empaqueta `frontend/`, por lo que incluirá `config/` cuando se integre esta
-issue; no necesita un paso de build para la configuración.
+Pages empaqueta `frontend/`, por lo que incluye `config/` y los recursos de hitos; no necesita un paso de build para la configuración.
 
-**El JSON es público.** No incluir Client Secret, tokens, claves, credenciales,
-fotografías ni el contenido del premio. Los checkpoints solo representan estado;
-no desbloquean contenido real.
+**El JSON y los archivos son públicos.** No incluir Client Secret, tokens, claves
+ni credenciales. Las imágenes provisionales son paisajes sin personas. El
+bloqueo de un cofre es solo visual: su URL directa es pública. Las fotografías
+definitivas requieren consentimiento para su publicación abierta. No añadir
+contenido que necesite privacidad; véase la [guía de hitos](milestones.md).
 
 ## Comprobar una edición
 
@@ -126,11 +151,12 @@ Abrir `http://127.0.0.1:8002/albertoybelen/`. Con Playwright CLI disponible:
 ```sh
 playwright-cli -s=config open http://127.0.0.1:8002/albertoybelen/ --config=.ddev/playwright-cli/cli.config.json
 playwright-cli -s=config run-code --filename=tests/browser-smoke.js
+playwright-cli -s=config run-code --filename=tests/browser-milestones.js
 playwright-cli -s=config close
 ```
 
 La prueba de navegador reinicia el estado local e intercepta temporalmente el
-JSON para probar objetivos, fechas, zonas, checkpoints, modos y errores. No
+JSON para probar objetivos, fechas, zonas, hitos, modos y errores. No
 modifica el archivo. Incluye migración, geometría 0/20/50/80/100 %, teclado,
 movimiento reducido y tamaños 320/390/768/1280. La CI usa Node.js; Chromium sigue
 siendo una comprobación local opcional, sin dependencias de runtime nuevas.

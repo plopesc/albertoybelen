@@ -121,3 +121,7 @@ PR o que CI pase no constituye esa aprobación. No hay auto-merge ni pasos de
 despliegue en el workflow. Tampoco se modifican las reglas de protección de
 `main`: exigir CI y aprobaciones mediante esas reglas queda a criterio de la
 persona responsable del repositorio.
+
+Para cambios en hitos o imágenes, consultar [la guía de hitos](docs/milestones.md)
+y repetir `tests/browser-milestones.js` según sus comandos. La interfaz usa
+«hitos» y el JSON/código `milestones`; mantener IDs estables al editar porcentajes.
