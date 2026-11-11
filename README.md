@@ -1,7 +1,12 @@
-# Strava Adventure · Fase 1
+# Alberto y Belén · Kilómetro Arcade
 
-Prototipo estático, en español y orientado a móvil. Un personaje recorre un
-sendero SVG al sumar kilómetros simulados. Sin frameworks, paquetes de runtime,
+Prototipo estático, en español y orientado a móvil, con estética arcade de 16 bits.
+Un indicador recorre un mundo SVG vertical al sumar kilómetros simulados.
+La interfaz toma el verde bosque (`#24342c`, `#254636`) y dorado ocre (`#c58f4d`)
+de la [invitación de Alberto y Belén](https://www.fixdate.io/invitacion/BodaAlberto-Belen).
+Los textos pequeños usan un dorado más claro para mantener su legibilidad.
+La invitación solo es referencia de estilo: el juego no descarga sus recursos.
+Sin frameworks, paquetes de runtime,
 servicios externos, Strava, OAuth ni Cloudflare. No requiere compilación.
 
 ## Ejecutar localmente
@@ -28,6 +33,24 @@ La dirección del proyecto es <https://albertoybelen.ddev.site/frontend/>.
 ## Usar el prototipo
 
 - Empieza con 0 km y una meta de 100 km.
+- En móvil se muestra primero el mapa y debajo el HUD con kilómetros, objetivo,
+  porcentaje y restantes. **Ir a los controles** salta directamente a la simulación.
+- **Explorar mapa** lleva al recorrido completo. La salida está abajo y la meta
+  arriba: desplázate por bosque, río, cañón y montaña desde el primer día.
+- El paisaje aparece directamente, sin cabecera. La leyenda inferior reutiliza
+  los símbolos del mapa para posición, checkpoint bloqueado/desbloqueado y meta.
+- Los checkpoints del 20/40/60/80 % cambian de **BLOQUEADO** a **DESBLOQUEADO**
+  al alcanzar su porcentaje. Sus posiciones se calculan sobre el mismo trazado
+  que el indicador. Cambiar la meta o reiniciar recalcula todos sus estados.
+  Los cinco tramos del 20 % tienen igual longitud siguiendo el camino; su altura
+  visible varía según las curvas.
+- La meta al 100 % tiene un arco y un regalo misterioso decorativo con perspectiva,
+  papel verde con brocado y lazo dorado. Los hitos
+  no abren contenido: fotografías, premio y celebración quedan para otras issues.
+- La salida y el arco de meta usan madera con vetas, tela, piedra y sombras,
+  dibujadas en SVG para integrarse con el paisaje de 16 bits.
+- El indicador de avance usa la ilustración aportada en `frontend/assets/icono.jpeg`,
+  ajustada a un círculo con borde claro; la leyenda comparte el mismo símbolo.
 - Suma +1, +5 o +10 km para mover el personaje por el camino.
 - Introduce una meta de al menos 0,1 km, en pasos de 0,1, y pulsa **Guardar meta**
   o Enter. Un valor inválido muestra un error sin cambiar la meta vigente.
@@ -62,14 +85,17 @@ Con el servidor en marcha, se puede repetir la prueba de navegador usando el
 desarrollo opcionales, no son dependencias de la aplicación):
 
 ```sh
-playwright-cli -s=adventure-phase1 open http://127.0.0.1:8000 --config=.ddev/playwright-cli/cli.config.json
-playwright-cli -s=adventure-phase1 run-code --filename=tests/browser-smoke.js
-playwright-cli -s=adventure-phase1 close
+playwright-cli -s=adventure open http://127.0.0.1:8000 --config=.ddev/playwright-cli/cli.config.json
+playwright-cli -s=adventure run-code --filename=tests/browser-smoke.js
+playwright-cli -s=adventure close
 ```
 
 Esta prueba reinicia los datos simulados del origen local y comprueba controles,
 posición SVG, persistencia, errores, teclado, movimiento reducido, almacenamiento
-bloqueado y ausencia de desbordamientos a 320, 390, 768 y 1280 px.
+bloqueado y ausencia de desbordamientos a 320, 390, 768 y 1280 px. Comprueba también
+el indicador al 0/20/50/80/100 %, los cuatro umbrales justo antes y al alcanzarlos,
+sus etiquetas dentro del mapa, el bloqueo tras reiniciar y el orden mapa → datos
+→ controles en móvil.
 
 Comprobaciones manuales con el servidor local:
 
@@ -84,15 +110,27 @@ Comprobaciones manuales con el servidor local:
    sin animarse. El recorrido mantiene sus proporciones al cambiar de ancho.
 5. Bloquear `localStorage` o introducir JSON inválido en la clave
    `strava-adventure:simulation:v1`: la aplicación debe seguir siendo utilizable.
+6. Con meta 100, comprobar a 0/20/50/80/100 km: deben estar desbloqueados
+   0/1/2/4/4 checkpoints. Ningún tramo futuro desaparece ni se revela contenido.
+   A 125 km el indicador sigue en el arco. Reiniciar vuelve a bloquear los cuatro.
+7. Desde móvil, recorrer todo el mapa con desplazamiento normal y usar los enlaces
+   de salto con teclado. El mapa tiene descripción y una lista textual de estados
+   para lectores de pantalla; la indicación de bloqueo no depende solo del color.
+
+Capturas de referencia del rediseño: [escritorio](docs/screenshots/issue-4-desktop.png)
+y [móvil](docs/screenshots/issue-4-mobile.png), además del
+[detalle de la meta al 100 %](docs/screenshots/issue-4-goal.png). Son imágenes del prototipo local,
+con datos simulados y la ilustración aportada para el indicador.
 
 ## Organización
 
 ```text
-frontend/index.html       Interfaz y mapa SVG original
+frontend/index.html       HUD arcade, recorrido e hitos SVG
+frontend/assets/          Fondo original de 16 bits y prompt de generación
 frontend/css/style.css    Diseño responsive, foco y movimiento reducido
 frontend/js/progress.js   Cálculos puros con validación, sin DOM ni persistencia
 frontend/js/game.js       Contrato DistanceProvider y proveedor simulado local
-frontend/js/app.js        Eventos, renderizado y animación con getPointAtLength
+frontend/js/app.js        Eventos, hitos y posición con getPointAtLength
 tests/                   Pruebas de cálculos y proveedor con node:test
 .github/                 Plantilla de PR y workflow de CI
 CONTRIBUTING.md           Flujo de Issues, ramas, pruebas y revisión
@@ -117,11 +155,20 @@ revisa y aprueba el merge; no hay merge ni despliegue automático.
 
 ## Límites y siguiente paso
 
-Solo fase 1: los datos son simulados y propios de cada origen/navegador. No hay
+Prototipo visual con rediseño de mapa/HUD (issue #4): los datos son simulados y
+propios de cada origen/navegador. No hay
 sincronización entre dispositivos ni pestañas, cuentas, API real, base de datos
-o despliegue. Los SVG se han creado para este prototipo; no hay fuentes, imágenes
-ni música de terceros.
+o despliegue. Los SVG del recorrido se han creado para este prototipo; el paisaje
+es original y la ilustración del indicador ha sido aportada para el juego. No hay
+fuentes externas ni música.
 
-Próxima tarea sugerida: revisar y aprobar el prototipo visual y su experiencia
-en móvil antes de planificar la fase siguiente. No iniciar Strava, OAuth,
+El indicador representa el progreso agregado del proveedor; no presupone un número
+de cuentas ni corredores. El paisaje original se generó con `image_gen` y se sirve
+como un WebP local de unos 760 KiB, sin solicitudes a servicios externos. El camino,
+los hitos y el indicador son SVG independientes del fondo. Se conserva el
+[prompt y procedencia del arte](frontend/assets/ART.md). No hay fuentes externas,
+animaciones de carrera ni sistema de fotos.
+
+Revisar y aprobar el mapa/HUD y su experiencia en móvil antes de iniciar otras
+issues. No iniciar Strava, OAuth,
 Cloudflare ni GitHub Pages sin instrucciones explícitas.
