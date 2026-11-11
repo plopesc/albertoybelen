@@ -165,10 +165,13 @@ no hay un sitio configurado. Ese 404 por sí solo no identifica el plan.
 No se ha cambiado la visibilidad, activado Pages ni realizado un despliegue.
 
 Alternativas que debe decidir y autorizar el propietario: pasar a un plan
-compatible conservando el repositorio privado; preparar un repositorio público
+compatible conservando el repositorio privado; hacer público este repositorio
+tras revisar y aprobar también su historial y recursos; preparar un repositorio público
 separado que contenga únicamente recursos aprobados; o elegir otro alojamiento
 estático compatible con repositorios privados. No se crea otro repositorio ni se
-cambia de proveedor automáticamente.
+cambia de proveedor automáticamente. Hacer público el repositorio permitiría
+Pages con Free, pero expondría también el código, el historial y los recursos,
+además del sitio; no es un cambio realizado ni autorizado por esta PR.
 
 ### Funcionamiento y activación pendiente
 
@@ -191,7 +194,8 @@ módulos y ejecuta las pruebas antes de empaquetar. `configure-pages` usa
 **Solo tras autorización explícita del propietario y resolviendo el bloqueo:**
 
 1. Revisar y fusionar esta PR mediante el flujo habitual. Confirmar que la cuenta
-   ya permite Pages para el repositorio privado y aprobar el contenido público.
+   ya permite Pages (plan compatible o visibilidad pública autorizada) y aprobar
+   el contenido público.
 2. En **Settings → Pages → Build and deployment**, seleccionar **GitHub Actions**.
    Este cambio de ajustes debe hacerlo el propietario o autorizarlo explícitamente.
 3. En **Settings → Environments → github-pages**, restringir despliegues a `main`
