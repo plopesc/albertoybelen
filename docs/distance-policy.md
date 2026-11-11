@@ -56,6 +56,12 @@ umbrales. Un total que desborde Number se rechaza.
 - Un slot conectado puede contribuir aunque el otro no lo esté. El público ve
   `partial:true` sin saber cuál falta. Sin `activity:read_all` también se declara
   conexión incompleta: no se pretende haber contado actividades privadas.
+  Conectar ambas cuentas no significa haber importado su historial: cada slot
+  empieza con `initialReconciled:false`. Solo un snapshot completo y válido
+  (`complete:true`) termina ese backfill. Antes, el agregado sigue siendo partial,
+  incluso si hay páginas incrementales válidas o ambas cuentas tienen permisos.
+  La ausencia de importación no inventa un fallo temporal: stale sigue siendo
+  una dimensión independiente, y ambos indicadores pueden ser true.
 - Al conectar el segundo, reconciliar desde la fecha de inicio del reto, no desde
   su consentimiento. Repetir el backfill no duplica actividades.
 - Un lote completo exitoso reemplaza atómicamente el snapshot de ese slot; ausencias
@@ -66,15 +72,20 @@ umbrales. Un total que desborde Number se rechaza.
   válido y `stale:true`. El otro slot puede continuar actualizándose. `partial`
   y `stale` son indicadores independientes y pueden coexistir.
 - Cada slot conserva su última sincronización correcta. `updatedAt` público es
-  la más antigua de las conocidas relevantes, nunca un instante inventado en un
-  fallo. El detalle de error/slot solo pertenece al backend privado futuro.
+  la más antigua de ambas cuentas reconciliadas, nunca un instante inventado en un
+  fallo. Mientras falte el backfill inicial de alguna cuenta, updatedAt es null:
+  una fecha de subtotal no se presenta como actualización del conjunto completo. El detalle de error/slot solo pertenece al backend privado futuro.
 - Revocar OAuth detiene consultas y elimina credenciales en el adaptador futuro;
   en el modelo deshabilita el slot y aumenta su generación. Conserva provisionalmente
   sus metros dentro del agregado y marca `partial`, sin presentarlos como actuales.
   La revocación marca también `stale` hasta una reconciliación correcta; una falta
   inicial de autorización marca solo `partial`, salvo fallo temporal concurrente.
 - Reconectar requiere consentimiento nuevo y la generación actual. Un snapshot
-  completo desde el inicio puede corregir/eliminar metros. Ningún premio se pierde
+  completo desde el inicio puede corregir/eliminar metros. La reconexión reinicia
+  initialReconciled a false, conservando metros y marcas internas previas; una
+  página incremental no basta para declarar completo el historial recuperado.
+  Cambiar los scopes concedidos también exige reconciliación completa; repetir
+  el mismo evento connected con idénticos scopes no invalida un snapshot válido. Ningún premio se pierde
   por esta reconciliación ordinaria.
 
 ## Revocación y supresión son distintas

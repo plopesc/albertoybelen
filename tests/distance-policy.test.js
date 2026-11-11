@@ -74,7 +74,7 @@ test('supresión verificada, idempotencia, no resurrección y purga de premios p
 });
 
 test('revocación de snapshot cero conserva última fecha válida y marca parcial + stale', () => {
- let s=apply(connected(),sync('slot-a',[]));
+ let s=apply(apply(connected(),sync('slot-a',[])),sync('slot-b',[]));
  s=apply(s,{participantId:'slot-a',generation:0,status:'revoked'});
  assert.equal(view(s).updatedAt,'2026-11-02T12:00:00.000Z');
  assert.equal(view(s).partial,true); assert.equal(view(s).stale,true);
@@ -94,4 +94,48 @@ test('fecha pública conservadora compara instantes normalizados con distintos o
  let s=apply(connected(),sync('slot-a',[],{syncedAt:'2026-11-02T12:00:00+02:00'}));
  s=apply(s,sync('slot-b',[],{syncedAt:'2026-11-02T11:00:00Z'}));
  assert.equal(view(s).updatedAt,'2026-11-02T10:00:00.000Z');
+});
+
+test('consentimiento de dos cuentas no equivale a historial importado', () => {
+ let s=connected();
+ assert.deepEqual({partial:view(s).partial,stale:view(s).stale,updatedAt:view(s).updatedAt},{partial:true,stale:false,updatedAt:null});
+ assert.equal(view(s).distanceKm,0);
+ s=apply(s,sync('slot-a',[a('a',1250.5)]));
+ assert.equal(view(s).distanceKm,1.2505); assert.equal(view(s).partial,true); assert.equal(view(s).stale,false); assert.equal(view(s).updatedAt,null);
+ s=apply(s,{participantId:'slot-b',generation:0,status:'error',httpStatus:429});
+ assert.equal(view(s).partial,true); assert.equal(view(s).stale,true); assert.equal(view(s).distanceKm,1.2505); assert.equal(view(s).updatedAt,null);
+ s=apply(s,sync('slot-b',[a('b',2000)],{complete:false}));
+ assert.equal(view(s).distanceKm,3.2505); assert.equal(view(s).partial,true); assert.equal(view(s).stale,false); assert.equal(view(s).updatedAt,null);
+ assert.equal(s.participants[1].initialReconciled,false);
+ s=apply(s,sync('slot-b',[a('b',2000)]));
+ assert.equal(view(s).partial,false); assert.equal(view(s).stale,false); assert.equal(view(s).updatedAt,'2026-11-02T12:00:00.000Z');
+});
+test('reconexión exige backfill completo incluso con último agregado conservado', () => {
+ let s=apply(apply(connected(),sync('slot-a',[a('x',1000)])),sync('slot-b',[]));
+ assert.equal(view(s).partial,false);
+ s=apply(s,{participantId:'slot-a',generation:0,status:'revoked'});
+ assert.equal(view(s).distanceKm,1); assert.equal(view(s).stale,true); assert.equal(view(s).updatedAt,'2026-11-02T12:00:00.000Z');
+ s=apply(s,{participantId:'slot-a',generation:1,status:'connected',scopes:['activity:read_all']});
+ assert.equal(view(s).partial,true); assert.equal(view(s).updatedAt,null); assert.equal(view(s).distanceKm,1);
+ s=apply(s,sync('slot-a',[],{generation:1,complete:false}));
+ assert.equal(view(s).partial,true); assert.equal(view(s).stale,false); assert.equal(view(s).updatedAt,null);
+ s=apply(s,sync('slot-a',[],{generation:1})); assert.equal(view(s).partial,false); assert.equal(view(s).distanceKm,0);
+});
+test('permiso privado ausente y estado stale se calculan independientemente del backfill', () => {
+ let s=apply(apply(connected(),sync('slot-a',[])),sync('slot-b',[]));
+ s=apply(s,{participantId:'slot-a',generation:0,status:'connected',scopes:['activity:read']});
+ assert.equal(view(s).partial,true); assert.equal(view(s).stale,false);
+ s=apply(s,{participantId:'slot-b',generation:0,status:'error'});
+ assert.equal(view(s).partial,true); assert.equal(view(s).stale,true);
+});
+
+test('ampliar permisos necesita backfill nuevo; repetir mismos scopes no invalida snapshot', () => {
+ let s=apply(apply(connected(),sync('slot-a',[])),sync('slot-b',[]));
+ s=apply(s,{participantId:'slot-a',generation:0,status:'connected',scopes:['activity:read_all']});
+ assert.equal(view(s).partial,false);
+ s=apply(s,{participantId:'slot-a',generation:0,status:'connected',scopes:['activity:read']});
+ s=apply(s,{participantId:'slot-a',generation:0,status:'connected',scopes:['activity:read_all']});
+ assert.equal(view(s).partial,true); assert.equal(view(s).stale,false); assert.equal(view(s).updatedAt,null);
+ s=apply(s,sync('slot-a',[],{complete:false})); assert.equal(view(s).partial,true);
+ s=apply(s,sync('slot-a',[])); assert.equal(view(s).partial,false);
 });
