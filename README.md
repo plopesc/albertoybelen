@@ -155,23 +155,16 @@ revisa y aprueba el merge; no hay merge ni despliegue automático.
 
 ## Entorno de pruebas en GitHub Pages
 
-**Estado a 11 de noviembre de 2026: publicación bloqueada por el plan.** El
-repositorio `plopesc/albertoybelen` es privado y su propietario ha confirmado
-GitHub Free. [Pages en repositorios privados requiere GitHub Pro u otro plan
-compatible](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site).
-La consulta de solo lectura al repositorio devuelve `private: true` y
-`has_pages: false`; `GET /repos/plopesc/albertoybelen/pages` responde 404 porque
-no hay un sitio configurado. Ese 404 por sí solo no identifica el plan.
-No se ha cambiado la visibilidad, activado Pages ni realizado un despliegue.
+**Estado a 11 de noviembre de 2026: viable, pendiente de activación autorizada.**
+El propietario ha hecho público `plopesc/albertoybelen`. La comprobación de solo
+lectura devuelve `private: false`, `visibility: public` y `has_pages: false`.
+[GitHub Free permite Pages en repositorios públicos](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site);
+la limitación inicial del repositorio privado está resuelta. No hay un sitio
+configurado ni una URL publicada, y no se ha realizado ningún despliegue.
 
-Alternativas que debe decidir y autorizar el propietario: pasar a un plan
-compatible conservando el repositorio privado; hacer público este repositorio
-tras revisar y aprobar también su historial y recursos; preparar un repositorio público
-separado que contenga únicamente recursos aprobados; o elegir otro alojamiento
-estático compatible con repositorios privados. No se crea otro repositorio ni se
-cambia de proveedor automáticamente. Hacer público el repositorio permitiría
-Pages con Free, pero expondría también el código, el historial y los recursos,
-además del sitio; no es un cambio realizado ni autorizado por esta PR.
+Si en el futuro se vuelve a hacer privado el repositorio, hará falta un plan
+compatible con Pages privado o elegir otro alojamiento. Esas decisiones y cualquier
+cambio de visibilidad o creación de otro repositorio corresponden al propietario.
 
 ### Funcionamiento y activación pendiente
 
@@ -191,7 +184,7 @@ No hay build ni instalación de dependencias. Comprueba sintaxis de todos los
 módulos y ejecuta las pruebas antes de empaquetar. `configure-pages` usa
 `enablement: false`: no crea ni activa el sitio por iniciativa del workflow.
 
-**Solo tras autorización explícita del propietario y resolviendo el bloqueo:**
+**Solo tras autorización explícita del propietario:**
 
 1. Revisar y fusionar esta PR mediante el flujo habitual. Confirmar que la cuenta
    ya permite Pages (plan compatible o visibilidad pública autorizada) y aprobar
