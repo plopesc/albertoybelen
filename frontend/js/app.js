@@ -15,7 +15,7 @@ const setupMessage = document.createElement('p');
 setupMessage.id = 'setup-message';
 setupMessage.className = 'config-notice';
 setupMessage.setAttribute('role', 'status');
-setupMessage.textContent = 'Cargando la configuración del juego…';
+setupMessage.textContent = 'Preparando la partida…';
 document.querySelector('.adventure-layout').before(setupMessage);
 const path = $('route');
 const pathLength = path.getTotalLength();
@@ -144,7 +144,7 @@ async function start() {
     }
     provider = createDistanceProvider(game, storage);
     if (!provider) {
-      const message = 'Modo real aún no disponible. La conexión con Strava y el backend todavía no están implementados. No hay kilómetros reales disponibles.';
+      const message = 'Modo real aún no disponible. No hay datos de Strava para mostrar.';
       showNotice(message);
       $('journey-message').textContent = 'Progreso no disponible en modo real.';
       const milestones = renderCheckpoints(null);
