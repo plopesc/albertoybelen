@@ -295,6 +295,21 @@ publicado: para retirarlo, el propietario debe usar **Settings → Pages → Unp
 site**. Cancelar también ejecuciones activas si las hubiera. La despublicación y
 los ajustes requieren su autorización; no se han realizado en esta tarea.
 
+## Invitaciones privadas: prototipo de seguridad
+
+La [especificación de invitaciones](docs/private-invitations.md) describe los dos
+slots, enlaces de un solo uso, revocación y supresión. Su máquina de estados y
+los contratos de reglas/Worker se comprueban solo con datos sintéticos:
+
+```sh
+npm test
+node --test tests/invitations.test.js
+```
+
+No existen endpoints OAuth ni vinculación real. El callback HTTPS de DDEV es
+una ruta prevista, pendiente de implementar y autorizar; el prototipo no solicita
+credenciales ni usa Cloudflare o D1 remotos.
+
 ## Límites y siguiente paso
 
 Los datos siguen siendo simulados y propios de cada origen/navegador. No hay
