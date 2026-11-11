@@ -128,3 +128,87 @@ test('supresión adicional de hitos solo ante decisión verificada explícita', 
   state = applyParticipantSync(state, { participantId: 'slot-a', generation: 0, status: 'deleted', verified: true, purgeMilestones: true });
   assert.deepEqual(publicProgress(state).unlockedMilestoneIds, []);
 });
+
+test('segunda supresión cancela una reconexión pendiente aunque el slot continúe deleted', () => {
+  const m = model(); m.delete(); m.issue(); m.begin();
+  const generation = m.state().slots[0].generation;
+  const result = m.delete();
+  assert.equal(result.result.code, 'deleted');
+  assert.equal(result.effects.length, 0, 'la política ya conoce la supresión');
+  assert.equal(result.state.slots[0].generation, generation);
+  assert.equal(result.state.slots[0].expectedAccountHash, null);
+  assert.deepEqual(result.state.invitations, {});
+  assert.deepEqual(result.state.attempts, {});
+  assert.equal(m.callback().result.code, 'invalid_callback');
+  assert.equal(m.begin().result.code, 'invalid_invitation');
+  assert.deepEqual(m.delete().effects, []);
+});
+test('segunda revocación cancela una reconexión pendiente aunque el slot continúe revoked', () => {
+  const m = model(); m.issue(); m.begin(); m.callback(); m.revoke();
+  m.issue('slot-a', 'reconnect'); m.begin('reconnect', 'pending-state');
+  const generation = m.state().slots[0].generation;
+  const result = m.revoke();
+  assert.equal(result.result.code, 'revoked');
+  assert.equal(result.effects.length, 0);
+  assert.equal(result.state.slots[0].generation, generation);
+  assert.equal(result.state.slots[0].expectedAccountHash, null);
+  assert.equal(m.callback('pending-state').result.code, 'invalid_callback');
+  assert.equal(m.begin('reconnect', 'another-attempt').result.code, 'invalid_invitation');
+  assert.deepEqual(m.revoke().effects, []);
+});
+test('revocar de nuevo un slot suprimido cancela el intento sin debilitar su supresión', () => {
+  const m = model(); m.delete(); m.issue(); m.begin();
+  const generation = m.state().slots[0].generation;
+  assert.deepEqual(m.revoke().effects, []);
+  assert.equal(m.state().slots[0].status, 'deleted');
+  assert.equal(m.state().slots[0].generation, generation);
+  assert.equal(m.state().slots[0].expectedAccountHash, null);
+  assert.deepEqual(m.state().invitations, {});
+  assert.equal(m.callback().result.ok, false);
+});
+test('Worker: segunda orden cancela reconexión sin resucitar aportaciones ni alterar otro slot', async () => {
+  for (const action of ['delete', 'revoke']) {
+    const m = model(); const worker = createWorker({ initialState: createDistanceState(), loadFixture: async () => [] });
+    const apply = async result => { for (const event of result.effects) await worker.applyLocalEvent(event); return result; };
+    const progress = async () => (await worker.fetch(new Request('https://example.invalid/api/progress'))).json();
+    m.issue(); m.begin(); await apply(m.callback());
+    m.issue('slot-b', 'invite-b', 'account-b'); m.begin('invite-b', 'state-b', 'session-b'); await apply(m.callback('state-b', 'account-b', 'session-b'));
+    const event = (participantId, distance, generation = 0) => ({ participantId, generation, status: 'success', complete: true, syncedAt: '2026-11-01T10:00:00Z', activities: [{ id: 'fixture', sport_type: 'Walk', manual: false, private: false, start_date: '2026-11-01T09:00:00Z', distance }] });
+    await worker.applyLocalEvent(event('slot-a', 40000)); await worker.applyLocalEvent(event('slot-b', 10000));
+    await apply(m[action]());
+    m.issue('slot-a', 'reconnect'); m.begin('reconnect', 'pending-state');
+    await apply(m[action]());
+    const rejected = m.callback('pending-state');
+    assert.equal(rejected.result.code, 'invalid_callback'); assert.deepEqual(rejected.effects, []);
+    await apply(rejected);
+    await worker.applyLocalEvent(event('slot-a', 90000, 0));
+    await worker.applyLocalEvent(event('slot-a', 90000, 1));
+    assert.equal((await progress()).distanceKm, action === 'delete' ? 10 : 50);
+    await worker.applyLocalEvent(event('slot-b', 20000));
+    assert.equal((await progress()).distanceKm, action === 'delete' ? 20 : 60);
+    // Una invitación distinta y posterior sí permite consentimiento nuevo.
+    m.issue('slot-a', 'fresh-invite'); m.begin('fresh-invite', 'fresh-state');
+    await apply(m.callback('fresh-state'));
+    const generation = m.state().slots[0].generation;
+    await worker.applyLocalEvent(event('slot-a', 5000, generation));
+    assert.equal((await progress()).distanceKm, 25);
+  }
+});
+
+test('segunda supresión con purga adicional cumple la nueva orden y mantiene generaciones coherentes', async () => {
+  const m = model(); const initialState = createDistanceState(); initialState.unlockedMilestoneIds = ['finish'];
+  const worker = createWorker({ initialState, loadFixture: async () => [] });
+  const apply = async result => { for (const event of result.effects) await worker.applyLocalEvent(event); return result; };
+  const progress = async () => (await worker.fetch(new Request('https://example.invalid/api/progress'))).json();
+  await apply(m.delete()); assert.deepEqual((await progress()).unlockedMilestoneIds, ['finish']);
+  const result = await apply(m.delete('slot-a', { purgeMilestones: true }));
+  assert.deepEqual(result.effects, [{ participantId: 'slot-a', generation: 1, status: 'deleted', verified: true, purgeMilestones: true }]);
+  assert.equal(m.state().slots[0].generation, 2);
+  assert.deepEqual((await progress()).unlockedMilestoneIds, []);
+  assert.deepEqual(m.delete('slot-a', { purgeMilestones: true }).effects, []);
+  assert.equal(m.state().slots[0].generation, 2);
+  m.issue(); m.begin(); const consent = await apply(m.callback());
+  assert.equal(consent.result.ok, true); assert.equal(m.state().slots[0].generation, 3);
+  await worker.applyLocalEvent({ participantId: 'slot-a', generation: 3, status: 'success', complete: true, syncedAt: '2026-11-01T10:00:00Z', activities: [] });
+  assert.equal(m.state().slots[0].milestonesPurged, false);
+});

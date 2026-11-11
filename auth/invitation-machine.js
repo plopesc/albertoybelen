@@ -7,7 +7,7 @@ const validHash = value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(va
 const owner = actor => actor?.authenticated === true && actor?.role === 'owner';
 const verifiedSubject = (actor, slot) => owner(actor) || (actor?.authenticated === true && actor?.verified === true && actor?.slot === slot);
 export function createInvitationState() {
-  return { slots: ['slot-a', 'slot-b'].map(id => ({ id, status: 'disconnected', generation: 0, accountHash: null, expectedAccountHash: null })), invitations: {}, attempts: {}, retiredHashes: [], failures: {} };
+  return { slots: ['slot-a', 'slot-b'].map(id => ({ id, status: 'disconnected', generation: 0, accountHash: null, expectedAccountHash: null, milestonesPurged: false })), invitations: {}, attempts: {}, retiredHashes: [], failures: {} };
 }
 
 /** Reductor sin IO. La persistencia futura deberá aplicar cada transición con CAS/transacción. */
@@ -71,7 +71,7 @@ export function transitionInvitation(input, event) {
     const generation = slot.generation;
     const afterDeletion = slot.status === 'deleted';
     slot.status = 'connected'; slot.accountHash = event.accountHash;
-    if (afterDeletion) slot.generation++;
+    if (afterDeletion) { slot.generation++; slot.milestonesPurged = false; }
     attempt.status = 'completed'; invite.status = 'used';
     effects.push({ participantId: slot.id, generation, status: 'connected', scopes: ['activity:read_all'], ...(afterDeletion ? { verified: true, newConsent: true } : {}) });
     return reply('connected', true);
@@ -79,12 +79,16 @@ export function transitionInvitation(input, event) {
   if (event.type === 'revoke' || event.type === 'delete') {
     const slot = slotFor(event.slot);
     if (!slot || !verifiedSubject(event.actor, event.slot) || (event.type === 'delete' && event.requestVerified !== true)) return reply('unauthorized');
-    if (event.type === 'delete' && slot.status === 'deleted') return reply('deleted', true);
+    // Puede haber una invitación nueva aunque la cuenta siga revocada/suprimida.
+    // Cancelarla es necesario incluso cuando el efecto de política ya se aplicó.
+    invalidate(slot, event.type === 'delete' || slot.status === 'deleted');
+    slot.expectedAccountHash = null;
+    const additionalPurge = event.type === 'delete' && event.purgeMilestones === true && slot.milestonesPurged !== true;
+    if (event.type === 'delete' && slot.status === 'deleted' && !additionalPurge) return reply('deleted', true);
     if (event.type === 'revoke' && ['revoked', 'deleted'].includes(slot.status)) return reply('revoked', true);
     const generation = slot.generation;
     slot.generation++; slot.status = event.type === 'delete' ? 'deleted' : 'revoked';
-    invalidate(slot, event.type === 'delete');
-    if (event.type === 'delete') { slot.accountHash = null; slot.expectedAccountHash = null; }
+    if (event.type === 'delete') { slot.accountHash = null; slot.expectedAccountHash = null; slot.milestonesPurged = event.purgeMilestones === true; }
     effects.push({ participantId: slot.id, generation, status: event.type === 'delete' ? 'deleted' : 'revoked', ...(event.type === 'delete' ? { verified: true, purgeMilestones: event.purgeMilestones === true } : {}) });
     return reply(slot.status, true);
   }

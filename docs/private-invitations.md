@@ -135,11 +135,22 @@ registrar la decisión mínima de verificación sin publicar datos de la otra pe
 Tras verificarse, se eliminan credenciales, actividades y aportaciones; se recalcula
 el total sin el slot. El modelo borra hash de cuenta y registro esperado, intentos
 e invitaciones asociados, aumenta generación y conserva únicamente la marca
-operativa de supresión. Un segundo borrado es idempotente. Los hashes retirados de
+operativa de supresión. Una segunda orden de borrado o revocación siempre cancela las invitaciones e
+intentos de reconexión emitidos desde la orden anterior y limpia el hash de cuenta
+esperada. Esto se hace aunque el slot siga marcado como suprimido o revocado:
+el estado del slot no demuestra que no haya trabajo nuevo pendiente. Solo se
+omite repetir el efecto de política y aumentar la generación cuando ese estado
+ya estaba aplicado; se conserva la idempotencia sin permitir un callback previo
+a la última orden. Revocar una cuenta ya suprimida tampoco debilita su supresión. Los hashes retirados de
 tokens evitan reutilización, sin conservar su asociación al slot. Por defecto se
 mantienen hitos del reto compartido; si la evaluación de la solicitud exige borrar
 o anonimizar también esos hechos, `purgeMilestones` debe ser una decisión interna
-verificada. No hay participantes individuales en respuestas públicas.
+verificada. Una solicitud posterior que añada esa purga no se descarta por el
+estado `deleted`: aplica el efecto de política y aumenta coordinadamente la
+generación. Una marca operativa sin fecha recuerda que esa orden ya se atendió,
+para que repetirla sin cambios sea idempotente. Un consentimiento nuevo tras el
+borrado parte limpio y reinicia esa marca. No hay participantes individuales en
+respuestas públicas.
 
 Antes de producción hay que fijar una política concreta de retención y borrado:
 credenciales y actividad suprimidas en el almacén principal, caducidad de intentos,
