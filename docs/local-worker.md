@@ -41,8 +41,14 @@ Producción prevista: 500 km desde 2026-11-28 Europe/Madrid, con estado independ
 `distanceKm` puede disminuir. El porcentaje, objetivo y renderizado siguen siendo
 responsabilidad del frontend futuro. `partial` y `stale` son booleanos independientes:
 una cuenta sin autorización y otra con fallo temporal puede producir ambos true.
-La fecha es la última sincronización correcta conservadora del agregado, null si
-no hay ninguna. No se publican slots, IDs de cuenta/actividad, subtotales ni errores
+La fecha es la última sincronización correcta conservadora del agregado, null
+mientras falte la reconciliación inicial completa de alguna cuenta. Estar
+conectadas ambas no declara el total completo: partial permanece true hasta
+snapshots completos válidos de las dos. Una página complete:false no termina
+el backfill. No haber importado todavía no inventa un error: stale sigue siendo
+independiente y se activa por fallo temporal o revocación. Reconectar o cambiar
+scopes requiere otra reconciliación completa, conservando mientras tanto los km
+y las fechas internas previas. No se publican slots, IDs de cuenta/actividad, subtotales ni errores
 internos. Premios históricos sobreviven a correcciones salvo supresión exigida.
 
 Todas las respuestas usan `Cache-Control:no-store` y `Vary:Origin`. Lista exacta
