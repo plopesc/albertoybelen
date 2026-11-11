@@ -29,8 +29,8 @@ La dirección del proyecto es <https://albertoybelen.ddev.site/frontend/>.
 ## Usar el prototipo
 
 - Empieza con 0 km y una meta de 100 km.
-- El HUD resume kilómetros, objetivo, porcentaje y restantes. En móvil aparece
-  antes del mapa; **Ir a los controles** salta directamente a la simulación.
+- En móvil se muestra primero el mapa y debajo el HUD con kilómetros, objetivo,
+  porcentaje y restantes. **Ir a los controles** salta directamente a la simulación.
 - **Explorar mapa** lleva al recorrido completo. La salida está abajo y la meta
   arriba: desplázate por bosque, río, cañón y montaña desde el primer día.
 - Los checkpoints del 20/40/60/80 % cambian de **BLOQUEADO** a **DESBLOQUEADO**
@@ -38,6 +38,8 @@ La dirección del proyecto es <https://albertoybelen.ddev.site/frontend/>.
   que el indicador. Cambiar la meta o reiniciar recalcula todos sus estados.
 - La meta al 100 % tiene un arco y un regalo misterioso decorativo. Los hitos
   no abren contenido: fotografías, premio y celebración quedan para otras issues.
+- La salida y el arco de meta usan madera con vetas, tela, piedra y sombras,
+  dibujadas en SVG para integrarse con el paisaje de 16 bits.
 - Suma +1, +5 o +10 km para mover el personaje por el camino.
 - Introduce una meta de al menos 0,1 km, en pasos de 0,1, y pulsa **Guardar meta**
   o Enter. Un valor inválido muestra un error sin cambiar la meta vigente.
@@ -81,7 +83,8 @@ Esta prueba reinicia los datos simulados del origen local y comprueba controles,
 posición SVG, persistencia, errores, teclado, movimiento reducido, almacenamiento
 bloqueado y ausencia de desbordamientos a 320, 390, 768 y 1280 px. Comprueba también
 el indicador al 0/20/50/80/100 %, los cuatro umbrales justo antes y al alcanzarlos,
-sus etiquetas dentro del mapa y el bloqueo tras reiniciar.
+sus etiquetas dentro del mapa, el bloqueo tras reiniciar y el orden mapa → datos
+→ controles en móvil.
 
 Comprobaciones manuales con el servidor local:
 

@@ -19,16 +19,6 @@
   <main id="adventure" tabindex="-1">
     <div class="intro"><div><p class="eyebrow">PULSA START. SUMA KILÓMETROS.</p><h1>LA META <span>TE ESPERA.</span></h1><p>Un recorrido. Cuatro checkpoints. Todo un mundo por delante.</p></div><a class="explore-link" href="#map-heading">EXPLORAR MAPA <span aria-hidden="true">↓</span></a></div>
     <div class="adventure-layout">
-      <section class="progress-card" aria-labelledby="progress-heading">
-        <div class="panel-heading"><p class="eyebrow">EN PARTIDA</p><span aria-hidden="true">■ ■ ■</span></div>
-        <h2 id="progress-heading">Tu carrera</h2>
-        <div class="distance"><span id="distance">0</span><span>km<br>recorridos</span></div>
-        <div class="progress-label"><label for="progress">PROGRESO TOTAL</label><strong id="percentage">0 %</strong></div>
-        <progress id="progress" max="100" value="0">0 %</progress>
-        <dl class="stats"><div><dt>OBJETIVO</dt><dd><span id="goal">100</span> <small>km</small></dd></div><div><dt>RESTANTES</dt><dd><span id="remaining">100</span> <small>km</small></dd></div></dl>
-        <p id="journey-message" class="journey-message">Todo listo. ¡A por el primer kilómetro!</p>
-        <a class="controls-link" href="#simulation-heading">IR A LOS CONTROLES <span aria-hidden="true">↓</span></a>
-      </section>
       <section class="map-card" aria-labelledby="map-heading">
         <div class="map-header"><div><p class="eyebrow">EL MUNDO ESTÁ ABIERTO</p><h2 id="map-heading" tabindex="-1">De la salida a la cima</h2></div><span class="map-badge">RUTA<br><strong>01</strong></span></div>
         <div class="map-guide"><span aria-hidden="true">↑</span> Meta arriba · Salida abajo · Explora a tu ritmo</div>
@@ -39,7 +29,12 @@
             <path id="route" d="M240 1190 C260 1130 120 1150 120 1080 S350 1070 350 980 S120 950 120 870 S350 840 350 750 S120 710 120 640 S350 590 350 510 S120 470 120 400 S330 350 310 270 S240 215 240 160"/>
             <linearGradient id="map-plate" x2="0" y2="1"><stop stop-color="#303c64"/><stop offset="1" stop-color="#121a32"/></linearGradient>
             <linearGradient id="gold-metal" x2="1" y2="1"><stop stop-color="#fff4b0"/><stop offset=".45" stop-color="#efbf53"/><stop offset="1" stop-color="#a96832"/></linearGradient>
-            <pattern id="checks" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="16" height="16" fill="#fff9e8"/><path d="M0 0h8v8H0zM8 8h8v8H8z" fill="#18223d"/></pattern>
+            <linearGradient id="gate-timber"><stop stop-color="#493d37"/><stop offset=".22" stop-color="#ba8d58"/><stop offset=".45" stop-color="#e3b979"/><stop offset=".6" stop-color="#a17549"/><stop offset="1" stop-color="#564334"/></linearGradient>
+            <linearGradient id="gate-stone" x2="0" y2="1"><stop stop-color="#c8c9bd"/><stop offset=".5" stop-color="#8f9d99"/><stop offset="1" stop-color="#576a72"/></linearGradient>
+            <linearGradient id="gate-cloth" x2="0" y2="1"><stop stop-color="#fff0c7"/><stop offset=".55" stop-color="#e9d5a6"/><stop offset="1" stop-color="#c1a878"/></linearGradient>
+            <pattern id="wood-grain" width="18" height="28" patternUnits="userSpaceOnUse"><path d="M3 0v8l2 6v14M12 0v12l-2 7v9" fill="none" stroke="#493d37" stroke-opacity=".3" stroke-width=".8"/><path d="M7 3v12M16 14v10" stroke="#ffe2a1" stroke-opacity=".3" stroke-width=".7"/></pattern>
+            <pattern id="finish-weave" width="12" height="12" patternUnits="userSpaceOnUse"><rect width="12" height="12" fill="#e8d8af"/><path d="M0 0h6v6H0zM6 6h6v6H6z" fill="#405966"/><path d="M0 1h12M0 7h12" stroke="#fff5d6" stroke-opacity=".25" stroke-width=".7"/></pattern>
+            <g id="timber-post"><path d="M-7 0 4-2 7 3 6 80H-7z" fill="url(#gate-timber)"/><path d="M-7 0 4-2 7 3 6 80H-7z" fill="url(#wood-grain)"/><path d="M-5 3v72" stroke="#f9d392" stroke-width="1" opacity=".65"/><path d="M-8 10H7m-15 4H7m-15 48H7m-15 4H7" stroke="#6a6350" stroke-width="2"/><path d="M-8 9H6m-14 52H6" stroke="#e1cf99" stroke-width="1"/><circle cx="1" cy="12" r="1" fill="#403a32"/><circle cx="1" cy="64" r="1" fill="#403a32"/></g>
             <g id="lock"><path d="M-5-3v-7H5v7M-8-2H8v13H-8z" fill="none" stroke="currentColor" stroke-width="4"/><path d="M0 2v5" stroke="currentColor" stroke-width="3"/></g>
           </defs>
           <image href="./assets/world-16bit.webp" width="480" height="1280" preserveAspectRatio="none" aria-hidden="true"/>
@@ -51,13 +46,47 @@
             <use href="#route" stroke="#e8c68b" stroke-width="9"/>
             <use id="route-progress" href="#route" stroke="#ffe77c" stroke-width="5"/>
           </g>
-          <g aria-hidden="true" shape-rendering="crispEdges">
-            <rect x="210" y="1180" width="60" height="20" fill="url(#checks)"/>
-            <path d="M172 1216h136v28H172z" fill="#11152b"/><text x="240" y="1235" text-anchor="middle" class="endpoint">SALIDA / 0 %</text>
-            <path d="M184 164V108h112v56" stroke="#633d35" stroke-width="16" fill="none"/>
-            <path d="M184 164v-56h112v56" stroke="url(#gold-metal)" stroke-width="10" fill="none"/>
-            <rect x="178" y="96" width="124" height="20" fill="url(#checks)"/>
-            <rect x="174" y="64" width="132" height="28" fill="#11152b"/><text x="240" y="83" text-anchor="middle" class="endpoint">META / 100 %</text>
+          <g aria-hidden="true">
+            <!-- Los hitos se apoyan en el terreno con materiales y sombras del paisaje. -->
+            <g id="start-gate">
+              <ellipse cx="240" cy="1202" rx="51" ry="8" fill="#173f32" opacity=".3"/>
+              <g transform="translate(210 1158) scale(.65)"><use href="#timber-post"/></g>
+              <g transform="translate(272 1158) scale(.65)"><use href="#timber-post"/></g>
+              <path d="M209 1172q30 9 64 0" fill="none" stroke="#4c513b" stroke-width="2"/>
+              <path d="m214 1174 8 2-4 10zM238 1178h8l-4 11zM262 1176l8-2-3 12z" fill="#e9bc6b" stroke="#997344" stroke-width=".6"/>
+              <path d="m226 1177 8 1-4 10zM250 1178l8-1-3 11z" fill="#b94f4a" stroke="#793e40" stroke-width=".6"/>
+              <path d="M227 1192q13 3 26 0" fill="none" stroke="#fff0c7" stroke-width="2" opacity=".8"/>
+              <g transform="translate(276 1200)">
+                <ellipse cx="64" cy="43" rx="27" ry="4" fill="#173f32" opacity=".25"/>
+                <path d="M59 4h8v39h-8z" fill="url(#gate-timber)"/>
+                <path d="M-1-5 134-8 139-3 137 22 2 25-3 19z" fill="#584432"/>
+                <path d="M1-6 133-9 137-4 135 19 3 22-1 18z" fill="url(#gate-cloth)" stroke="#9c794a" stroke-width="1"/>
+                <path d="M4-2 132-5M6 18l126-3" stroke="#fff0c7" stroke-width="1" opacity=".8"/>
+                <circle cx="7" cy="5" r="1.5" fill="#7b6848"/><circle cx="129" cy="2" r="1.5" fill="#7b6848"/>
+                <text x="68" y="11" text-anchor="middle" class="endpoint">SALIDA · 0 %</text>
+              </g>
+              <path d="m200 1204 3-8 2 6 4-10 1 12M278 1207l2-8 3 5 3-10 2 12" fill="none" stroke="#88aa4d" stroke-width="1.5"/>
+            </g>
+            <g id="finish-gate">
+              <ellipse cx="240" cy="181" rx="80" ry="10" fill="#344f67" opacity=".26"/>
+              <path d="m163 174 8-8 17 2 9 10-4 7h-30zM287 175l8-8 17 1 9 11-6 6h-28z" fill="url(#gate-stone)" stroke="#61757b" stroke-width=".8"/>
+              <path d="m167 173 8-4 11 2M293 173l5-3 12 1" stroke="#e3e2cc" stroke-width="1.5" fill="none"/>
+              <use href="#timber-post" transform="translate(180 97)"/>
+              <use href="#timber-post" transform="translate(302 97)"/>
+              <path d="m177 103 23 26m103-26-23 26" stroke="#594733" stroke-width="7"/>
+              <path d="m177 102 23 26m103-26-23 26" stroke="#bf985e" stroke-width="4"/>
+              <path d="M168 91 312 89 317 94 315 105 168 108 164 103z" fill="url(#gate-timber)" stroke="#65503b" stroke-width="1"/>
+              <path d="M168 91 312 89 317 94 315 105 168 108 164 103z" fill="url(#wood-grain)"/>
+              <path d="M170 94 311 92" stroke="#f5d596" stroke-width="1.5"/>
+              <path d="M185 108q55 8 112-1l-2 19q-55 9-108 0z" fill="url(#gate-cloth)" stroke="#927d59" stroke-width=".7"/>
+              <path d="M186 112q54 8 110-1l-1 11q-55 8-108 0z" fill="url(#finish-weave)"/>
+              <path d="M188 126q53 7 105-1" fill="none" stroke="#fff0c7" stroke-width="1"/>
+              <path d="m188 80 103-2 5 4-2 20-105 2-4-5z" fill="#604b34"/>
+              <path d="m189 79 101-2 4 4-2 18-102 2-3-4z" fill="url(#gate-cloth)" stroke="#b09259" stroke-width="1"/>
+              <text x="240" y="94" text-anchor="middle" class="endpoint">META · 100 %</text>
+              <path d="M182 106v12m118-13v12" stroke="#dfcba2" stroke-width="1.5"/>
+              <path d="m160 182 8-1 5 2m134 2 6-3 7 1" fill="none" stroke="#d9e0cc" stroke-width="1"/>
+            </g>
             <g id="mystery-gift" transform="translate(282 188)">
               <ellipse cy="20" rx="20" ry="5" fill="#12233a" opacity=".4"/>
               <path d="M-16-12h32v32h-32z" fill="#30294c"/>
@@ -86,6 +115,16 @@
         </svg>
         <ol id="milestone-summary" class="sr-only" aria-label="Estado de los hitos"><li data-milestone="0.2">Checkpoint 20 %: bloqueado.</li><li data-milestone="0.4">Checkpoint 40 %: bloqueado.</li><li data-milestone="0.6">Checkpoint 60 %: bloqueado.</li><li data-milestone="0.8">Checkpoint 80 %: bloqueado.</li><li data-milestone="1">Meta 100 %: pendiente.</li></ol>
         <div class="map-footer"><span><i class="legend-marker" aria-hidden="true"></i> Tu posición</span><span><i class="legend-node" aria-hidden="true"></i> Checkpoint</span><span>Todos los hitos son visibles</span></div>
+      </section>
+      <section class="progress-card" aria-labelledby="progress-heading">
+        <div class="panel-heading"><p class="eyebrow">EN PARTIDA</p><span aria-hidden="true">■ ■ ■</span></div>
+        <h2 id="progress-heading">Tu carrera</h2>
+        <div class="distance"><span id="distance">0</span><span>km<br>recorridos</span></div>
+        <div class="progress-label"><label for="progress">PROGRESO TOTAL</label><strong id="percentage">0 %</strong></div>
+        <progress id="progress" max="100" value="0">0 %</progress>
+        <dl class="stats"><div><dt>OBJETIVO</dt><dd><span id="goal">100</span> <small>km</small></dd></div><div><dt>RESTANTES</dt><dd><span id="remaining">100</span> <small>km</small></dd></div></dl>
+        <p id="journey-message" class="journey-message">Todo listo. ¡A por el primer kilómetro!</p>
+        <a class="controls-link" href="#simulation-heading">IR A LOS CONTROLES <span aria-hidden="true">↓</span></a>
       </section>
       <section class="simulation-card" aria-labelledby="simulation-heading">
         <p class="eyebrow">MANDOS DE PRUEBA</p><h2 id="simulation-heading" tabindex="-1">Dale kilómetros.</h2><p class="hint">Simula tu avance por el recorrido.</p>

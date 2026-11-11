@@ -127,6 +127,14 @@ async (page) => {
         });
     });
     assert(fits, `El contenido y los controles deben caber a ${width}px`);
+    if (width <= 760) {
+      assert(await page.evaluate(() => {
+        const map = document.querySelector('.map-card').getBoundingClientRect();
+        const hud = document.querySelector('.progress-card').getBoundingClientRect();
+        const controls = document.querySelector('.simulation-card').getBoundingClientRect();
+        return map.bottom <= hud.top && hud.bottom <= controls.top;
+      }), 'En móvil el mapa debe aparecer primero, seguido de los datos y los controles');
+    }
     const map = page.locator('.map');
     assert(await map.isVisible() && await page.locator('[data-checkpoint]').count() === 4,
       'Todo el mapa y sus checkpoints deben existir desde el principio');
