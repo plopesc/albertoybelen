@@ -16,6 +16,15 @@ Abrir <http://127.0.0.1:8000>. Se necesita un navegador moderno con módulos ES,
 SVG y `localStorage`. Abrir `index.html` con `file://` no es compatible.
 También se puede abrir `/frontend/` con el servidor DDEV existente.
 
+Con DDEV, desde la raíz del proyecto en tu máquina:
+
+```sh
+ddev start
+ddev launch /frontend/
+```
+
+La dirección del proyecto es <https://albertoybelen.ddev.site/frontend/>.
+
 ## Usar el prototipo
 
 - Empieza con 0 km y una meta de 100 km.
@@ -40,6 +49,9 @@ Node.js 22 o posterior; sin instalación de dependencias:
 npm test
 git diff --check
 ```
+
+Desde tu máquina, dentro del proyecto DDEV, usa `ddev exec npm test` para
+ejecutar las mismas pruebas en el contenedor.
 
 Las pruebas usan `node:test` y cubren salida, progreso parcial, decimales, meta,
 objetivo superado, límites 0–100 %, objetivos/distancias inválidos, simulación,
@@ -82,6 +94,8 @@ frontend/js/progress.js   Cálculos puros con validación, sin DOM ni persistenc
 frontend/js/game.js       Contrato DistanceProvider y proveedor simulado local
 frontend/js/app.js        Eventos, renderizado y animación con getPointAtLength
 tests/                   Pruebas de cálculos y proveedor con node:test
+.github/                 Plantilla de PR y workflow de CI
+CONTRIBUTING.md           Flujo de Issues, ramas, pruebas y revisión
 ```
 
 `app.js` consume el contrato `DistanceProvider` documentado en `game.js`:
@@ -90,6 +104,16 @@ Los métodos devuelven copias de `{ distanceKm, goalKm }` y rechazan valores no
 válidos antes de modificar el estado. El proveedor simulado es la única capa
 que conoce `localStorage`. Una futura fuente remota necesitará un adaptador y
 gestión asíncrona; ni los cálculos ni la geometría dependen del origen de datos.
+
+## Flujo de desarrollo
+
+Cada issue se implementa en una rama `codex/issue-<numero>-<descripcion>` y se
+entrega mediante una PR hacia `main`, con un título
+`<tipo>: <descripcion> (#<numero>)`, `Closes #N` y resultados de pruebas.
+El ciclo completo, los comandos y las responsabilidades están documentados en
+[CONTRIBUTING.md](CONTRIBUTING.md). GitHub Actions comprueba la sintaxis y ejecuta
+`npm test` cuando se abre o actualiza una PR hacia `main`. La persona responsable
+revisa y aprueba el merge; no hay merge ni despliegue automático.
 
 ## Límites y siguiente paso
 

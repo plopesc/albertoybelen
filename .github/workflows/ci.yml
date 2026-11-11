@@ -1,0 +1,31 @@
+name: CI frontend
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: Sintaxis y pruebas (Node.js 24)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Obtener el código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - name: Preparar Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Comprobar sintaxis del frontend
+        run: |
+          node --check frontend/js/app.js
+          node --check frontend/js/game.js
+          node --check frontend/js/progress.js
+      - name: Ejecutar pruebas
+        run: npm test

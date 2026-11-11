@@ -21,6 +21,15 @@ Juego web para un amigo: cada kilómetro registrado en Strava hace avanzar un pe
 8. No desplegar a producción, configurar secretos ni integrar la API real de Strava hasta recibir instrucciones explícitas.
 9. No borrar ni sobrescribir trabajo existente sin necesidad; mantener cambios pequeños y revisables.
 
+## Flujo de Issues y Pull Requests
+- Leer la issue completa, incluidos sus comentarios, y [CONTRIBUTING.md](CONTRIBUTING.md) antes de implementar.
+- Trabajar en una rama independiente por issue, desde `main` actualizado, con el nombre `codex/issue-<numero>-<descripcion>`. No implementar directamente en `main`.
+- Limitar los cambios a los criterios de aceptación de la issue. Para decisiones menores no especificadas, elegir la opción más simple y documentar el motivo; preguntar solo si existe un bloqueo importante.
+- Ejecutar las pruebas disponibles y las comprobaciones pertinentes. Informar de resultados reales, fallos y límites de verificación.
+- Hacer commits pequeños, subir la rama y abrir una PR contra `main` con la plantilla del repositorio. Usar el título `<tipo>: <descripcion> (#<numero>)` e incluir `Closes #<numero>` en la descripción, junto con resumen, pruebas y capturas si hay cambios visuales.
+- Revisar los checks de CI de la PR y corregir fallos causados por los cambios en la misma rama.
+- **Nunca hacer merge ni desplegar sin aprobación explícita de la persona responsable.** Una solicitud de implementar una issue y abrir una PR, o el éxito de CI, no autoriza el merge ni el despliegue. No activar auto-merge ni crear automatizaciones de merge o despliegue.
+
 ## Primera fase: prototipo visual
 - Un mapa SVG con recorrido sinuoso de inicio a meta.
 - Un personaje/indicador que avanza a lo largo del trazado conforme al porcentaje.
