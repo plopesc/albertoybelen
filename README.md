@@ -1,7 +1,11 @@
-# Juego Alberto · Kilómetro Arcade
+# Alberto y Belén · Kilómetro Arcade
 
 Prototipo estático, en español y orientado a móvil, con estética arcade de 16 bits.
 Un indicador recorre un mundo SVG vertical al sumar kilómetros simulados.
+La interfaz toma el verde bosque (`#24342c`, `#254636`) y dorado ocre (`#c58f4d`)
+de la [invitación de Alberto y Belén](https://www.fixdate.io/invitacion/BodaAlberto-Belen).
+Los textos pequeños usan un dorado más claro para mantener su legibilidad.
+La invitación solo es referencia de estilo: el juego no descarga sus recursos.
 Sin frameworks, paquetes de runtime,
 servicios externos, Strava, OAuth ni Cloudflare. No requiere compilación.
 
@@ -151,8 +155,9 @@ revisa y aprueba el merge; no hay merge ni despliegue automático.
 Prototipo visual con rediseño de mapa/HUD (issue #4): los datos son simulados y
 propios de cada origen/navegador. No hay
 sincronización entre dispositivos ni pestañas, cuentas, API real, base de datos
-o despliegue. Los SVG se han creado para este prototipo; no hay fuentes, imágenes
-ni música de terceros.
+o despliegue. Los SVG del recorrido se han creado para este prototipo; el paisaje
+es original y la ilustración del indicador ha sido aportada para el juego. No hay
+fuentes externas ni música.
 
 El indicador representa el progreso agregado del proveedor; no presupone un número
 de cuentas ni corredores. El paisaje original se generó con `image_gen` y se sirve

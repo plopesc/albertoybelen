@@ -3,29 +3,29 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#11152b">
-  <meta name="description" content="Juego Alberto: una carrera arcade donde cada kilómetro te acerca a la meta. Prototipo con distancias simuladas.">
-  <title>Juego Alberto · Kilómetro Arcade</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%2311152b' d='M0 0h32v32H0z'/%3E%3Cpath fill='%23ffe34a' d='M6 6h8v8h8v8h-8v4H6z'/%3E%3C/svg%3E">
+  <meta name="theme-color" content="#24342c">
+  <meta name="description" content="Alberto y Belén: una aventura arcade donde cada kilómetro te acerca a la meta. Prototipo con distancias simuladas.">
+  <title>Alberto y Belén · Kilómetro Arcade</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%2324342c' d='M0 0h32v32H0z'/%3E%3Cpath fill='%23c58f4d' d='M6 6h8v8h8v8h-8v4H6z'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="./css/style.css">
   <script type="module" src="./js/app.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#adventure">Saltar al recorrido</a>
   <header class="site-header">
-    <a class="brand" href="./" aria-label="Juego Alberto, inicio"><span class="brand-icon" aria-hidden="true">➜</span><span>JUEGO ALBERTO<small>KILÓMETRO ARCADE</small></span></a>
+    <a class="brand" href="./" aria-label="Alberto y Belén · Kilómetro Arcade, inicio"><span class="brand-icon" aria-hidden="true">A&amp;B</span><span>ALBERTO &amp; BELÉN<small>KILÓMETRO ARCADE</small></span></a>
     <span class="mode"><span aria-hidden="true">■</span> MODO SIMULADO</span>
   </header>
   <main id="adventure" tabindex="-1">
-    <div class="intro"><div><p class="eyebrow">PULSA START. SUMA KILÓMETROS.</p><h1>LA META <span>TE ESPERA.</span></h1><p>Un recorrido. Cuatro checkpoints. Todo un mundo por delante.</p></div><a class="explore-link" href="#map">EXPLORAR MAPA <span aria-hidden="true">↓</span></a></div>
+    <div class="intro"><div><p class="eyebrow">PULSA START. SUMA KILÓMETROS.</p><h1>ALBERTO <span>&amp; BELÉN</span></h1><p>Una aventura juntos, kilómetro a kilómetro.</p></div><a class="explore-link" href="#map">EXPLORAR MAPA <span aria-hidden="true">↓</span></a></div>
     <div class="adventure-layout">
       <section id="map" class="map-card" aria-label="Mapa del recorrido" tabindex="-1">
         <svg class="map" viewBox="0 0 480 1280" role="img" aria-labelledby="map-title map-description">
-          <title id="map-title">El mundo de Kilómetro Arcade</title>
+          <title id="map-title">La aventura de Alberto y Belén</title>
           <desc id="map-description">Mapa vertical completo: salida en el bosque, río, cañón y montaña. Checkpoints al 20, 40, 60 y 80 por ciento y meta al 100 por ciento. El marcador indica tu posición; los hitos futuros están bloqueados.</desc>
           <defs>
             <path id="route" d="M240 1190 C260 1130 120 1150 120 1080 S350 1070 350 980 S120 950 120 870 S350 840 350 750 S120 710 120 640 S350 590 350 510 S120 470 120 400 S330 350 310 270 S240 215 240 160"/>
-            <linearGradient id="map-plate" x2="0" y2="1"><stop stop-color="#303c64"/><stop offset="1" stop-color="#121a32"/></linearGradient>
+            <linearGradient id="map-plate" x2="0" y2="1"><stop stop-color="#2e4a3a"/><stop offset="1" stop-color="#24342c"/></linearGradient>
             <linearGradient id="gold-metal" x2="1" y2="1"><stop stop-color="#fff4b0"/><stop offset=".45" stop-color="#efbf53"/><stop offset="1" stop-color="#a96832"/></linearGradient>
             <linearGradient id="gate-timber"><stop stop-color="#493d37"/><stop offset=".22" stop-color="#ba8d58"/><stop offset=".45" stop-color="#e3b979"/><stop offset=".6" stop-color="#a17549"/><stop offset="1" stop-color="#564334"/></linearGradient>
             <linearGradient id="gate-stone" x2="0" y2="1"><stop stop-color="#c8c9bd"/><stop offset=".5" stop-color="#8f9d99"/><stop offset="1" stop-color="#576a72"/></linearGradient>
@@ -37,7 +37,7 @@
             <clipPath id="position-clip" clipPathUnits="userSpaceOnUse"><circle r="24"/></clipPath>
             <g id="position-symbol">
               <ellipse cy="25" rx="27" ry="7" fill="#102c32" opacity=".4"/>
-              <circle r="28" fill="#182039"/>
+              <circle r="28" fill="#24342c"/>
               <circle r="26" fill="url(#gold-metal)"/>
               <image href="./assets/icono.jpeg" x="-24" y="-24" width="48" height="48" preserveAspectRatio="xMidYMid slice" clip-path="url(#position-clip)"/>
               <circle r="24" fill="none" stroke="#fff2b5" stroke-width="1"/>
