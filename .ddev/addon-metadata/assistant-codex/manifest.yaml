@@ -1,0 +1,10 @@
+name: assistant-codex
+repository: e0ipso/ddev-assistant-codex
+version: v1.1.0
+install_date: "2026-11-11T07:56:33+01:00"
+project_files:
+    - web-build/Dockerfile.ddev-assistant-codex
+    - config.ddev-assistant-codex.yaml
+    - docker-compose.ddev-assistant-codex.yaml
+global_files: []
+removal_actions: []

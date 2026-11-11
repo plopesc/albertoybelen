@@ -1,0 +1,7 @@
+#ddev-generated
+# Mount host Codex config read-only into the seed directory. The post-start hook
+# mirrors it into the writable ~/.codex runtime directory on every start.
+services:
+  web:
+    volumes:
+      - "${HOME}/.codex:${HOME}/.cred-seed/codex:ro"

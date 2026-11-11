@@ -1,0 +1,21 @@
+#ddev-generated
+hooks:
+  pre-start:
+    # Ensure host-side Codex config exists before Docker bind-mounts it.
+    - exec-host: "mkdir -p ~/.codex"
+  post-start:
+    # Mirror the read-only host seed into the writable runtime config directory on
+    # every start. Host config is authoritative, so stale container-only files are
+    # removed before copying.
+    - exec: |
+        set -eu
+        seed_dir="${HOME}/.cred-seed/codex"
+        target_dir="${HOME}/.codex"
+        if [ -d "${seed_dir}" ]; then
+          sudo rm -rf "${target_dir}"
+          mkdir -p "${target_dir}"
+          cp -R -P "${seed_dir}/." "${target_dir}/"
+          sudo chown -R "$(id -u):$(id -g)" "${target_dir}"
+          chmod 700 "${target_dir}"
+          [ ! -f "${target_dir}/auth.json" ] || chmod 600 "${target_dir}/auth.json"
+        fi
