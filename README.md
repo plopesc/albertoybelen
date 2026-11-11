@@ -185,6 +185,21 @@ independiente. El selector devuelve ausencia de proveedor para `real`;
 una futura fuente remota necesitará un adaptador y gestión asíncrona. Ni los
 cálculos ni la geometría dependen del origen de datos.
 
+## API y sincronización simuladas en local
+
+El [Worker local](docs/local-worker.md) sirve únicamente fixtures y expone el
+agregado público; no conecta el frontend ni servicios remotos.
+
+```sh
+npm test
+node backend/local-server.js
+# En otra terminal del mismo contenedor:
+curl -i http://127.0.0.1:8787/api/progress
+```
+
+No activa Cron, OAuth, D1, servicios remotos ni despliegues. El estado en memoria
+se pierde al cerrar; la programación horaria real pertenece a una fase futura.
+
 ## Flujo de desarrollo
 
 Cada issue se implementa en una rama `codex/issue-<numero>-<descripcion>` y se
