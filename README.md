@@ -151,24 +151,102 @@ entrega mediante una PR hacia `main`, con un título
 El ciclo completo, los comandos y las responsabilidades están documentados en
 [CONTRIBUTING.md](CONTRIBUTING.md). GitHub Actions comprueba la sintaxis y ejecuta
 `npm test` cuando se abre o actualiza una PR hacia `main`. La persona responsable
-revisa y aprueba el merge; no hay merge ni despliegue automático.
+revisa y aprueba el merge; no hay merge automático. Pages solo publica tras
+la autorización y activación descritas a continuación; después publica los
+cambios que se fusionen en `main` mientras siga habilitado.
+
+## Entorno de pruebas en GitHub Pages
+
+**Estado a 11 de noviembre de 2026: viable, pendiente de activación autorizada.**
+El propietario ha hecho público `plopesc/albertoybelen`. La comprobación de solo
+lectura devuelve `private: false`, `visibility: public` y `has_pages: false`.
+[GitHub Free permite Pages en repositorios públicos](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site);
+la limitación inicial del repositorio privado está resuelta. No hay un sitio
+configurado ni una URL publicada, y no se ha realizado ningún despliegue.
+
+Si en el futuro se vuelve a hacer privado el repositorio, hará falta un plan
+compatible con Pages privado o elegir otro alojamiento. Esas decisiones y cualquier
+cambio de visibilidad o creación de otro repositorio corresponden al propietario.
+
+### Funcionamiento y activación pendiente
+
+El workflow [Pages de pruebas](.github/workflows/pages.yml) está separado de CI.
+Se puede iniciar por `push` a `main` o manualmente, pero **todos sus pasos quedan
+omitidos** salvo que la rama sea `main` y la variable del repositorio
+`PAGES_TEST_DEPLOY_ENABLED` sea exactamente `true`. Abrir o actualizar una PR no
+lo ejecuta. Una PR fusionada tampoco publica mientras falte esa autorización.
+El checkout no conserva credenciales, las acciones están fijadas a SHA, solo el
+job de despliegue recibe `contents: read`, `pages: write` e `id-token: write` y
+la concurrencia evita cancelar un despliegue en curso.
+
+Publica exclusivamente `frontend/` como raíz: HTML, JS, CSS, recursos y cualquier
+configuración pública futura bajo esa carpeta. No publica `.github/`, `.ddev/`,
+pruebas, capturas ni el archivo original `icono.jpeg` situado fuera de `frontend/`.
+No hay build ni instalación de dependencias. Comprueba sintaxis de todos los
+módulos y ejecuta las pruebas antes de empaquetar. `configure-pages` usa
+`enablement: false`: no crea ni activa el sitio por iniciativa del workflow.
+
+**Solo tras autorización explícita del propietario:**
+
+1. Revisar y fusionar esta PR mediante el flujo habitual. Confirmar que la cuenta
+   ya permite Pages (plan compatible o visibilidad pública autorizada) y aprobar
+   el contenido público.
+2. En **Settings → Pages → Build and deployment**, seleccionar **GitHub Actions**.
+   Este cambio de ajustes debe hacerlo el propietario o autorizarlo explícitamente.
+3. En **Settings → Environments → github-pages**, restringir despliegues a `main`
+   y añadir revisión obligatoria si el plan la permite.
+4. Después de aprobar también el primer despliegue, crear en **Settings → Secrets
+   and variables → Actions → Variables** `PAGES_TEST_DEPLOY_ENABLED=true`. Es una
+   variable de autorización, no un secreto. No se crea en esta tarea.
+5. En **Actions → Pages de pruebas → Run workflow**, seleccionar **main** y ejecutar.
+   Los siguientes merges en `main` publicarán mientras esa variable siga activa.
+
+No existe todavía una URL publicada. Sin dominio personalizado, la URL esperada
+es `https://plopesc.github.io/albertoybelen/`; **es una previsión, no un sitio
+verificado**. Tras el primer despliegue, confirmar la URL de la salida del job
+`github-pages` y actualizar aquí si fuera distinta.
+
+### Privacidad y comprobación en móvil
+
+**El sitio puede ser público aunque el repositorio sea privado.** Cualquier
+archivo bajo `frontend/` se considerará público, incluida la ilustración del
+indicador aportada para el juego y la configuración JSON futura. No añadir
+fotografías personales, secretos, credenciales, tokens ni contenido del premio
+final. El regalo actual es solo un dibujo decorativo cerrado.
+
+Después de una activación autorizada: abrir la URL con su prefijo
+`/albertoybelen/` desde móvil y escritorio; comprobar el aviso **VERSIÓN DE
+PRUEBAS**, modo simulado, imágenes, controles, persistencia y teclado. Revisar
+320/390/768/1280 px y verificar en la pestaña de red que JS/CSS/configuración e
+imágenes no devuelvan 404. El progreso es local al origen del navegador: los datos
+de DDEV no aparecen en Pages. Para comprobar sin desplegar bajo un prefijo:
+
+```sh
+mkdir -p /tmp/albertoybelen-pages-check
+cp -R frontend /tmp/albertoybelen-pages-check/albertoybelen
+python3 -m http.server 8001 --bind 127.0.0.1 --directory /tmp/albertoybelen-pages-check
+```
+
+Abrir `http://127.0.0.1:8001/albertoybelen/` y ejecutar la prueba de navegador
+anterior contra esa URL. Todo recurso de la aplicación usa rutas relativas.
+
+### Desactivar
+
+Para detener publicaciones futuras, cambiar la variable a `false` o eliminarla,
+y desactivar **Pages de pruebas** desde Actions. Eso no retira un sitio ya
+publicado: para retirarlo, el propietario debe usar **Settings → Pages → Unpublish
+site**. Cancelar también ejecuciones activas si las hubiera. La despublicación y
+los ajustes requieren su autorización; no se han realizado en esta tarea.
 
 ## Límites y siguiente paso
 
-Prototipo visual con rediseño de mapa/HUD (issue #4): los datos son simulados y
-propios de cada origen/navegador. No hay
-sincronización entre dispositivos ni pestañas, cuentas, API real, base de datos
-o despliegue. Los SVG del recorrido se han creado para este prototipo; el paisaje
-es original y la ilustración del indicador ha sido aportada para el juego. No hay
-fuentes externas ni música.
-
-El indicador representa el progreso agregado del proveedor; no presupone un número
-de cuentas ni corredores. El paisaje original se generó con `image_gen` y se sirve
-como un WebP local de unos 760 KiB, sin solicitudes a servicios externos. El camino,
-los hitos y el indicador son SVG independientes del fondo. Se conserva el
+Los datos siguen siendo simulados y propios de cada origen/navegador. No hay
+sincronización entre dispositivos ni pestañas, cuentas, API real ni base de datos.
+El paisaje original se generó con `image_gen` y se sirve como WebP local; la
+ilustración del indicador fue aportada para el juego. El camino, los hitos y el
+indicador son SVG independientes del fondo. Se conserva el
 [prompt y procedencia del arte](frontend/assets/ART.md). No hay fuentes externas,
 animaciones de carrera ni sistema de fotos.
 
-Revisar y aprobar el mapa/HUD y su experiencia en móvil antes de iniciar otras
-issues. No iniciar Strava, OAuth,
-Cloudflare ni GitHub Pages sin instrucciones explícitas.
+Pages queda preparado e inactivo. No iniciar Strava, OAuth, Cloudflare ni el
+primer despliegue sin instrucciones explícitas.
