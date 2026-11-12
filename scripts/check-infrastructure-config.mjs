@@ -2,6 +2,8 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {isDeepStrictEqual} from 'node:util';
 import {loadInfrastructureConfig, validateLocalTarget} from './lib/infrastructure-config.mjs';
+import {OPERATOR_TARGET} from '../backend/staging-operator-policy.js';
+import {validateStagingRelease} from './lib/staging-release-config.mjs';
 import {validateStagingConfig} from './lib/staging-config.mjs';
 import {STAGING_AUTH_ORIGIN,STAGING_AUTH_SETTINGS,STAGING_AUTH_DATASET} from '../backend/staging-auth-settings.js';
 import {PILOT_ORIGIN, PILOT_SETTINGS} from '../backend/pilot.js';
@@ -11,10 +13,12 @@ export function checkInfrastructureFiles(root = new URL('../', import.meta.url))
   const config = loadInfrastructureConfig(new URL('config.json', root));
   const assert = (condition, label) => {if(!condition) throw Error(`Infrastructure consistency mismatch: ${label}`);};
   validateStagingConfig(JSON.parse(read('wrangler.staging.jsonc')), config);
+  validateStagingRelease(JSON.parse(read('wrangler.staging-oauth.jsonc')),JSON.parse(read('wrangler.staging-operator.jsonc')),JSON.parse(read('wrangler.staging.jsonc')),config);
   for (const [name, file] of Object.entries({stagingAuth:'wrangler.staging-auth.local.jsonc',fixtures:'wrangler.local.jsonc', oauthMock:'wrangler.oauth.local.jsonc', ownerPilot:'wrangler.pilot.local.jsonc'})) {
     validateLocalTarget(JSON.parse(read(file)), name, config);
   }
   const {ddev, profiles} = config.local;
+  assert(OPERATOR_TARGET.worker===config.cloudflare.staging.workerName&&OPERATOR_TARGET.dataset===config.local.stagingAuth.datasetId,'independent operator target');
   assert(STAGING_AUTH_ORIGIN===config.cloudflare.staging.apiOrigin && STAGING_AUTH_DATASET===config.local.stagingAuth.datasetId && isDeepStrictEqual({...STAGING_AUTH_SETTINGS,datasetId:STAGING_AUTH_DATASET,authEnabled:false,networkEnabled:false},config.local.stagingAuth),'independent staging auth pins');
   assert(/^name:\s*([^\n#]+)/m.exec(read('.ddev/config.yaml'))?.[1].trim() === ddev.projectName, 'DDEV project name');
   for (const [file, port, protocol] of [

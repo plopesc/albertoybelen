@@ -15,6 +15,11 @@
       "databaseName": "albertoybelen-db",
       "configured": false,
       "deployEnabled": false
+    },
+    "stagingOperator": {
+      "workerName": "albertoybelen-operator-staging",
+      "configured": false,
+      "deployEnabled": false
     }
   },
   "local": {

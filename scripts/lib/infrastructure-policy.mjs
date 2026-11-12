@@ -1,4 +1,5 @@
 // Independent, reviewable safety pins. Never derive these from config.json.
+export const STAGING_OPERATOR_WORKER = 'albertoybelen-operator-staging';
 export const STAGING_WORKER = 'albertoybelen-api-staging';
 export const STAGING_DATABASE = 'albertoybelen-db-staging';
 export const STAGING_DATABASE_ID = 'c6bde806-cf94-4ff3-8c4f-c08b8de477f6';

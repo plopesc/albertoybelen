@@ -1,6 +1,6 @@
 import {readFileSync} from 'node:fs';
 import {isDeepStrictEqual} from 'node:util';
-import {STAGING_WORKER, STAGING_DATABASE, STAGING_DATABASE_ID, STAGING_ORIGIN, DDEV_ORIGIN, LOCAL_TARGETS} from './infrastructure-policy.mjs';
+import {STAGING_OPERATOR_WORKER, STAGING_WORKER, STAGING_DATABASE, STAGING_DATABASE_ID, STAGING_ORIGIN, DDEV_ORIGIN, LOCAL_TARGETS} from './infrastructure-policy.mjs';
 
 function requireValue(condition, path) {
   // Never print supplied values: a rejected file might contain a secret.
@@ -16,10 +16,11 @@ function freeze(value) { for (const child of Object.values(value)) if(child && t
 export function validateInfrastructureConfig(config) {
   keys(config, 'schemaVersion cloudflare local public', 'root keys');
   exact(config.schemaVersion, 1, 'schemaVersion');
-  keys(config.cloudflare, 'staging production', 'cloudflare keys');
+  keys(config.cloudflare, 'staging production stagingOperator', 'cloudflare keys');
   // Independent identity pins also validate URLs, UUIDs, binding and disabled Cron.
   exact(config.cloudflare.staging, {workerName:STAGING_WORKER, databaseName:STAGING_DATABASE,
     databaseId:STAGING_DATABASE_ID, binding:'DB', apiOrigin:STAGING_ORIGIN, appEnv:'staging-fixtures', cronEnabled:false}, 'protected staging target');
+  exact(config.cloudflare.stagingOperator, {workerName:STAGING_OPERATOR_WORKER,configured:false,deployEnabled:false}, 'reserved private staging operator');
   exact(config.cloudflare.production, {workerName:'albertoybelen-api', databaseName:'albertoybelen-db',
     configured:false, deployEnabled:false}, 'reserved production metadata');
   keys(config.local, 'ddev profiles stagingAuth', 'local keys');
