@@ -22,9 +22,9 @@ export function validateInfrastructureConfig(config) {
     databaseId:STAGING_DATABASE_ID, binding:'DB', apiOrigin:STAGING_ORIGIN, appEnv:'staging-fixtures', cronEnabled:false}, 'protected staging target');
   exact(config.cloudflare.production, {workerName:'albertoybelen-api', databaseName:'albertoybelen-db',
     configured:false, deployEnabled:false}, 'reserved production metadata');
-  keys(config.local, 'ddev profiles', 'local keys');
+  keys(config.local, 'ddev profiles stagingAuth', 'local keys');
   const ddev = config.local.ddev;
-  keys(ddev, 'projectName origin callbackPath host fixtures oauthMock ownerPilot frontend stagingRead', 'ddev keys');
+  keys(ddev, 'projectName origin callbackPath host fixtures oauthMock ownerPilot frontend stagingRead stagingAuth', 'ddev keys');
   exact([ddev.projectName, ddev.origin, ddev.callbackPath, ddev.host],
     ['albertoybelen', DDEV_ORIGIN, '/oauth/callback', '127.0.0.1'], 'protected DDEV origin/host/callback');
   for (const [key, [name, id, port, persistence]] of Object.entries(LOCAL_TARGETS)) {
@@ -33,6 +33,7 @@ export function validateInfrastructureConfig(config) {
   // OAuth mock and owner pilot intentionally share 8790: mutually exclusive modes.
   exact(ddev.frontend, {port:8791}, 'frontend port');
   exact(ddev.stagingRead, {port:8792, path:'/api/staging/progress'}, 'staging read route');
+  exact(config.local.stagingAuth, {datasetId:'staging-strava-test-v1',goalKm:500,startDate:'2026-11-01',timeZone:'Europe/Madrid',authEnabled:false,networkEnabled:false}, 'isolated staging auth defaults');
   keys(config.local.profiles, 'fixtures ownerPilot staging', 'profile keys');
   const ids = new Set();
   for (const [name, profile] of Object.entries(config.local.profiles)) {
@@ -58,7 +59,8 @@ export function loadInfrastructureConfig(path = new URL('../../config.json', imp
 export function validateLocalTarget(wrangler, name, infrastructure = loadInfrastructureConfig()) {
   validateInfrastructureConfig(infrastructure);
   requireValue(Object.hasOwn(LOCAL_TARGETS, name), 'local target selection');
-  keys(wrangler, 'name main compatibility_date compatibility_flags workers_dev preview_urls send_metrics vars dev d1_databases', `Wrangler ${name} keys`);
+  keys(wrangler, 'name main compatibility_date compatibility_flags workers_dev preview_urls send_metrics vars dev d1_databases' + (name==='stagingAuth'?' observability':''), `Wrangler ${name} keys`);
+  if(name==='stagingAuth')exact(wrangler.observability,{enabled:false},'staging auth logs disabled');
   exact(wrangler.compatibility_date, '2026-11-01', `Wrangler ${name} compatibility date`);
   exact(wrangler.compatibility_flags, ['nodejs_compat'], `Wrangler ${name} compatibility flags`);
   const target = infrastructure.local.ddev[name];
@@ -68,8 +70,8 @@ export function validateLocalTarget(wrangler, name, infrastructure = loadInfrast
     migrations_dir:'backend/d1/migrations', remote:false}], `Wrangler ${name} D1`);
   requireValue(wrangler.workers_dev === false && wrangler.preview_urls === false && wrangler.send_metrics === false &&
     !['account_id','env','route','routes','triggers','build'].some(key => Object.hasOwn(wrangler, key)), `Wrangler ${name} local only`);
-  exact(wrangler.main, {fixtures:'backend/d1/entry.js',oauthMock:'backend/oauth-entry.js',ownerPilot:'backend/pilot-entry.js'}[name], `Wrangler ${name} entry`);
-  exact(wrangler.vars, name === 'ownerPilot' ? {APP_ENV:'local-owner-pilot', PILOT_ENABLED:'disabled'} :
+  exact(wrangler.main, {stagingAuth:'backend/staging-auth-entry.js',fixtures:'backend/d1/entry.js',oauthMock:'backend/oauth-entry.js',ownerPilot:'backend/pilot-entry.js'}[name], `Wrangler ${name} entry`);
+  exact(wrangler.vars, name === 'stagingAuth' ? {APP_ENV:'staging-strava-test',STAGING_AUTH_ENABLED:'disabled',STAGING_NETWORK_ENABLED:'disabled'} : name === 'ownerPilot' ? {APP_ENV:'local-owner-pilot', PILOT_ENABLED:'disabled'} :
     name === 'oauthMock' ? {APP_ENV:'local-fixtures', OAUTH_MODE:'mock', TOKEN_ENCRYPTION_KEY_VERSION:'v1'} : {APP_ENV:'local-fixtures'}, `Wrangler ${name} mode`);
   return wrangler;
 }

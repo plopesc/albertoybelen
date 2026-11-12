@@ -16,11 +16,12 @@ async function limitedBody(request,limit) {
  const bytes=new Uint8Array(length);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}
  return new TextDecoder().decode(bytes);
 }
-export function createOAuthRouter({service,publicWorker,provider,mock=false,origin='https://albertoybelen.ddev.site'}) {
+export function createOAuthRouter({service,publicWorker,provider,mock=false,origin='https://albertoybelen.ddev.site',label='Conexión privada'}) {
+ const heading=label.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const headers={'Cache-Control':'no-store','Pragma':'no-cache','Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff','X-Frame-Options':'DENY'};
  function page(message,content='',javascript='') {
   const nonce=newSecret();const h={...headers,'Content-Type':'text/html; charset=utf-8','Content-Security-Policy':`default-src 'none'; script-src 'nonce-${nonce}'; style-src 'nonce-${nonce}'; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'`};
-  return new Response(`<!doctype html><html lang="es"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Conexión privada</title><style nonce="${nonce}">body{font:18px/1.6 system-ui;background:#24342c;color:#f5efdc;margin:0;padding:24px}main{max-width:600px;margin:10vh auto}button{font:inherit;min-height:48px;padding:10px 18px;margin:8px;background:#e2bc81;color:#24342c;border:0;border-radius:5px}:focus-visible{outline:3px solid white;outline-offset:4px}</style><main><h1>Conexión privada</h1><p id="message" role="status">${message}</p>${content}</main>${javascript?`<script nonce="${nonce}">${javascript}</script>`:''}</html>`,{headers:h});
+  return new Response(`<!doctype html><html lang="es"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${heading}</title><style nonce="${nonce}">body{font:18px/1.6 system-ui;background:#24342c;color:#f5efdc;margin:0;padding:24px}main{max-width:600px;margin:10vh auto}button{font:inherit;min-height:48px;padding:10px 18px;margin:8px;background:#e2bc81;color:#24342c;border:0;border-radius:5px}:focus-visible{outline:3px solid white;outline-offset:4px}</style><main><h1>${heading}</h1><p id="message" role="status">${message}</p>${content}</main>${javascript?`<script nonce="${nonce}">${javascript}</script>`:''}</html>`,{headers:h});
  }
  function redirect(location,result) {const h=new Headers(headers);h.set('Location',location);if(result)h.append('Set-Cookie',cookie(FLASH,result,60));return new Response(null,{status:303,headers:h});}
  return {

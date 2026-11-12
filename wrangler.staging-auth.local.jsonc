@@ -1,0 +1,32 @@
+{
+  "name": "albertoybelen-staging-auth-local",
+  "main": "backend/staging-auth-entry.js",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "workers_dev": false,
+  "preview_urls": false,
+  "send_metrics": false,
+  "vars": {
+    "APP_ENV": "staging-strava-test",
+    "STAGING_AUTH_ENABLED": "disabled",
+    "STAGING_NETWORK_ENABLED": "disabled"
+  },
+  "dev": {
+    "ip": "127.0.0.1",
+    "port": 8793
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "albertoybelen-staging-auth-local",
+      "database_id": "00000000-0000-0000-0000-000000000040",
+      "migrations_dir": "backend/d1/migrations",
+      "remote": false
+    }
+  ],
+  "observability": {
+    "enabled": false
+  }
+}
