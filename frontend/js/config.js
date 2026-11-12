@@ -57,16 +57,22 @@ export function validateGameConfig(value) {
     return Object.freeze({ id: milestoneId, percent: item.percent, ...(item.image !== undefined ? { image: item.image } : {}), ...(item.title !== undefined ? { title: item.title.trim() } : {}), ...(item.alt !== undefined ? { alt: item.alt.trim() } : {}) });
   });
   if (finish !== 100) throw new Error('rewards.finish debe ser 100.');
+  let api;
+  if (value.api !== undefined) {
+    if (!isObject(value.api) || Object.keys(value.api).some(key => !['url','allowFixtures'].includes(key)) || typeof value.api.url !== 'string' || !value.api.url || typeof value.api.allowFixtures !== 'boolean') throw new Error('api requiere url y allowFixtures válidos.');
+    api = Object.freeze({ url: value.api.url, allowFixtures: value.api.allowFixtures });
+  }
   return Object.freeze({
     game: Object.freeze({ id, title: title.trim(), goalKm, startDate, timeZone, mode }),
     rewards: Object.freeze({ milestones: Object.freeze([...milestones]), finish }),
+    ...(api ? { api } : {}),
   });
 }
 
-export async function loadGameConfig(fetchConfig = globalThis.fetch) {
+export async function loadGameConfig(fetchConfig = globalThis.fetch, configUrl = CONFIG_URL) {
   let response;
   try {
-    response = await fetchConfig(CONFIG_URL, { cache: 'no-store' });
+    response = await fetchConfig(configUrl, { cache: 'no-store' });
   } catch (cause) {
     throw new Error('No se pudo descargar config/game.json. Comprueba la conexión o el archivo.', { cause });
   }

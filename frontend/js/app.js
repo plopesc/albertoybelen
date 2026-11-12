@@ -1,13 +1,16 @@
 import { FINAL_REWARD } from './final-reward.js';
 import { calculateProgress } from './progress.js';
 import { createDistanceProvider } from './game.js';
-import { loadGameConfig } from './config.js';
+import { loadRuntimeConfig } from './runtime-config.js';
+import { createHttpProgressProvider } from './http-progress.js';
+import { createApiHistory } from './api-history.js';
 import { createMilestoneHistory, FINISH_MILESTONE_ID } from './milestone-history.js';
 import { createMilestoneReveals } from './milestone-dialog.js';
 
 let provider;
 let history;
 let reveals;
+let usingApi = false;
 const number = new Intl.NumberFormat('es-ES', { maximumSignificantDigits: 12 });
 const percentageNumber = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 1 });
 const $ = (id) => document.getElementById(id);
@@ -116,7 +119,7 @@ function render(state, animate = true) {
   const milestoneDescription = renderMilestones(result.ratio);
   reveals?.synchronize();
   $('map-description').textContent = `Mapa vertical completo desde la salida abajo hasta la meta arriba, pasando por bosque, río, cañón y montaña. Has recorrido ${number.format(result.distanceKm)} de ${number.format(result.goalKm)} km (${percentageNumber.format(result.percentage)} %). ${milestoneDescription}`;
-  $('storage-note').textContent = (provider.isPersistent() && (!history || history.isPersistent()))
+  if (!usingApi) $('storage-note').textContent = (provider.isPersistent() && (!history || history.isPersistent()))
     ? 'Tu progreso se guarda en este navegador.'
     : 'No se ha podido leer o guardar todo el avance y los hitos. Puedes seguir; los cambios podrían perderse al recargar.';
   $('traveler').setAttribute('visibility', 'visible');
@@ -134,7 +137,7 @@ function showNotice(message, error = false) {
 
 async function start() {
   try {
-    const { game, rewards } = await loadGameConfig();
+    const { game, rewards, api } = await loadRuntimeConfig();
     document.title = game.title;
     $('game-title').textContent = game.title;
     $('goal').textContent = number.format(game.goalKm);
@@ -142,15 +145,16 @@ async function start() {
     $('start-date').textContent = game.startDate.split('-').reverse().join('/');
     $('time-zone').textContent = game.timeZone;
     $('mode-label').textContent = game.mode === 'simulation' ? 'MODO SIMULADO' : 'MODO REAL';
-    $('data-source').textContent = game.mode === 'simulation' ? 'PROTOTIPO / DATOS SIMULADOS' : 'PROTOTIPO / MODO REAL NO DISPONIBLE';
+    $('data-source').textContent = game.mode === 'simulation' ? 'PROTOTIPO / DATOS SIMULADOS' : 'API / PENDIENTE DE DATOS';
     initializeMilestones(rewards.milestones);
+    if (game.mode === 'real' && api) { startReal(game, rewards, api); return; }
     let storage;
     if (game.mode === 'simulation') {
       try { storage = window.localStorage; } catch { /* Puede estar bloqueado. */ }
     }
     provider = createDistanceProvider(game, storage);
     if (!provider) {
-      const message = 'Modo real aún no disponible. No hay datos de Strava para mostrar.';
+      const message = 'Modo real sin API configurada. No hay datos para mostrar.';
       showNotice(message);
       $('journey-message').textContent = 'Progreso no disponible en modo real.';
       const milestones = renderMilestones(null);
@@ -189,6 +193,58 @@ async function start() {
     $('journey-message').textContent = 'No se ha iniciado la partida.';
     showNotice(`No se puede iniciar el juego. ${error.message}`, true);
   }
+}
+
+function startReal(game, rewards, api) {
+  usingApi = true;
+  provider = createHttpProgressProvider({ ...api, pageUrl: window.location.href, milestoneIds: rewards.milestones.map(m => m.id) });
+  let storage;
+  try { storage = window.localStorage; } catch { /* Solo avisos, nunca distancia ni premios. */ }
+  history = createApiHistory(storage, { gameId: game.id, endpoint: provider.endpoint, milestoneIds: rewards.milestones.map(m => m.id) });
+  reveals = createMilestoneReveals({ root: $('milestones'), dialog: $('milestone-dialog'), milestones: [...rewards.milestones, FINAL_REWARD], history });
+  reveals.synchronize();
+  $('final-reward-open').addEventListener('click', event => reveals.openFinal(event.currentTarget));
+  $('setup-message').hidden = true;
+  $('api-card').hidden = false;
+  $('api-refresh').addEventListener('click', () => provider.refresh());
+  window.addEventListener('pagehide', event => { if (!event.persisted) provider.dispose(); });
+  let previous = null;
+  provider.subscribe(({ status, snapshot, error }) => {
+    $('api-refresh').disabled = status === 'loading';
+    $('api-card').setAttribute('aria-busy', String(status === 'loading'));
+    $('api-card').dataset.state = status;
+    if (status === 'loading') {
+      $('api-state').setAttribute('role', 'status');
+      $('api-state').textContent = 'Cargando el progreso guardado…';
+      return;
+    }
+    if (status === 'ready') {
+      $('progress').hidden = false;
+      history.applySnapshot(snapshot.unlockedMilestoneIds);
+      if (previous) reveals.advance(calculateProgress(previous.distanceKm, game.goalKm).ratio, calculateProgress(snapshot.distanceKm, game.goalKm).ratio, snapshot.distanceKm - previous.distanceKm, $('api-refresh'), { hadFinal: previous.unlockedMilestoneIds.includes(FINISH_MILESTONE_ID) });
+      render({ distanceKm: snapshot.distanceKm, goalKm: game.goalKm }, Boolean(previous));
+      if (!previous) reveals.showPending();
+      previous = snapshot;
+    }
+    if (snapshot) {
+      const source = snapshot.source === 'fixture' ? 'DATOS DE PRUEBA · D1 LOCAL' : snapshot.source === 'strava-pilot' ? 'PILOTO LOCAL · API' : 'PROGRESO COMPARTIDO · API';
+      $('api-source').textContent = source;
+      $('data-source').textContent = source;
+      $('mode-label').textContent = snapshot.source === 'fixture' ? 'MODO REAL · PRUEBAS' : 'MODO REAL · API';
+      $('api-updated').textContent = snapshot.updatedAt === null ? 'Sin fecha de actualización disponible.' : `Última actualización conocida: ${new Intl.DateTimeFormat('es-ES', { dateStyle: 'medium', timeStyle: 'short', timeZone: game.timeZone }).format(new Date(snapshot.updatedAt))}.`;
+      $('api-state').textContent = status === 'error'
+        ? 'Sin conexión o respuesta no válida. Se conserva el último dato recibido; puede estar desactualizado.'
+        : `${snapshot.partial ? 'Progreso parcial. Conexión o carga de datos pendiente.' : 'Datos completos.'} ${snapshot.stale ? 'Actualización pendiente. Se conserva el último progreso válido.' : 'Datos actualizados.'}`;
+    } else {
+      $('api-source').textContent = 'API · SIN DATOS';
+      $('api-state').textContent = error === 'timeout' ? 'La API no ha respondido a tiempo. Puedes volver a actualizar.' : 'Sin conexión o sin datos válidos. Puedes volver a actualizar.';
+      $('journey-message').textContent = 'Progreso pendiente de la API.';
+      $('map-description').textContent = `Mapa ilustrativo. Sin progreso disponible. ${renderMilestones(null)}`;
+    }
+    $('api-state').setAttribute('role', status === 'error' ? 'alert' : 'status');
+  });
+  $('journey-message').textContent = 'Esperando datos de la API.';
+  provider.refresh();
 }
 
 start();

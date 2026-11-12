@@ -132,7 +132,7 @@ async (page) => {
   configured = structuredClone(base); configured.game.mode = 'real';
   await saveState(88); await page.reload();
   await page.waitForFunction(() => document.getElementById('mode-label').textContent === 'MODO REAL');
-  assert((await text('setup-message')).includes('Modo real aún no disponible'), 'Debe explicar que no hay proveedor real');
+  assert((await text('setup-message')).includes('Modo real sin API configurada'), 'Debe explicar que no hay proveedor real');
   assert(await text('distance') === '—' && await text('remaining') === '—' && await text('percentage') === '—', 'No debe presentar datos simulados como reales');
   assert(!await page.locator('#simulation-card').isVisible() && !await page.locator('#progress').isVisible(), 'Sin controles ni progreso ficticio en modo real');
   assert(await page.locator('#traveler').getAttribute('visibility') === 'hidden', 'Sin posición inventada');

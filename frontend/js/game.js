@@ -62,7 +62,7 @@ export function createSimulatedProvider(storage, goalKm = DEFAULT_STATE.goalKm) 
   };
 }
 
-/** Selección explícita: real no tiene proveedor todavía y no lee datos simulados. */
+/** Selección de simulación. El proveedor HTTP real se construye separadamente sin este storage. */
 export function createDistanceProvider(game, storage) {
   calculateProgress(0, game.goalKm);
   if (game.mode === 'simulation') return createSimulatedProvider(storage, game.goalKm);
