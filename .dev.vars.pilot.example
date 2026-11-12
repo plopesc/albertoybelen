@@ -1,0 +1,13 @@
+# Template only; do not enter values in this tracked file.
+# The preparation command generates an isolated key in ignored .local/pilot-config/.dev.vars.
+# Edit that private file locally only after the later owner authorization.
+STRAVA_CLIENT_ID=
+STRAVA_CLIENT_SECRET=
+PILOT_OWNER_ATHLETE_ID=
+TOKEN_ENCRYPTION_KEY=
+TOKEN_ENCRYPTION_KEY_VERSION=v1
+# Optional previous version for local vault recovery/rotation:
+TOKEN_PREVIOUS_ENCRYPTION_KEY=
+TOKEN_PREVIOUS_ENCRYPTION_KEY_VERSION=
+# PILOT_ENABLED must remain disabled in the private file.
+# The explicit CLI flag grants it only to the authorized command/process.

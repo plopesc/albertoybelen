@@ -10,3 +10,4 @@ artifacts/
 .env
 .env.*
 !.dev.vars.example
+!.dev.vars.pilot.example
