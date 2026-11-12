@@ -30,3 +30,9 @@ test('múltiples pestañas comparten solo avisos vistos; reload nunca restaura c
 test('almacenamiento bloqueado o corrupto no inventa premios ni impide reabrir API',()=>{
  for(const s of [undefined,{getItem(){throw Error();},setItem(){throw Error();}},{getItem(){return '{';},setItem(){}}]){const h=createApiHistory(s,options);h.applySnapshot(['finish']);assert.equal(h.isUnlocked('finish'),true);assert.equal(h.hasSeenNotice('finish'),true);assert.equal(h.isPersistent(),false);}
 });
+
+test('avisos archivados sobreviven al catálogo y restaurarlos no fabrica un nuevo aviso',()=>{
+ const s=storage(),small={...options,milestoneIds:['milestone-20']};
+ const hidden=createApiHistory(s,small);hidden.applySnapshot(['milestone-20','milestone-40']);assert.equal(hidden.isUnlocked('milestone-40'),false);assert.equal(hidden.hasSeenNotice('milestone-40'),true);
+ const restored=createApiHistory(s,options);restored.applySnapshot(['milestone-20','milestone-40']);assert.equal(restored.isUnlocked('milestone-40'),true);assert.equal(restored.hasSeenNotice('milestone-40'),true);assert.equal(restored.isPersistent(),true);
+});

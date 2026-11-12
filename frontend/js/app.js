@@ -197,7 +197,7 @@ async function start() {
 
 function startReal(game, rewards, api) {
   usingApi = true;
-  provider = createHttpProgressProvider({ ...api, pageUrl: window.location.href, milestoneIds: rewards.milestones.map(m => m.id) });
+  provider = createHttpProgressProvider({ ...api, pageUrl: window.location.href });
   let storage;
   try { storage = window.localStorage; } catch { /* Solo avisos, nunca distancia ni premios. */ }
   history = createApiHistory(storage, { gameId: game.id, endpoint: provider.endpoint, milestoneIds: rewards.milestones.map(m => m.id) });

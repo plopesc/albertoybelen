@@ -1,4 +1,5 @@
 /** Backend IDs are authoritative; only presentation acknowledgements live in this browser. */
+import { MAX_UNLOCKED_IDS, validRewardId } from './http-progress.js';
 export function createApiHistory(storage, { gameId, endpoint, milestoneIds }) {
   const key = `strava-adventure:api-notices:v1:${gameId}:${endpoint}`;
   const allowed = new Set([...milestoneIds, 'finish']);
@@ -8,7 +9,7 @@ export function createApiHistory(storage, { gameId, endpoint, milestoneIds }) {
       const raw = storage?.getItem(key);
       if (raw === null || raw === undefined) return;
       const saved = JSON.parse(raw);
-      if (saved?.version !== 1 || !Array.isArray(saved.seenNoticeIds) || saved.seenNoticeIds.some(id => !allowed.has(id))) throw new Error();
+      if (saved?.version !== 1 || !Array.isArray(saved.seenNoticeIds) || saved.seenNoticeIds.length > MAX_UNLOCKED_IDS || saved.seenNoticeIds.some(id => !validRewardId(id))) throw new Error();
       existing = true; for (const id of saved.seenNoticeIds) seen.add(id);
     } catch { persistent = false; }
   }
@@ -25,7 +26,7 @@ export function createApiHistory(storage, { gameId, endpoint, milestoneIds }) {
       pending = initialized ? [...unlocked].filter(id => !previous.has(id) && !seen.has(id)) : [];
       if (!initialized) {
         // A new browser cannot tell when shared history was earned. Never celebrate it.
-        if (!existing) for (const id of unlocked) seen.add(id);
+        if (!existing) for (const id of ids.filter(validRewardId)) seen.add(id);
         if (unlocked.has('finish')) seen.add('finish');
       }
       initialized = true; save();

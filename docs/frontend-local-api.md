@@ -82,7 +82,11 @@ segundo sync inmediato no evita el backoff. Consultar la guía de #27.
 
 El adaptador valida schemaVersion 1 y únicamente los campos públicos conocidos:
 source, distanceKm finito/no negativo, partial/stale booleanos, updatedAt válido
-o null cuando el agregado es parcial, e IDs de premios únicos/configurados.
+o null cuando el agregado es parcial, e IDs de premios únicos, bien formados
+y con un límite global de 256, independiente del catálogo visible. Los IDs
+históricos retirados no invalidan el progreso: se conservan en el DTO/backend
+y la presentación filtra únicamente los hitos configurados. Al restaurar un ID
+en el catálogo, su premio histórico vuelve a ser accesible sin recalcularlo.
 No admite campos de atleta, actividades, scopes o tokens. El HUD nunca muestra
 el cuerpo/error original de una respuesta. Fuentes admitidas: fixture, strava-pilot,
 strava. Los fixtures exigen permiso explícito y origen local; se etiquetan como

@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import{createHttpProgressProvider,validatePublicProgress,resolveProgressEndpoint}from'../frontend/js/http-progress.js';
+import{createHttpProgressProvider,validatePublicProgress,resolveProgressEndpoint,MAX_UNLOCKED_IDS}from'../frontend/js/http-progress.js';
 import{loadRuntimeConfig,LOCAL_CONFIG_URL}from'../frontend/js/runtime-config.js';
 const pageUrl='https://albertoybelen.ddev.site/frontend/?local-api=1';
 const ids=['milestone-20','milestone-40'];
@@ -8,7 +8,7 @@ const settings={url:'/api/progress',pageUrl,milestoneIds:ids,allowFixtures:true}
 
 test('HTTP valida y normaliza solo contrato público, sin datos adicionales',()=>{
  const raw=dto();assert.equal(validatePublicProgress(raw,settings).updatedAt,'2026-11-01T12:00:00.000Z');assert.deepEqual(raw.updatedAt,'2026-11-01T12:00:00Z');
- for(const change of [{schemaVersion:2},{distanceKm:-1},{distanceKm:Infinity},{distanceKm:'4'},{partial:0},{stale:'false'},{updatedAt:'invalid'},{updatedAt:'2026-02-31T00:00:00Z'},{updatedAt:'2026-11-01T24:01:00Z'},{updatedAt:123},{partial:false,updatedAt:null},{unlockedMilestoneIds:['unknown']},{unlockedMilestoneIds:['finish','finish']},{source:'other'},{athleteId:101},{access_token:'private'}])assert.throws(()=>validatePublicProgress(dto(change),settings),/invalid_response/);
+ for(const change of [{schemaVersion:2},{distanceKm:-1},{distanceKm:Infinity},{distanceKm:'4'},{partial:0},{stale:'false'},{updatedAt:'invalid'},{updatedAt:'2026-02-31T00:00:00Z'},{updatedAt:'2026-11-01T24:01:00Z'},{updatedAt:123},{partial:false,updatedAt:null},{unlockedMilestoneIds:['../unknown']},{unlockedMilestoneIds:['finish','finish']},{source:'other'},{athleteId:101},{access_token:'private'}])assert.throws(()=>validatePublicProgress(dto(change),settings),/invalid_response/);
  for(const key of Object.keys(raw)){const bad=dto();delete bad[key];assert.throws(()=>validatePublicProgress(bad,settings));}
  assert.throws(()=>validatePublicProgress(dto(),{...settings,allowFixtures:false}));
  assert.equal(validatePublicProgress(dto({source:'strava',partial:false}),{...settings,allowFixtures:false}).partial,false);
@@ -54,4 +54,25 @@ test('config local explícita solo en DDEV, pública no lee archivo ignorado',as
  const local=await loadRuntimeConfig({pageUrl,fetchConfig});assert.equal(local.game.mode,'real');assert.deepEqual(calls,[String(LOCAL_CONFIG_URL)]);
  for(const page of ['https://plopesc.github.io/albertoybelen/?local-api=1','https://evil.invalid/?local-api=1','https://albertoybelen.ddev.site/?local-api=0','https://albertoybelen.ddev.site/?local-api=1&local-api=1'])await assert.rejects(loadRuntimeConfig({pageUrl:page,fetchConfig}));
  calls=[];await loadRuntimeConfig({pageUrl:'https://albertoybelen.ddev.site/frontend/',fetchConfig});assert.equal(calls.length,1);assert.ok(calls[0].endsWith('/config/game.json'));
+});
+
+test('archivo de premios no depende del catálogo; formato y límite global siguen estrictos',()=>{
+ const archived=Array.from({length:MAX_UNLOCKED_IDS},(_,i)=>`archived-${i}`);
+ assert.deepEqual(validatePublicProgress(dto({unlockedMilestoneIds:archived}),{allowFixtures:true,milestoneIds:[]}).unlockedMilestoneIds,archived);
+ assert.throws(()=>validatePublicProgress(dto({unlockedMilestoneIds:[...archived,'one-too-many']}),settings),/invalid_response/);
+ for(const id of ['',null,20,'Uppercase','contains space','a'.repeat(65),'<script>'])assert.throws(()=>validatePublicProgress(dto({unlockedMilestoneIds:[id]}),settings),/invalid_response/);
+});
+
+test('retirar/restaurar catálogo conserva DTO policy legítimo y premio archivado sin ocultar kilómetros',async()=>{
+ const {createDistanceState,applyParticipantSync,publicProgress}=await import('../policy/distance-policy.js');
+ const {createApiHistory}=await import('../frontend/js/api-history.js');
+ let state=createDistanceState({goalKm:100,startDate:'2026-11-01',timeZone:'Europe/Madrid',milestones:[{id:'milestone-20',percent:20},{id:'milestone-40',percent:40}]});
+ state=applyParticipantSync(state,{participantId:'slot-a',generation:0,status:'connected',scopes:['activity:read_all']});
+ state=applyParticipantSync(state,{participantId:'slot-a',generation:0,status:'success',complete:true,syncedAt:'2026-11-01T12:00:00Z',activities:[{id:1,distance:40000,start_date:'2026-11-01T10:00:00Z',sport_type:'Run',manual:false,private:false}]});
+ state.config.milestones=state.config.milestones.filter(m=>m.id!=='milestone-40');
+ const p=createHttpProgressProvider({...settings,milestoneIds:['milestone-20'],fetchProgress:async()=>Response.json({schemaVersion:1,source:'fixture',...publicProgress(state)})});
+ await p.refresh();assert.equal(p.getState().status,'ready');const dto=p.getState().snapshot;assert.equal(dto.distanceKm,40);assert.deepEqual(dto.unlockedMilestoneIds,['milestone-20','milestone-40']);
+ const visible=createApiHistory(undefined,{gameId:'retire-restore',endpoint:p.endpoint,milestoneIds:['milestone-20']});visible.applySnapshot(dto.unlockedMilestoneIds);assert.equal(visible.isUnlocked('milestone-40'),false);
+ state.config.milestones.push({id:'milestone-40',percent:40});await p.refresh();
+ const restored=createApiHistory(undefined,{gameId:'retire-restore',endpoint:p.endpoint,milestoneIds:['milestone-20','milestone-40']});restored.applySnapshot(p.getState().snapshot.unlockedMilestoneIds);assert.equal(restored.isUnlocked('milestone-40'),true);assert.equal(p.getState().snapshot.distanceKm,40);assert.deepEqual(state.unlockedMilestoneIds,['milestone-20','milestone-40']);
 });
