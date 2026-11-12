@@ -523,3 +523,5 @@ TZ=Pacific/Honolulu node --test tests/distance-policy.test.js
 El frontend y su configuración siguen siendo independientes de este contrato.
 
 La [configuración compartida de infraestructura](docs/infrastructure-configuration.md) vive en `config.json` (solo metadatos Node, sin secretos). Ejecuta `npm run config:check` para contrastarla con Wrangler, DDEV y las guardas independientes. No cambia la configuración pública del juego.
+
+La [preparación de OAuth staging para dos cuentas](docs/staging-strava.md) reutiliza OAuth, D1 y sync, permanece desactivada y solo se prueba con mocks: `npm run test:staging:auth` y `npm run test:staging:auth:browser`. `npm run staging:auth:plan` muestra un diseño sin operaciones remotas.

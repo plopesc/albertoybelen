@@ -92,7 +92,7 @@ test('consistencia detecta cambios estáticos en Wrangler, proxy Nginx y guardas
   try {
     replica(root);
     mkdirSync(join(root,'frontend/js'),{recursive:true});
-    const files=['wrangler.local.jsonc','wrangler.oauth.local.jsonc','wrangler.pilot.local.jsonc','.ddev/config.yaml','.ddev/nginx/oauth-local.conf','.ddev/nginx/frontend-local.conf.example','.ddev/nginx/staging-read-local.conf.example','frontend/js/runtime-config.js','.github/workflows/pages.yml'];
+    const files=['wrangler.staging-auth.local.jsonc','wrangler.local.jsonc','wrangler.oauth.local.jsonc','wrangler.pilot.local.jsonc','.ddev/config.yaml','.ddev/nginx/oauth-local.conf','.ddev/nginx/frontend-local.conf.example','.ddev/nginx/staging-read-local.conf.example','frontend/js/runtime-config.js','.github/workflows/pages.yml'];
     for(const file of files)writeFileSync(join(root,file),readFileSync(file));
     const url=new URL(`file://${root}/`);checkInfrastructureFiles(url);
     for(const [file,from,to] of [
