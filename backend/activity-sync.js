@@ -2,20 +2,22 @@ import { hashSecret, newSecret } from '../auth/invitation-machine.js';
 import { completeActivitySnapshot } from './strava-activities.js';
 
 /** Durable CAS lease across Workers/CLI processes; generation checks fence late work. */
-export function createActivitySync({ repository, oauth, client, clock = Date.now, snapshotOptions = {}, enabled = true }) {
+export function createActivitySync({ repository, oauth, client, clock = Date.now, snapshotOptions = {}, enabled = true, allowed = () => true }) {
   return {
     async run() {
       if (!enabled) throw new Error('activity_transport_disabled');
       const hash = hashSecret(newSecret());
       const claimed = await repository.updatePrivate(state => {
+        if(!allowed(state))return false;
         state.syncControl ??= { slots: {} };
         if (state.syncControl.lease?.expiresAt > clock()) return null;
         state.syncControl.lease = { hash, expiresAt: clock() + 120000 };
         return state.policy.participants.filter(p => p.connected && !p.deleted && (state.syncControl.slots[p.id]?.retryAt ?? 0) <= clock()).map(p => ({ id: p.id, generation: p.generation }));
       });
+      if (claimed === false) return {status:'disabled'};
       if (!claimed) return { status: 'busy' };
       let failed = false;
-      const active = (state, job) => state.syncControl?.lease?.hash === hash && state.syncControl.lease.expiresAt > clock() && state.policy.participants.some(p => p.id === job.id && p.generation === job.generation && p.connected && !p.deleted) && state.auth.slots.some(p => p.id === job.id && p.generation === job.generation && p.status === 'connected');
+      const active = (state, job) => allowed(state) && state.syncControl?.lease?.hash === hash && state.syncControl.lease.expiresAt > clock() && state.policy.participants.some(p => p.id === job.id && p.generation === job.generation && p.connected && !p.deleted) && state.auth.slots.some(p => p.id === job.id && p.generation === job.generation && p.status === 'connected');
       try {
         for (const job of claimed) {
           try {

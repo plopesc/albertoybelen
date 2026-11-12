@@ -525,3 +525,5 @@ El frontend y su configuración siguen siendo independientes de este contrato.
 La [configuración compartida de infraestructura](docs/infrastructure-configuration.md) vive en `config.json` (solo metadatos Node, sin secretos). Ejecuta `npm run config:check` para contrastarla con Wrangler, DDEV y las guardas independientes. No cambia la configuración pública del juego.
 
 La [preparación de OAuth staging para dos cuentas](docs/staging-strava.md) reutiliza OAuth, D1 y sync, permanece desactivada y solo se prueba con mocks: `npm run test:staging:auth` y `npm run test:staging:auth:browser`. `npm run staging:auth:plan` muestra un diseño sin operaciones remotas.
+
+El [operador privado y la release OAuth cerrada](docs/staging-operator.md) se prueban con `npm run test:staging:operator` y `npm run test:staging:operator:browser`. `npm run staging:oauth -- check` y sus variantes `plan`/`dry-run` solo validan/compilan localmente; no ofrece despliegue ni acceso remoto. El ingreso de terminal remoto permanece bloqueado.

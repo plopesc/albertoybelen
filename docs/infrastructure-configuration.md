@@ -102,3 +102,7 @@ al staging: no es necesario para este refactor y no se hizo para validarlo.
 ## OAuth staging local (#40)
 
 `local.ddev.stagingAuth` identifica un target solo local (UUID ficticio 0040, puerto 8793) y `local.stagingAuth` fija un dataset distinto, meta 500 km, inicio sintético 2026-11-01 y ambos interruptores apagados. El checker lo contrasta con las constantes del Worker y `wrangler.staging-auth.local.jsonc`. No modifica `cloudflare.staging` operativo, que sigue en fixtures. Véase el [runbook OAuth staging](staging-strava.md).
+
+## Operador reservado y release cerrada (#42)
+
+`cloudflare.stagingOperator` solo reserva `albertoybelen-operator-staging` con configured=false y deployEnabled=false, sin URL pública, cuenta, clave ni datos de personas. La allowlist independiente fija ese nombre; `config:check` contrasta los nuevos Wrangler OAuth/operador y fixture rollback. La [guía del operador](staging-operator.md) explica firmas, límites, ingreso bloqueado y herramientas sin operaciones remotas.

@@ -1,0 +1,35 @@
+{
+  "name": "albertoybelen-api-staging",
+  "main": "backend/staging-release-entry.js",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "workers_dev": true,
+  "preview_urls": false,
+  "send_metrics": false,
+  "observability": {
+    "enabled": false
+  },
+  "triggers": {
+    "crons": []
+  },
+  "vars": {
+    "APP_ENV": "staging-strava-test",
+    "STAGING_AUTH_ENABLED": "disabled",
+    "STAGING_NETWORK_ENABLED": "disabled",
+    "STAGING_OPERATOR_ENABLED": "disabled",
+    "STAGING_CALLBACK_CONFIRMED": "disabled",
+    "STAGING_OPERATOR_INGRESS": "disabled",
+    "STAGING_ATHLETE_CAPACITY": "disabled"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "albertoybelen-db-staging",
+      "database_id": "c6bde806-cf94-4ff3-8c4f-c08b8de477f6",
+      "migrations_dir": "backend/d1/migrations",
+      "remote": false
+    }
+  ]
+}

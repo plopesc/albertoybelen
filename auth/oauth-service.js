@@ -108,10 +108,10 @@ export function createOAuthService({repository,provider,vault,origin='https://al
         throw new Error('refresh_failed');
       }
     },
-    async rotate(slotId) {
+    async rotate(slotId,{fence=()=>true}={}) {
       await vault.ready();
       return repository.updatePrivate(async state=>{
-        const row=state.sealedTokens[slotId];if(!row||row.refreshLease?.expiresAt>clock())throw new Error('vault_unavailable');
+        const row=state.sealedTokens[slotId];if(!fence(state)||!row||row.refreshLease?.expiresAt>clock())throw new Error('vault_unavailable');
         const tokens=await vault.open(row,{slot:slotId,generation:row.generation,version:row.version});
         state.sealedTokens[slotId]=await vault.seal(tokens,{slot:slotId,generation:row.generation,version:row.version+1});
       });

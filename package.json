@@ -44,7 +44,10 @@
     "config:check": "node scripts/check-infrastructure-config.mjs",
     "test:staging:auth": "node --test tests/staging-auth.test.js tests/d1/staging-auth-runtime.test.js",
     "test:staging:auth:browser": "node scripts/check-staging-auth-browser.mjs",
-    "staging:auth:plan": "node scripts/staging-auth-plan.mjs"
+    "staging:auth:plan": "node scripts/staging-auth-plan.mjs",
+    "staging:oauth": "node scripts/staging-oauth.mjs",
+    "test:staging:operator": "node --test tests/staging-operator.test.js tests/staging-release.test.js tests/d1/staging-operator-runtime.test.js",
+    "test:staging:operator:browser": "node scripts/check-staging-operator-browser.mjs"
   },
   "engines": {
     "node": ">=24"

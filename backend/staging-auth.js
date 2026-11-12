@@ -36,7 +36,7 @@ export function createStagingAuth(env,{fetchProvider,clock=Date.now}={}) {
   const provider={...adapter,async authorizeUrl(options){await networkReady();return adapter.authorizeUrl(options);}};
   const service=createOAuthService({repository,provider,vault,origin,clock});
   const router=createOAuthRouter({service,provider,origin,label:'Staging · conexión de prueba',publicWorker:createWorker({repository,source:'strava',allowedOrigins:[origin],loadFixture:async()=>[]})});
-  const engine=createActivitySync({repository,oauth:service,clock,client:createActivityClient({enabled:true,fetchProvider:transport}),snapshotOptions:{maxPages:limits.maxPages,maxRecords:limits.maxRecords}});
+  const syncClient=createActivityClient({enabled:true,fetchProvider:transport});
   const owner=actor=>{if(actor?.authenticated!==true||actor.role!=='owner')throw Error('private_operator_required');};
   return {
     repository,service,vault,
@@ -49,11 +49,12 @@ export function createStagingAuth(env,{fetchProvider,clock=Date.now}={}) {
       return router.fetch(request);
     },
     admin:{
-      async issue({actor,slot,expectedAthleteId}) {
+      async issue({actor,slot,expectedAthleteId,fence=()=>true}) {
         owner(actor);await ready();
         if(!['slot-a','slot-b'].includes(slot)||!Number.isSafeInteger(expectedAthleteId)||expectedAthleteId<=0)throw Error('invalid_invitation');
         const token=newSecret(),now=clock(),expectedAccountHash=hashSecret(String(expectedAthleteId));
         const ok=await repository.updatePrivate(state=>{
+          if(!fence(state))throw Error('operator_lease_expired');
           if(state.auth.slots.some(s=>s.id!==slot&&(s.accountHash===expectedAccountHash||s.expectedAccountHash===expectedAccountHash)))return false;
           const next=transitionInvitation(state.auth,{type:'issue',actor,now,slot,expectedAccountHash,tokenHash:hashSecret(token),expiresAt:now+3600000});
           state.auth=next.state;return next.result.ok;
@@ -61,13 +62,17 @@ export function createStagingAuth(env,{fetchProvider,clock=Date.now}={}) {
         if(!ok)throw Error('invalid_invitation');
         return `${origin}/invite#${token}`;
       },
-      async sync({actor}) {owner(actor);await networkReady();return engine.run();},
+      async sync({actor,fence=()=>true}) {
+        owner(actor);await networkReady();
+        const initial=(await repository.read()).state,epoch=initial.stagingOperator?.epoch??0;
+        return createActivitySync({repository,oauth:service,clock,client:syncClient,snapshotOptions:{maxPages:limits.maxPages,maxRecords:limits.maxRecords},allowed:state=>state.stagingOperator?.syncDisabled!==true&&(state.stagingOperator?.epoch??0)===epoch&&fence(state)}).run();
+      },
       async revoke({actor,slot}) {owner(actor);await ready();return repository.transitionAuth({type:'revoke',actor,slot,now:clock()});},
       async erase({actor,slot,verified=false,purgeMilestones=false}) {
         owner(actor);await ready();if(verified!==true)throw Error('verified_deletion_required');
         return repository.transitionAuth({type:'delete',actor,slot,now:clock(),requestVerified:true,purgeMilestones:purgeMilestones===true});
       },
-      async rotate({actor,slot}) {owner(actor);await ready();return service.rotate(slot);},
+      async rotate({actor,slot,fence=()=>true}) {owner(actor);await ready();return service.rotate(slot,{fence});},
     },
   };
 }
