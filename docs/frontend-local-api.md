@@ -6,6 +6,11 @@ identifica en el HUD como «DATOS DE PRUEBA · D1 LOCAL» y «MODO REAL · PRUEB
 El JSON público `frontend/config/game.json` continúa en simulación, sin cambios de
 fecha, objetivo o imágenes. No se publica ni se despliega nada.
 
+Para auditar OAuth → D1 → mapa con el perfil piloto de 500 km y sin Strava real,
+seguir el [runbook de fase A de #33](phase-a-runbook.md). El perfil opcional
+`frontend:local:prepare -- --pilot` solo escribe configuración ignorada; no activa
+el piloto ni concede autorización para conectarlo.
+
 ## Arranque reproducible en DDEV
 
 Dentro del checkout/rama de esta PR, en Ubuntu/DDEV y Node 24. Desde el host se

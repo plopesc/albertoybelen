@@ -125,7 +125,9 @@ partial/stale, última fecha válida y premios. Un solo slot está conectado:
 **partial=true**, sin decir cuál. El consentimiento solo no importa km. Si no hay
 actividad válida desde el inicio, 0 km es un resultado válido después de reconciliar.
 No inventar una actividad manual para forzar un resultado: se excluye por política.
-La vista del mapa sigue simulada; este piloto se verifica únicamente por la API local.
+El mapa público sigue simulado. El visor local de #31 puede usar el perfil piloto
+de 500 km preparado sin red; el [runbook de fase A](phase-a-runbook.md) verifica el
+circuito hasta el mapa con mocks y mantiene la prueba real pendiente de autorización.
 
 `status` privado añade número total de registros importados, peticiones, respuestas
 por código, errores de transporte, presupuesto y últimas cuotas numéricas recibidas.

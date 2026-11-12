@@ -199,6 +199,23 @@ independiente. El selector devuelve ausencia de proveedor para `real`;
 una futura fuente remota necesitará un adaptador y gestión asíncrona. Ni los
 cálculos ni la geometría dependen del origen de datos.
 
+## Fase A: auditoría de OAuth a mapa sin Strava real
+
+El [runbook de #33](docs/phase-a-runbook.md) valida en el mismo D1 temporal el
+circuito OAuth falso → cifrado → actividades ficticias → API → mapa DDEV.
+
+```sh
+npm run oauth:proxy:enable
+npm run frontend:local:proxy:enable
+npm run test:pilot:phase-a
+npm run frontend:local:proxy:disable
+```
+
+Requiere el DDEV existente y puertos 8790/8791 libres; rechaza otro proyecto o un
+puerto ocupado. Solo usa valores sintéticos, no lee secretos privados ni abre
+Strava. La guía presenta presupuesto y rollback para una autorización posterior.
+**La fase B y la issue completa siguen pendientes; los mocks no las completan.**
+
 ## Ver el mapa con API y D1 locales
 
 La [guía del frontend local](docs/frontend-local-api.md) muestra el juego en modo
