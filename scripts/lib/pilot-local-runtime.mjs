@@ -1,4 +1,5 @@
-import { readFileSync, existsSync, statSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
+import { assertPrivateFiles } from './private-permissions.mjs';
 import { fileURLToPath } from 'node:url';
 import { createPilot, PILOT_ENABLE } from '../../backend/pilot.js';
 export const pilotRoot = fileURLToPath(new URL('../../',import.meta.url));
@@ -11,7 +12,7 @@ export function pilotConfig() {
 export function pilotVariables(authorized=false) {
   const vars={...pilotConfig().vars};const path=`${privateDirectory}/.dev.vars`;
   if(existsSync(path)) {
-    if(statSync(path).mode&0o077)throw Error('Private file permissions required');
+    assertPrivateFiles(privateDirectory,path);
     for(const line of readFileSync(path,'utf8').split('\n')){
       const match=/^([A-Z_]+)=(.*)$/.exec(line.trim());if(!match)continue;
       const allowed=['STRAVA_CLIENT_ID','STRAVA_CLIENT_SECRET','PILOT_OWNER_ATHLETE_ID','TOKEN_ENCRYPTION_KEY','TOKEN_ENCRYPTION_KEY_VERSION','TOKEN_PREVIOUS_ENCRYPTION_KEY','TOKEN_PREVIOUS_ENCRYPTION_KEY_VERSION'];
