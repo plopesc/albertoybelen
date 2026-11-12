@@ -199,6 +199,27 @@ independiente. El selector devuelve ausencia de proveedor para `real`;
 una futura fuente remota necesitará un adaptador y gestión asíncrona. Ni los
 cálculos ni la geometría dependen del origen de datos.
 
+## Preparación del piloto del propietario (sin conexión real)
+
+La [guía del piloto Strava](docs/strava-owner-pilot.md) prepara un ensayo aislado
+en DDEV con D1 local y solo la cuenta del propietario. Permanece apagado; cada
+acción capaz de usar Strava exige activación local explícita **tras autorización
+humana posterior a la revisión y merge de la PR**. Preparar no abre OAuth ni importa:
+
+```sh
+npm run pilot:local -- prepare
+npm run pilot:local -- migrate
+npm run pilot:local -- status
+npm run test:pilot:local
+```
+
+El ensayo tiene su propia base, clave y archivo de secretos ignorado. Reutiliza
+OAuth y reconciliación existentes, limita peticiones de forma durable y mantiene
+el otro slot desconectado (`partial:true`). La guía incluye el punto de parada,
+comandos futuros de consentimiento/sync manual, cuotas, recuperación y borrado.
+Las pruebas usan interceptores y HTTP de loopback, sin cuentas ni llamadas reales.
+No cambia la configuración definitiva del mapa ni habilita Cron o infraestructura remota.
+
 ## Sincronización de actividades en D1 local
 
 La [guía de sincronización](docs/activity-sync-local.md) conecta OAuth cifrado y

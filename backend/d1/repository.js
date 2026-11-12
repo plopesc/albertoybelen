@@ -7,10 +7,11 @@ const fresh = () => ({ policy: createDistanceState(FIXTURE_SETTINGS), auth: crea
 const key = (participant, activity) => JSON.stringify([participant, String(activity)]);
 
 /** Single canonical domain document plus relational projections, committed in one D1 batch. */
-export function createD1Repository(db) {
+export function createD1Repository(db, { settings = FIXTURE_SETTINGS } = {}) {
+  const freshState = () => ({ ...fresh(), policy: createDistanceState(settings) });
   const prepare = (sql, ...values) => db.prepare(sql).bind(...values);
   async function initialize() {
-    await prepare('INSERT OR IGNORE INTO game_state(id,revision,document) VALUES(?,0,?)', NAMESPACE, JSON.stringify(fresh())).run();
+    await prepare('INSERT OR IGNORE INTO game_state(id,revision,document) VALUES(?,0,?)', NAMESPACE, JSON.stringify(freshState())).run();
   }
   async function read() {
     await initialize();
@@ -100,7 +101,7 @@ export function createD1Repository(db) {
     resetForTests(confirmation) {
       if (confirmation !== NAMESPACE) throw new Error('Explicit local fixture confirmation required');
       return mutate(state => {
-        const next = fresh();
+        const next = freshState();
         for (const p of next.policy.participants) p.generation = state.policy.participants.find(old => old.id === p.id).generation + 1;
         for (const p of next.auth.slots) p.generation = next.policy.participants.find(old => old.id === p.id).generation;
         Object.assign(state, next, { sealedTokens: {}, oauthSessions: {}, syncControl: { slots: {} } });

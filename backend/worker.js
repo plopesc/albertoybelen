@@ -5,7 +5,7 @@ export const LOCAL_SETTINGS = Object.freeze({ participants: ['slot-a', 'slot-b']
 export const ALLOWED_ORIGINS = Object.freeze(['https://plopesc.github.io', 'https://albertoybelen.ddev.site', 'http://localhost:8787', 'http://127.0.0.1:8787']);
 
 /** Local prototype: optional injected persistence, without network, credentials or active schedule. */
-export function createWorker({ initialState = createDistanceState(LOCAL_SETTINGS), loadFixture = async () => defaultFixtureEvents(), allowedOrigins = ALLOWED_ORIGINS, repository } = {}) {
+export function createWorker({ initialState = createDistanceState(LOCAL_SETTINGS), loadFixture = async () => defaultFixtureEvents(), allowedOrigins = ALLOWED_ORIGINS, repository, source = 'fixture' } = {}) {
   let state = initialState;
   let tail = Promise.resolve();
   const transact = action => {
@@ -28,7 +28,7 @@ export function createWorker({ initialState = createDistanceState(LOCAL_SETTINGS
         return reply(null, 204);
       }
       if (request.method !== 'GET') { headers.Allow = 'GET, OPTIONS'; return reply({ error: 'method_not_allowed' }, 405); }
-      try { return reply({ schemaVersion: 1, source: 'fixture', ...publicProgress(repository ? await repository.getState() : state) }); }
+      try { return reply({ schemaVersion: 1, source, ...publicProgress(repository ? await repository.getState() : state) }); }
       catch { return reply({ error: 'local_storage_unavailable' }, 503); }
     },
     scheduled(event, env, context) {

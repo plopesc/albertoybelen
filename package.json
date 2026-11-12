@@ -22,7 +22,10 @@
     "sync:verify:local": "node scripts/sync-local.mjs verify",
     "sync:reset:local": "node scripts/sync-local.mjs reset",
     "test:sync:local": "node --test tests/activity-*.test.js tests/d1/sync-runtime.test.js",
-    "test:sync:browser": "node scripts/check-sync-browser.mjs"
+    "test:sync:browser": "node scripts/check-sync-browser.mjs",
+    "pilot:local": "node scripts/pilot-local.mjs",
+    "test:pilot:local": "node --test tests/pilot*.test.js tests/d1/pilot-runtime.test.js",
+    "test:pilot:browser": "node scripts/check-pilot-browser.mjs"
   },
   "engines": {
     "node": ">=24"
