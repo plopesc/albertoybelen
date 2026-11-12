@@ -51,4 +51,3 @@ CREATE TABLE staging_auth_oauth_sessions (
  hash TEXT PRIMARY KEY CHECK(length(hash)=64 AND hash NOT GLOB '*[^0-9a-f]*'),
  expires_at REAL NOT NULL
 );
-
