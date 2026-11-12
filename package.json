@@ -40,7 +40,8 @@
     "frontend:staging:disable": "node scripts/staging-read-proxy-config.mjs disable",
     "frontend:staging:smoke": "node scripts/staging-read-smoke.mjs",
     "test:frontend:staging": "node scripts/check-frontend-api.mjs --staging",
-    "test:frontend:staging:ddev": "node scripts/check-staging-ddev.mjs"
+    "test:frontend:staging:ddev": "node scripts/check-staging-ddev.mjs",
+    "config:check": "node scripts/check-infrastructure-config.mjs"
   },
   "engines": {
     "node": ">=24"

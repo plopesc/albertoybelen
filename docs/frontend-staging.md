@@ -175,3 +175,7 @@ revisión, detenerlo y retirar su proxy según la guía existente.
 El perfil staging puede conservarse para otra visita o retirarse manualmente;
 ningún comando de limpieza borra local.json, tokens o D1. No se ejecuta reset
 remoto, migración, deploy ni cambios en Pages para salir del visor.
+
+## Configuración compartida (#38)
+
+El proxy deriva el destino fijo y el puerto de `config.json`, validado contra la allowlist independiente antes de escuchar o hacer HTTP. El generador deriva el mismo perfil y mantiene su protección frente a sobrescrituras. Las guardas de navegador y las plantillas Nginx siguen independientes y se contrastan con `npm run config:check`; véase [la guía de infraestructura](infrastructure-configuration.md).

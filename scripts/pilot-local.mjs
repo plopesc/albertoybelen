@@ -3,6 +3,8 @@ import {spawnSync} from 'node:child_process';
 import {randomBytes} from 'node:crypto';
 import {pilotRoot,privateDirectory,pilotConfig,pilotVariables,openPilotLocal} from './lib/pilot-local-runtime.mjs';
 import {assertDdevProject,assertPortsFree} from './lib/ddev-preflight.mjs';
+import {loadInfrastructureConfig} from './lib/infrastructure-config.mjs';
+const infrastructure=loadInfrastructureConfig();
 const [operation,flag]=process.argv.slice(2);
 const networkOperations=['dev','issue','sync','refresh'];
 if(!['prepare','migrate','check','dev','issue','sync','status','refresh','revoke','erase','rotate'].includes(operation)||process.argv.length>4||(flag!==undefined&&flag!=='--authorize-owner-pilot')||(networkOperations.includes(operation)&&flag!=='--authorize-owner-pilot')||(!networkOperations.includes(operation)&&flag!==undefined))throw Error('Local pilot command rejected; network-capable commands require explicit --authorize-owner-pilot after human authorization');
@@ -16,7 +18,7 @@ try {
   writeFileSync(`${privateDirectory}/.dev.vars`,`STRAVA_CLIENT_ID=\nSTRAVA_CLIENT_SECRET=\nPILOT_OWNER_ATHLETE_ID=\nTOKEN_ENCRYPTION_KEY_VERSION=v1\nTOKEN_ENCRYPTION_KEY=${randomBytes(32).toString('base64')}\n`,{mode:0o600});
   console.log('Isolated private template/key prepared. Pilot remains disabled; no requests sent.');
  } else if(['dev','migrate'].includes(operation)) {
-  if(operation==='dev'){await assertPortsFree([8790]);runtime=await openPilotLocal({authorized:true});await runtime.ready();await runtime.close();runtime=undefined;}
+  if(operation==='dev'){await assertPortsFree([infrastructure.local.ddev.ownerPilot.port]);runtime=await openPilotLocal({authorized:true});await runtime.ready();await runtime.close();runtime=undefined;}
   mkdirSync(privateDirectory,{recursive:true,mode:0o700});
   // Private config directory isolates Wrangler's automatic .dev.vars discovery from mocks.
   const generated={...config,main:`${pilotRoot}${config.main}`,d1_databases:config.d1_databases.map(db=>({...db,migrations_dir:`${pilotRoot}${db.migrations_dir}`}))};
@@ -25,7 +27,7 @@ try {
   const env={...process.env,CLOUDFLARE_SEND_METRICS:'false',WRANGLER_LOG_PATH:'/dev/null'};
   for(const key of Object.keys(env))if(key.startsWith('CLOUDFLARE_')&&key!=='CLOUDFLARE_SEND_METRICS')delete env[key];
   console.log(operation==='dev'?'Starting authorized local pilot; output suppressed to protect private configuration.':'Applying migrations to the isolated local pilot binding.');
-  const result=spawnSync(process.execPath,[`${pilotRoot}node_modules/wrangler/bin/wrangler.js`,...args,'--config',`${privateDirectory}/wrangler.json`,'--persist-to',`${pilotRoot}.local/pilot-d1`],{cwd:privateDirectory,stdio:'ignore',env});process.exitCode=result.status??1;
+  const result=spawnSync(process.execPath,[`${pilotRoot}node_modules/wrangler/bin/wrangler.js`,...args,'--config',`${privateDirectory}/wrangler.json`,'--persist-to',`${pilotRoot}${infrastructure.local.ddev.ownerPilot.persistence}`],{cwd:privateDirectory,stdio:'ignore',env});process.exitCode=result.status??1;
   if(result.status!==0)console.error('Local Wrangler operation failed; output suppressed. Review local configuration without sharing secrets.');
  } else {
   runtime=await openPilotLocal({authorized:networkOperations.includes(operation)});

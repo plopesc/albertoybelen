@@ -1,9 +1,12 @@
 import {createServer} from 'node:http';
 import {validatePublicProgress} from '../../frontend/js/http-progress.js';
-export const STAGING_READ_URL = 'https://albertoybelen-api-staging.autumn-dream-2a39.workers.dev/api/progress';
-export const STAGING_READ_PORT = 8792;
+import {loadInfrastructureConfig} from './infrastructure-config.mjs';
+const infrastructure = loadInfrastructureConfig();
+export const STAGING_READ_URL = infrastructure.cloudflare.staging.apiOrigin + infrastructure.public.progressPath;
+export const STAGING_READ_PORT = infrastructure.local.ddev.stagingRead.port;
 export function stagingViewConfig(base) {
-  return {...base,game:{...base.game,id:'local-ddev-cloudflare-staging',title:`${base.game.title} · Staging ficticio`,mode:'real',goalKm:100,startDate:'2026-11-01',timeZone:'Europe/Madrid'},api:{url:'/api/staging/progress',allowFixtures:true}};
+  const {id, goalKm, startDate, timeZone, apiPath, allowFixtures} = infrastructure.local.profiles.staging;
+  return {...base,game:{...base.game,id,title:`${base.game.title} · Staging ficticio`,mode:'real',goalKm,startDate,timeZone},api:{url:apiPath,allowFixtures}};
 }
 
 /** Fixed public GET; no incoming URL/header/body is forwarded. No request until called. */

@@ -135,3 +135,7 @@ y [migraciones D1](https://developers.cloudflare.com/workers/wrangler/commands/d
 La política de Cron vacío está en la configuración; los tests verifican también
 que el entrypoint no tiene handler programado. CI ejecuta únicamente validaciones
 y D1 locales, nunca los comandos remotos de esta guía.
+
+## Metadatos compartidos y barrera independiente
+
+Los identificadores no secretos viven en el `config.json` raíz; consulta [su esquema y seguridad](infrastructure-configuration.md). `staging -- check`, `dry-run` y cada operación manual validan tanto ese JSON como Wrangler contra `scripts/lib/infrastructure-policy.mjs`, una allowlist independiente. Alterar solo el JSON no autoriza otro destino. Producción sigue reservada, incompleta y deshabilitada. `npm run config:check` también contrasta DDEV, los targets locales y el visor staging de #36, sin llamadas remotas.

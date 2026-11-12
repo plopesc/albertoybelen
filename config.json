@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "cloudflare": {
+    "staging": {
+      "workerName": "albertoybelen-api-staging",
+      "databaseName": "albertoybelen-db-staging",
+      "databaseId": "c6bde806-cf94-4ff3-8c4f-c08b8de477f6",
+      "binding": "DB",
+      "apiOrigin": "https://albertoybelen-api-staging.autumn-dream-2a39.workers.dev",
+      "appEnv": "staging-fixtures",
+      "cronEnabled": false
+    },
+    "production": {
+      "workerName": "albertoybelen-api",
+      "databaseName": "albertoybelen-db",
+      "configured": false,
+      "deployEnabled": false
+    }
+  },
+  "local": {
+    "ddev": {
+      "projectName": "albertoybelen",
+      "origin": "https://albertoybelen.ddev.site",
+      "callbackPath": "/oauth/callback",
+      "host": "127.0.0.1",
+      "fixtures": {
+        "workerName": "albertoybelen-fixture-local",
+        "databaseName": "albertoybelen-fixture-local",
+        "databaseId": "00000000-0000-0000-0000-000000000023",
+        "binding": "DB",
+        "port": 8788,
+        "persistence": ".local/d1"
+      },
+      "oauthMock": {
+        "workerName": "albertoybelen-oauth-local",
+        "databaseName": "albertoybelen-oauth-local",
+        "databaseId": "00000000-0000-0000-0000-000000000025",
+        "binding": "DB",
+        "port": 8790,
+        "persistence": ".local/oauth-d1"
+      },
+      "ownerPilot": {
+        "workerName": "albertoybelen-owner-pilot-local",
+        "databaseName": "albertoybelen-owner-pilot-local",
+        "databaseId": "00000000-0000-0000-0000-000000000029",
+        "binding": "DB",
+        "port": 8790,
+        "persistence": ".local/pilot-d1"
+      },
+      "frontend": {
+        "port": 8791
+      },
+      "stagingRead": {
+        "port": 8792,
+        "path": "/api/staging/progress"
+      }
+    },
+    "profiles": {
+      "fixtures": {
+        "id": "local-ddev-api-fixtures",
+        "goalKm": 100,
+        "startDate": "2026-11-01",
+        "timeZone": "Europe/Madrid",
+        "apiPath": "/api/progress",
+        "allowFixtures": true
+      },
+      "ownerPilot": {
+        "id": "local-ddev-owner-pilot",
+        "goalKm": 500,
+        "startDate": "2026-11-01",
+        "timeZone": "Europe/Madrid",
+        "apiPath": "/api/progress",
+        "allowFixtures": false
+      },
+      "staging": {
+        "id": "local-ddev-cloudflare-staging",
+        "goalKm": 100,
+        "startDate": "2026-11-01",
+        "timeZone": "Europe/Madrid",
+        "apiPath": "/api/staging/progress",
+        "allowFixtures": true
+      }
+    }
+  },
+  "public": {
+    "pagesOrigin": "https://plopesc.github.io",
+    "pagesPath": "/albertoybelen/",
+    "progressPath": "/api/progress"
+  }
+}
