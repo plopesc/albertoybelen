@@ -28,6 +28,8 @@ jobs:
       - run: npm run capture:visual
       - name: Probar interfaz HTTP y capturar estados de API simulada
         run: npm run test:frontend:api
+      - name: Probar visor staging con API simulada, sin Cloudflare
+        run: npm run test:frontend:staging
       - name: Guardar capturas para revisión
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -38,6 +40,8 @@ jobs:
             artifacts/visual/manifest.json
             artifacts/frontend-api/*.jpg
             artifacts/frontend-api/manifest.json
+            artifacts/frontend-staging/*.jpg
+            artifacts/frontend-staging/manifest.json
           retention-days: 3
           if-no-files-found: error
           compression-level: 6

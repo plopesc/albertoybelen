@@ -1,12 +1,14 @@
 import assert from'node:assert/strict';import{chromium}from'playwright';import{readFile,mkdir,writeFile}from'node:fs/promises';import{resolve}from'node:path';import{frontendServer}from'./lib/frontend-server.mjs';
-const output=resolve(process.env.API_VISUAL_OUTPUT??'artifacts/frontend-api');await mkdir(output,{recursive:true});
+const staging=process.argv[2]==='--staging';if(process.argv.length!==(staging?3:2))throw Error('Only optional --staging is supported');
+const output=resolve(process.env.API_VISUAL_OUTPUT??(staging?'artifacts/frontend-staging':'artifacts/frontend-api'));await mkdir(output,{recursive:true});
 const config=JSON.parse(await readFile('frontend/config/game.json','utf8'));config.game={...config.game,id:'local-ddev-api-browser',mode:'real',goalKm:100,startDate:'2026-11-01',timeZone:'Europe/Madrid'};config.api={url:'/api/progress',allowFixtures:true};
+if(staging){config.game.id='local-ddev-cloudflare-staging';config.game.title+=' · Staging ficticio';config.api.url='/api/staging/progress';}
 const reached=km=>[20,40,60,80].filter(n=>km>=n).map(n=>`milestone-${n}`);
 const data=(km,more={})=>({schemaVersion:1,source:'fixture',distanceKm:km,partial:false,stale:false,updatedAt:'2026-11-01T12:00:00Z',unlockedMilestoneIds:[...reached(km),...(km>=100?['finish']:[])],...more});
 let response={status:503,body:'unavailable'},requests=0;
 const server=frontendServer({root:resolve('frontend'),prefix:'/albertoybelen/',handle:async(req,res)=>{
  const url=new URL(req.url,'http://local');if(url.pathname==='/albertoybelen/config/game.json'){res.setHeader('Content-Type','application/json');res.end(JSON.stringify(config));return true;}
- if(url.pathname!=='/api/progress')return false;
+ if(url.pathname!==config.api.url)return false;
  requests++;const current=response;if(current.delay)await new Promise(r=>setTimeout(r,current.delay));
  res.writeHead(current.status??200,{'Content-Type':'application/json','Cache-Control':'no-store'}).end(typeof current.body==='string'?current.body:JSON.stringify(current.body));return true;
 }});await new Promise(r=>server.listen(0,'127.0.0.1',r));const origin=`http://127.0.0.1:${server.address().port}`;let browser;const captures=[];
@@ -22,7 +24,8 @@ try{
   const refresh=async()=>{await page.getByRole('button',{name:'Actualizar vista',exact:true}).click();await settled();};
   const dismiss=async()=>{while(await page.locator('#milestone-dialog').isVisible()){if(await page.locator('#reward-next').isVisible())await page.locator('#reward-next').click();else await page.locator('#reward-close').click();}};
   await page.goto(`${origin}/albertoybelen/`);await settled();assert.equal(await page.locator('#distance').innerText(),'—');assert.equal(await page.locator('#traveler').getAttribute('visibility'),'hidden');assert.equal(await page.locator('#completion-card').isVisible(),false);assert.equal(await page.locator('#simulation-card').isVisible(),false);await shot('unavailable');
-  response={body:data(36.125,{partial:true})};await refresh();assert.equal(await page.locator('#distance').innerText(),'36,125');assert.match(await page.locator('#api-state').innerText(),/parcial/i);assert.match(await page.locator('#api-source').innerText(),/DATOS DE PRUEBA/);assert.equal(await page.locator('#milestone-dialog').isVisible(),false);await shot('partial');
+  if(staging){response={body:data(0,{partial:true,updatedAt:null,unlockedMilestoneIds:[]})};await refresh();assert.equal(await page.locator('#distance').innerText(),'0');assert.match(await page.locator('#api-source').innerText(),/DATOS FICTICIOS.*STAGING CLOUDFLARE/);await shot('zero');}
+  response={body:data(36.125,{partial:true})};await refresh();if(staging)await dismiss();assert.equal(await page.locator('#distance').innerText(),'36,125');assert.match(await page.locator('#api-state').innerText(),/parcial/i);assert.match(await page.locator('#api-source').innerText(),staging?/DATOS FICTICIOS.*STAGING CLOUDFLARE/:/DATOS DE PRUEBA/);assert.equal(await page.locator('#milestone-dialog').isVisible(),false);await shot('partial');
   response={body:data(60)};await refresh();await dismiss();assert.match(await page.locator('#api-state').innerText(),/completos/);await shot('complete');
   const catalog=config.rewards.milestones;
   config.rewards.milestones=catalog.filter(m=>m.id!=='milestone-40');await page.reload();await settled();assert.equal(await page.locator('#distance').innerText(),'60');assert.equal(await page.locator('[data-milestone="milestone-40"]').count(),0);assert.equal(await page.locator('#milestone-dialog').isVisible(),false);
@@ -33,6 +36,7 @@ try{
   response={body:data(60,{athleteId:'private-should-not-render'})};await refresh();assert.equal((await page.locator('body').innerText()).includes('private-should-not-render'),false);
   response={body:data(60),delay:8500};const loading=refresh();await page.waitForFunction(()=>document.getElementById('api-card').dataset.state==='loading');await shot('loading');await loading;assert.equal(await page.locator('#api-card').getAttribute('data-state'),'error');
   response={body:data(55,{unlockedMilestoneIds:reached(60)})};await refresh();assert.equal(await page.locator('#distance').innerText(),'55');const hito=page.locator('[data-milestone="milestone-60"]');assert.equal(await hito.getAttribute('aria-disabled'),'false');await hito.focus();await page.keyboard.press('Enter');assert.equal(await page.locator('#milestone-dialog').getAttribute('data-phase'),'revealed');await page.keyboard.press('Escape');await shot('correction');
+  if(staging)for(const km of [20,40,60,80]){response={body:data(km,{unlockedMilestoneIds:reached(Math.max(60,km))})};await refresh();await dismiss();assert.equal(await page.locator('#percentage').innerText(),`${km} %`);assert.equal(await page.locator('#remaining').innerText(),String(100-km));}
   response={body:data(105)};await refresh();if((await page.locator('#reward-title').innerText())!=='¡Reto completado!')await page.locator('#reward-next').click();assert.equal(await page.locator('#reward-title').innerText(),'¡Reto completado!');assert.equal(await page.locator('#milestone-dialog').evaluate(n=>n.classList.contains('is-celebrating')),true);assert.equal(await page.locator('#reward-photo-wrap').isVisible(),false);await page.locator('#reward-view').click();assert.equal(await page.locator('#reward-photo-wrap').isVisible(),true);await page.keyboard.press('Escape');
   assert.equal(await page.locator('#percentage').innerText(),'100 %');assert.equal(await page.locator('#remaining').innerText(),'0');await page.reload();await settled();assert.equal(await page.locator('#milestone-dialog').isVisible(),false);
   const end=await page.locator('#traveler').evaluate(node=>{const path=document.getElementById('route'),p=path.getPointAtLength(path.getTotalLength()),m=node.transform.baseVal.consolidate().matrix;return Math.hypot(m.e-p.x,m.f-p.y);});assert.ok(end<1);
@@ -42,5 +46,5 @@ try{
   response={body:data(20,{partial:true,unlockedMilestoneIds:[]})};await refresh();assert.equal(await page.locator('#completion-card').isVisible(),false);assert.equal(await page.locator('[data-milestone="milestone-20"]').getAttribute('aria-disabled'),'true');
   await page.setViewportSize({width:320,height:740});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert.deepEqual(errors,[]);await context.close();
  }
- await writeFile(resolve(output,'manifest.json'),JSON.stringify({synthetic:true,captures,requests},null,2));console.log(`Frontend HTTP browser: states, timeout, correction, backend rewards, final, reload, second client, keyboard and mobile verified; ${captures.length} captures.`);
+ await writeFile(resolve(output,'manifest.json'),JSON.stringify({synthetic:true,captures,requests},null,2));console.log(`Frontend ${staging?'staging fixture':'HTTP'} browser: states, timeout, correction, backend rewards, final, reload, second client, keyboard and mobile verified; ${captures.length} captures.`);
 }finally{await browser?.close();server.closeAllConnections();await new Promise(r=>server.close(r));}

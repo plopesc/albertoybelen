@@ -198,6 +198,11 @@ async function start() {
 function startReal(game, rewards, api) {
   usingApi = true;
   provider = createHttpProgressProvider({ ...api, pageUrl: window.location.href });
+  const staging = new URL(provider.endpoint).pathname === '/api/staging/progress';
+  if (staging) {
+    $('mode-label').textContent = 'STAGING · DATOS FICTICIOS';
+    $('data-source').textContent = 'DATOS FICTICIOS · STAGING CLOUDFLARE';
+  }
   let storage;
   try { storage = window.localStorage; } catch { /* Solo avisos, nunca distancia ni premios. */ }
   history = createApiHistory(storage, { gameId: game.id, endpoint: provider.endpoint, milestoneIds: rewards.milestones.map(m => m.id) });
@@ -227,16 +232,16 @@ function startReal(game, rewards, api) {
       previous = snapshot;
     }
     if (snapshot) {
-      const source = snapshot.source === 'fixture' ? 'DATOS DE PRUEBA · D1 LOCAL' : snapshot.source === 'strava-pilot' ? 'PILOTO LOCAL · API' : 'PROGRESO COMPARTIDO · API';
+      const source = staging ? 'DATOS FICTICIOS · STAGING CLOUDFLARE' : snapshot.source === 'fixture' ? 'DATOS DE PRUEBA · D1 LOCAL' : snapshot.source === 'strava-pilot' ? 'PILOTO LOCAL · API' : 'PROGRESO COMPARTIDO · API';
       $('api-source').textContent = source;
       $('data-source').textContent = source;
-      $('mode-label').textContent = snapshot.source === 'fixture' ? 'MODO REAL · PRUEBAS' : 'MODO REAL · API';
+      $('mode-label').textContent = staging ? 'STAGING · DATOS FICTICIOS' : snapshot.source === 'fixture' ? 'MODO REAL · PRUEBAS' : 'MODO REAL · API';
       $('api-updated').textContent = snapshot.updatedAt === null ? 'Sin fecha de actualización disponible.' : `Última actualización conocida: ${new Intl.DateTimeFormat('es-ES', { dateStyle: 'medium', timeStyle: 'short', timeZone: game.timeZone }).format(new Date(snapshot.updatedAt))}.`;
       $('api-state').textContent = status === 'error'
         ? 'Sin conexión o respuesta no válida. Se conserva el último dato recibido; puede estar desactualizado.'
         : `${snapshot.partial ? 'Progreso parcial. Conexión o carga de datos pendiente.' : 'Datos completos.'} ${snapshot.stale ? 'Actualización pendiente. Se conserva el último progreso válido.' : 'Datos actualizados.'}`;
     } else {
-      $('api-source').textContent = 'API · SIN DATOS';
+      $('api-source').textContent = staging ? 'DATOS FICTICIOS · STAGING CLOUDFLARE' : 'API · SIN DATOS';
       $('api-state').textContent = error === 'timeout' ? 'La API no ha respondido a tiempo. Puedes volver a actualizar.' : 'Sin conexión o sin datos válidos. Puedes volver a actualizar.';
       $('journey-message').textContent = 'Progreso pendiente de la API.';
       $('map-description').textContent = `Mapa ilustrativo. Sin progreso disponible. ${renderMilestones(null)}`;

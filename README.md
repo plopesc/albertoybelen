@@ -199,6 +199,25 @@ independiente. El selector devuelve ausencia de proveedor para `real`;
 una futura fuente remota necesitará un adaptador y gestión asíncrona. Ni los
 cálculos ni la geometría dependen del origen de datos.
 
+## Visor local de staging, solo lectura
+
+La [guía del visor staging](docs/frontend-staging.md) permite abrir el mapa en
+DDEV con el endpoint público de staging. Tiene perfil, dataset, ruta y proxy propios,
+sin tocar local.json del piloto ni el JSON público de Pages:
+
+```sh
+npm run frontend:staging:prepare
+npm run frontend:staging:proxy   # Terminal A; no consulta staging hasta recibir GET.
+# Terminal B:
+npm run frontend:staging:enable
+# Abrir https://albertoybelen.ddev.site/frontend/?staging-api=1
+```
+
+La apertura y Actualizar vista hacen GET mediante el proxy a la URL staging
+fijada; no ejecutan sincronizaciones, OAuth ni operaciones Cloudflare. Muestra
+«DATOS FICTICIOS · STAGING CLOUDFLARE». Las pruebas normales usan mocks:
+`npm run test:frontend:staging`. La guía incluye limpieza y smoke remoto opt-in.
+
 ## Configuración de staging (sin ejecutar acciones remotas)
 
 La [guía de staging](docs/staging.md) prepara Worker `albertoybelen-api-staging`
