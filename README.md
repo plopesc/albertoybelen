@@ -199,6 +199,23 @@ independiente. El selector devuelve ausencia de proveedor para `real`;
 una futura fuente remota necesitará un adaptador y gestión asíncrona. Ni los
 cálculos ni la geometría dependen del origen de datos.
 
+## Configuración de staging (sin ejecutar acciones remotas)
+
+La [guía de staging](docs/staging.md) prepara Worker `albertoybelen-api-staging`
+y D1 `albertoybelen-db-staging` con el binding `DB` en una configuración Wrangler
+independiente. Reutiliza backend y migraciones; expone únicamente progreso sintético,
+sin OAuth ni Cron. Comprobaciones locales:
+
+```sh
+npm run staging -- check
+npm run staging -- dry-run
+```
+
+La guía incluye migraciones y despliegue manual futuros desde Ubuntu. Los comandos
+protegidos rechazan destinos distintos, overrides, rutas y Cron, y requieren cuenta
+seleccionada y confirmación explícita para operaciones remotas. Esta preparación
+no migra ni despliega recursos, no usa Strava real y no modifica producción o Pages.
+
 ## Fase A: auditoría de OAuth a mapa sin Strava real
 
 El [runbook de #33](docs/phase-a-runbook.md) valida en el mismo D1 temporal el

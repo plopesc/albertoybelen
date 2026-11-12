@@ -1,0 +1,19 @@
+{
+  "name": "albertoybelen-api-staging",
+  "main": "backend/staging-entry.js",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "preview_urls": false,
+  "send_metrics": false,
+  "observability": {"enabled": false},
+  "triggers": {"crons": []},
+  "vars": {"APP_ENV": "staging-fixtures"},
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "albertoybelen-db-staging",
+    "database_id": "c6bde806-cf94-4ff3-8c4f-c08b8de477f6",
+    "migrations_dir": "backend/d1/migrations",
+    "remote": false
+  }]
+}
