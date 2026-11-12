@@ -199,6 +199,24 @@ independiente. El selector devuelve ausencia de proveedor para `real`;
 una futura fuente remota necesitará un adaptador y gestión asíncrona. Ni los
 cálculos ni la geometría dependen del origen de datos.
 
+## OAuth local y tokens cifrados
+
+La [guía OAuth DDEV](docs/oauth-local.md) explica la prueba **simulada**, invitaciones
+privadas, proxy HTTPS, vault, renovación, revocación y recuperación de claves.
+
+```sh
+npm ci
+npm run oauth:init:mock
+npm run oauth:migrate:local
+npm run oauth:proxy:enable
+npm run oauth:dev:local
+```
+
+El helper de proxy se usa dentro del contenedor existente para worktrees; en el
+checkout principal el snippet se carga con DDEV. La guía detalla cómo emitir las
+invitaciones por CLI y retirarlo después. No se importan actividades ni se utiliza
+Strava real. Esa prueba necesita una autorización posterior y opt-in explícito.
+
 ## Persistencia D1 exclusivamente local
 
 La [guía D1 local](docs/local-d1.md) explica migraciones, repositorio, reset y límites.

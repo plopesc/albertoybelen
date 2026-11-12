@@ -1,0 +1,7 @@
+{
+ "name":"albertoybelen-oauth-local","main":"backend/oauth-entry.js","compatibility_date":"2026-11-01","compatibility_flags":["nodejs_compat"],
+ "workers_dev":false,"preview_urls":false,"send_metrics":false,
+ "vars":{"APP_ENV":"local-fixtures","OAUTH_MODE":"mock","TOKEN_ENCRYPTION_KEY_VERSION":"v1"},
+ "dev":{"ip":"127.0.0.1","port":8790},
+ "d1_databases":[{"binding":"DB","database_name":"albertoybelen-oauth-local","database_id":"00000000-0000-0000-0000-000000000025","migrations_dir":"backend/d1/migrations","remote":false}]
+}

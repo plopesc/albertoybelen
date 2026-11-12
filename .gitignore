@@ -9,3 +9,4 @@ artifacts/
 .dev.vars.*
 .env
 .env.*
+!.dev.vars.example

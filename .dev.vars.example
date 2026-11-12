@@ -1,0 +1,12 @@
+# Template only. Copy to .dev.vars (gitignored); never fill this tracked file.
+# Default mock mode requires only a generated local encryption key.
+TOKEN_ENCRYPTION_KEY=
+TOKEN_ENCRYPTION_KEY_VERSION=v1
+# Only after separate explicit authorization for a real local test:
+STRAVA_CLIENT_ID=
+STRAVA_CLIENT_SECRET=
+# ALLOW_REAL_OAUTH=explicit-owner-opt-in
+# OAUTH_MODE=real
+# Optional old key for a controlled re-encryption migration:
+TOKEN_PREVIOUS_ENCRYPTION_KEY=
+TOKEN_PREVIOUS_ENCRYPTION_KEY_VERSION=
