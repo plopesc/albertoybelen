@@ -1,0 +1,30 @@
+import {readFileSync,mkdirSync,statSync} from 'node:fs';
+import {chromium} from 'playwright';
+import assert from 'node:assert/strict';
+if(!/^OAUTH_MODE=mock$/m.test(readFileSync('.dev.vars','utf8')))throw new Error('Mock-only browser check');
+const slot=process.env.MOCK_SLOT||'slot-a';if(!['slot-a','slot-b'].includes(slot))throw new Error('Invalid mock slot');
+const accountLabel=slot==='slot-a'?'A':'B';
+const url=readFileSync(`.local/private-invitations/${slot}.url`,'utf8').trim();
+assert.equal(new URL(url).origin,'https://albertoybelen.ddev.site');
+const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
+try {
+ const context=await browser.newContext({ignoreHTTPSErrors:true,viewport:{width:390,height:844}});
+ const page=await context.newPage();let outside=false;
+ const sensitive=[new URL(url).hash.slice(1)];const logStart=statSync('/var/log/nginx/access.log').size;
+ page.on('request',request=>{const u=new URL(request.url());for(const key of ['state','code'])if(u.searchParams.has(key))sensitive.push(u.searchParams.get(key));});
+ await page.route('**/*',route=>{if(new URL(route.request().url()).origin!=='https://albertoybelen.ddev.site'){outside=true;return route.abort();}return route.continue();});
+ await page.goto(url);await page.getByRole('button',{name:`Autorizar cuenta ficticia ${accountLabel}`,exact:true}).waitFor();
+ const cookie=(await context.cookies()).find(c=>c.name==='__Host-strava-attempt');assert.ok(cookie?.httpOnly&&cookie.secure&&cookie.sameSite==='Lax');
+ await page.getByRole('button',{name:`Autorizar cuenta ficticia ${accountLabel}`,exact:true}).click();
+ await page.waitForURL('https://albertoybelen.ddev.site/oauth/result');
+ assert.ok((await page.locator('#message').textContent()).includes('guardada de forma segura'));
+ const logTail=readFileSync('/var/log/nginx/access.log').subarray(logStart).toString();assert.ok(sensitive.every(value=>!logTail.includes(value)));
+ assert.equal(new URL(page.url()).search,'');assert.equal(new URL(page.url()).hash,'');assert.equal(outside,false);
+ const api=await page.request.get('https://albertoybelen.ddev.site/api/progress');const progress=await api.json();
+ assert.equal(progress.partial,true);assert.equal(progress.distanceKm,0);
+ assert.equal(JSON.stringify(progress).includes('slot-'),false);assert.equal(JSON.stringify(progress).includes('access_token'),false);
+ mkdirSync('docs/screenshots',{recursive:true});await page.screenshot({path:'docs/screenshots/issue-25-mobile.png'});
+ await page.setViewportSize({width:1280,height:900});await page.screenshot({path:'docs/screenshots/issue-25-desktop.png'});
+ console.log('OK: DDEV HTTPS mock consent/callback, Secure HttpOnly cookie, clean redirect, private aggregate and no external browser requests.');
+ await context.close();
+} finally {await browser.close();}

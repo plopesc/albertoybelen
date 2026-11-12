@@ -15,13 +15,15 @@ export function createD1Repository(db) {
   async function read() {
     await initialize();
     const row = await prepare('SELECT revision,document FROM game_state WHERE id=?', NAMESPACE).first();
-    return { revision: row.revision, state: JSON.parse(row.document) };
+    const state = JSON.parse(row.document);
+    state.sealedTokens ??= {}; state.oauthSessions ??= {};
+    return { revision: row.revision, state };
   }
   async function commit(revision, state) {
     const statements = [
       prepare('INSERT INTO transaction_guard(id,valid) VALUES(1,COALESCE((SELECT revision=? FROM game_state WHERE id=?),0)) ON CONFLICT(id) DO UPDATE SET valid=excluded.valid', revision, NAMESPACE),
       prepare('UPDATE game_state SET revision=revision+1,document=? WHERE id=?', JSON.stringify(state), NAMESPACE),
-      prepare('DELETE FROM oauth_attempts'), prepare('DELETE FROM invitations'), prepare('DELETE FROM activities'), prepare('DELETE FROM rewards'), prepare('DELETE FROM participants'),
+      prepare('DELETE FROM oauth_credentials'), prepare('DELETE FROM oauth_sessions'), prepare('DELETE FROM oauth_attempts'), prepare('DELETE FROM invitations'), prepare('DELETE FROM activities'), prepare('DELETE FROM rewards'), prepare('DELETE FROM participants'),
     ];
     for (const p of state.policy.participants) {
       statements.push(prepare('INSERT INTO participants VALUES(?,?,?,?,?,?,?,?)', p.id, p.generation, +p.connected, +p.deleted, +p.initialReconciled, +p.stale, JSON.stringify(p.scopes), p.syncedAt));
@@ -34,12 +36,14 @@ export function createD1Repository(db) {
     for (const id of state.policy.unlockedMilestoneIds) statements.push(prepare('INSERT INTO rewards VALUES(?)', id));
     for (const [hash, i] of Object.entries(state.auth.invitations)) statements.push(prepare('INSERT INTO invitations VALUES(?,?,?,?,?)', hash, i.slot, i.generation, i.expiresAt, i.status));
     for (const [hash, a] of Object.entries(state.auth.attempts)) statements.push(prepare('INSERT INTO oauth_attempts VALUES(?,?,?,?,?,?,?)', hash, a.invitationHash, a.slot, a.generation, a.sessionHash, a.expiresAt, a.status));
+    for (const row of Object.values(state.sealedTokens ?? {})) statements.push(prepare('INSERT INTO oauth_credentials VALUES(?,?,?,?,?,?)', row.slot, row.generation, row.version, row.keyVersion, row.nonce, row.ciphertext));
+    for (const [hash, session] of Object.entries(state.oauthSessions ?? {})) statements.push(prepare('INSERT INTO oauth_sessions VALUES(?,?)', hash, session.expiresAt));
     await db.batch(statements);
   }
   async function mutate(change) {
     for (let attempt = 0; attempt < 3; attempt++) {
       const { revision, state } = await read();
-      const result = change(state);
+      const result = await change(state);
       try { await commit(revision, state); return result; }
       catch (error) {
         // Only a changed revision is retryable; integrity errors must remain visible.
@@ -67,11 +71,15 @@ export function createD1Repository(db) {
         state.metadata[key(event.participantId, a.id)] = { startUtc: instant.toISOString(), distance: a.distance, sport: a.sport_type ?? a.type ?? null, manual: a.manual !== false, private: a.private !== false };
       }
     }
+    if (after.generation !== before.generation || !after.connected) delete (state.sealedTokens ?? {})[event.participantId];
     const live = new Set(state.policy.participants.flatMap(p => p.activities.map(a => key(p.id, a.id))));
     for (const id of Object.keys(state.metadata)) if (!live.has(id)) delete state.metadata[id];
   }
   return {
     read, commit,
+    // Private service API only; never exposed as a generic HTTP mutation.
+    updatePrivate: mutate,
+    applyPrivateEffect: apply,
     async getState() { return (await read()).state.policy; },
     async getProgress() { return publicProgress(await this.getState()); },
     applyEvents(events) { return mutate(state => { for (const event of events) apply(state, event); }); },
@@ -94,7 +102,7 @@ export function createD1Repository(db) {
         const next = fresh();
         for (const p of next.policy.participants) p.generation = state.policy.participants.find(old => old.id === p.id).generation + 1;
         for (const p of next.auth.slots) p.generation = next.policy.participants.find(old => old.id === p.id).generation;
-        Object.assign(state, next);
+        Object.assign(state, next, { sealedTokens: {}, oauthSessions: {} });
       });
     },
   };

@@ -2,12 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
 import { build } from 'esbuild';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createD1Repository } from '../../backend/d1/repository.js';
 import { defaultFixtureEvents } from '../../backend/fixtures.js';
-const migration = await readFile(new URL('../../backend/d1/migrations/0001_local_game.sql', import.meta.url),'utf8');
+const migrationDir = new URL('../../backend/d1/migrations/', import.meta.url);
+const migration = (await Promise.all((await readdir(migrationDir)).sort().map(name => readFile(new URL(name,migrationDir),'utf8')))).join('\n');
 test('D1 real local: migración, batch/CAS/rollback, HTTP, scheduled y reinicio workerd',async()=>{
  const dir=await mkdtemp(join(tmpdir(),'alberto-workerd-'));let mf;
  try {

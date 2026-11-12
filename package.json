@@ -8,7 +8,14 @@
     "d1:migrate:local": "node scripts/d1-local.mjs migrate",
     "d1:dev:local": "node scripts/d1-local.mjs dev",
     "test:d1": "CLOUDFLARE_SEND_METRICS=false node --test tests/d1/*.test.js",
-    "d1:reset:local": "node scripts/reset-d1-local.mjs"
+    "d1:reset:local": "node scripts/reset-d1-local.mjs",
+    "oauth:init:mock": "node scripts/oauth-local.mjs init-mock",
+    "oauth:migrate:local": "node scripts/oauth-local.mjs migrate",
+    "oauth:dev:local": "node scripts/oauth-local.mjs dev",
+    "oauth:admin:local": "node scripts/oauth-local.mjs admin",
+    "oauth:proxy:enable": "node scripts/oauth-proxy.mjs enable",
+    "oauth:proxy:disable": "node scripts/oauth-proxy.mjs disable",
+    "test:oauth:browser": "node scripts/check-oauth-browser.mjs"
   },
   "engines": {
     "node": ">=24"
