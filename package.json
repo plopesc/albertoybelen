@@ -15,7 +15,14 @@
     "oauth:admin:local": "node scripts/oauth-local.mjs admin",
     "oauth:proxy:enable": "node scripts/oauth-proxy.mjs enable",
     "oauth:proxy:disable": "node scripts/oauth-proxy.mjs disable",
-    "test:oauth:browser": "node scripts/check-oauth-browser.mjs"
+    "test:oauth:browser": "node scripts/check-oauth-browser.mjs",
+    "sync:seed:local": "node scripts/sync-local.mjs seed",
+    "sync:local": "node scripts/sync-local.mjs sync",
+    "sync:scheduled:local": "node scripts/sync-local.mjs scheduled",
+    "sync:verify:local": "node scripts/sync-local.mjs verify",
+    "sync:reset:local": "node scripts/sync-local.mjs reset",
+    "test:sync:local": "node --test tests/activity-*.test.js tests/d1/sync-runtime.test.js",
+    "test:sync:browser": "node scripts/check-sync-browser.mjs"
   },
   "engines": {
     "node": ">=24"

@@ -3,7 +3,7 @@ import {readFileSync,writeFileSync,existsSync,mkdirSync,chmodSync} from 'node:fs
 import {fileURLToPath} from 'node:url';
 import {randomBytes} from 'node:crypto';
 import {hashSecret,newSecret} from '../auth/invitation-machine.js';
-import {localOAuth} from '../backend/oauth-entry.js';
+import {openLocalOAuth} from './lib/local-oauth-runtime.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url));process.chdir(root);
 const operation=process.argv[2];
 if(process.argv.length!==3||!['init-mock','migrate','dev','admin'].includes(operation))throw new Error('Only init-mock/migrate/dev/admin without extra arguments');
@@ -19,12 +19,9 @@ if(operation==='init-mock') {
 } else {
  let mf;
  try {
-  const {Miniflare,convertV4MiniflareOptions}=await import('miniflare');
   const request=JSON.parse(readFileSync(0,'utf8'));
-  const config=JSON.parse(readFileSync('wrangler.oauth.local.jsonc','utf8'));
-  const vars={...config.vars};for(const line of (existsSync('.dev.vars')?readFileSync('.dev.vars','utf8'):'').split('\n')){const match=/^([A-Z_]+)=(.*)$/.exec(line.trim());if(match)vars[match[1]]=match[2].replace(/^"|"$/g,'');}
-  mf=new Miniflare({...convertV4MiniflareOptions({name:config.name,modules:true,script:'export default {fetch(){return new Response("Private CLI only",{status:404})}}',compatibilityDate:config.compatibility_date,compatibilityFlags:config.compatibility_flags,d1Databases:{DB:config.d1_databases[0].database_id}}),resourcePersistencePath:`${root}.local/oauth-d1/v3`,telemetry:{enabled:false},logRequests:false});
-  const {repository,service,vault}=localOAuth({...vars,DB:await mf.getD1Database('DB')});
+  mf=await openLocalOAuth();
+  const {repository,service,vault}=mf;
   if(request.action==='issue') {
    await vault.ready();
    if(!['slot-a','slot-b'].includes(request.slot)||!Number.isSafeInteger(request.expectedAthleteId)||request.expectedAthleteId<=0)throw Error();
@@ -41,5 +38,5 @@ if(operation==='init-mock') {
   else if(request.action==='rotate') {await service.rotate(request.slot);console.log('Ciphertext re-encrypted; no key or token printed.');}
   else throw Error();
  } catch {console.error('Local administrative operation failed; no secrets printed.');process.exitCode=1;}
- finally {await mf?.dispose();}
+ finally {await mf?.close();}
 }

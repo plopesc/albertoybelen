@@ -16,7 +16,7 @@ export function createD1Repository(db) {
     await initialize();
     const row = await prepare('SELECT revision,document FROM game_state WHERE id=?', NAMESPACE).first();
     const state = JSON.parse(row.document);
-    state.sealedTokens ??= {}; state.oauthSessions ??= {};
+    state.sealedTokens ??= {}; state.oauthSessions ??= {}; state.syncControl ??= { slots: {} };
     return { revision: row.revision, state };
   }
   async function commit(revision, state) {
@@ -72,6 +72,7 @@ export function createD1Repository(db) {
       }
     }
     if (after.generation !== before.generation || !after.connected) delete (state.sealedTokens ?? {})[event.participantId];
+    if (after.generation !== before.generation) delete (state.syncControl?.slots ?? {})[event.participantId];
     const live = new Set(state.policy.participants.flatMap(p => p.activities.map(a => key(p.id, a.id))));
     for (const id of Object.keys(state.metadata)) if (!live.has(id)) delete state.metadata[id];
   }
@@ -102,7 +103,7 @@ export function createD1Repository(db) {
         const next = fresh();
         for (const p of next.policy.participants) p.generation = state.policy.participants.find(old => old.id === p.id).generation + 1;
         for (const p of next.auth.slots) p.generation = next.policy.participants.find(old => old.id === p.id).generation;
-        Object.assign(state, next, { sealedTokens: {}, oauthSessions: {} });
+        Object.assign(state, next, { sealedTokens: {}, oauthSessions: {}, syncControl: { slots: {} } });
       });
     },
   };

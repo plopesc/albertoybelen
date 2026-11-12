@@ -54,7 +54,7 @@ test('proceso nuevo recupera datos y premio; reset explícito aislado bloquea jo
 });
 test('error temporal y parcial inicial mantienen último dato válido sin filtrar cuentas',async t=>{
  const { repo }=setup(t);const events=defaultFixtureEvents();await repo.applyEvents(events.slice(0,3));
- assert.equal((await repo.getProgress()).partial,true);assert.equal((await repo.getProgress()).updatedAt,null);
+ assert.equal((await repo.getProgress()).partial,true);assert.equal((await repo.getProgress()).updatedAt,'2026-11-02T12:00:00.000Z');
  await repo.markFailures();assert.equal((await repo.getProgress()).stale,true);assert.equal((await repo.getProgress()).distanceKm,1.2505);
  const worker=createWorker({repository:repo});await worker.scheduled({});const dto=await(await worker.fetch(new Request('http://local/api/progress'))).json();
  assert.equal(dto.partial,false);assert.equal(dto.stale,false);assert.equal(JSON.stringify(dto).includes('slot-'),false);

@@ -199,6 +199,31 @@ independiente. El selector devuelve ausencia de proveedor para `real`;
 una futura fuente remota necesitará un adaptador y gestión asíncrona. Ni los
 cálculos ni la geometría dependen del origen de datos.
 
+## Sincronización de actividades en D1 local
+
+La [guía de sincronización](docs/activity-sync-local.md) conecta OAuth cifrado y
+D1 existentes con respuestas HTTP **simuladas**, sin llamadas reales a Strava.
+Dentro del DDEV existente, en una base local de ensayo:
+
+```sh
+npm ci
+npm run oauth:init:mock        # Solo si aún no existe .dev.vars.
+npm run oauth:migrate:local
+npm run sync:seed:local       # Dos consentimientos ficticios; rechaza reemplazar cuentas.
+npm run sync:local
+npm run sync:verify:local
+npm run sync:scheduled:local  # Simula el handler; no activa Cron.
+npm test
+npm run test:d1
+npm run test:sync:local
+```
+
+La guía incluye correcciones, borrados, errores, pruebas de navegador HTTPS,
+reinicios, limpieza del ensayo y límites de consistencia. Se mantiene el agregado
+público sin desglose, `partial` y `stale` independientes y cofres históricos.
+El transporte real de actividades permanece bloqueado, incluso si se habilitara
+OAuth real por separado. No cambia el modo del mapa ni la configuración definitiva.
+
 ## OAuth local y tokens cifrados
 
 La [guía OAuth DDEV](docs/oauth-local.md) explica la prueba **simulada**, invitaciones
@@ -370,14 +395,16 @@ npm test
 node --test tests/invitations.test.js
 ```
 
-No existen endpoints OAuth ni vinculación real. El callback HTTPS de DDEV es
-una ruta prevista, pendiente de implementar y autorizar; el prototipo no solicita
-credenciales ni usa Cloudflare o D1 remotos.
+La máquina de estados sigue siendo pura. Su implementación local posterior
+incluye endpoints OAuth simulados detrás del callback HTTPS de DDEV y tokens
+cifrados en D1 local; consultar las guías anteriores. No se conecta una cuenta
+real ni se usa Cloudflare o D1 remotos en estas pruebas.
 
 ## Límites y siguiente paso
 
-Los datos siguen siendo simulados y propios de cada origen/navegador. No hay
-sincronización entre dispositivos ni pestañas, cuentas, API real ni base de datos.
+El mapa sigue usando simulación por origen/navegador. El backend local de ensayo
+persiste sus propios fixtures en D1, pero aún no está conectado al mapa ni a
+cuentas o API reales; no proporciona sincronización pública entre dispositivos.
 El paisaje original se generó con `image_gen` y se sirve como WebP local; la
 ilustración del indicador fue aportada para el juego. El camino, los hitos y el
 indicador son SVG independientes del fondo. Se conserva el

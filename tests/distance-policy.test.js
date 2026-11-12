@@ -101,11 +101,11 @@ test('consentimiento de dos cuentas no equivale a historial importado', () => {
  assert.deepEqual({partial:view(s).partial,stale:view(s).stale,updatedAt:view(s).updatedAt},{partial:true,stale:false,updatedAt:null});
  assert.equal(view(s).distanceKm,0);
  s=apply(s,sync('slot-a',[a('a',1250.5)]));
- assert.equal(view(s).distanceKm,1.2505); assert.equal(view(s).partial,true); assert.equal(view(s).stale,false); assert.equal(view(s).updatedAt,null);
+ assert.equal(view(s).distanceKm,1.2505); assert.equal(view(s).partial,true); assert.equal(view(s).stale,false); assert.equal(view(s).updatedAt,'2026-11-02T12:00:00.000Z');
  s=apply(s,{participantId:'slot-b',generation:0,status:'error',httpStatus:429});
- assert.equal(view(s).partial,true); assert.equal(view(s).stale,true); assert.equal(view(s).distanceKm,1.2505); assert.equal(view(s).updatedAt,null);
+ assert.equal(view(s).partial,true); assert.equal(view(s).stale,true); assert.equal(view(s).distanceKm,1.2505); assert.equal(view(s).updatedAt,'2026-11-02T12:00:00.000Z');
  s=apply(s,sync('slot-b',[a('b',2000)],{complete:false}));
- assert.equal(view(s).distanceKm,3.2505); assert.equal(view(s).partial,true); assert.equal(view(s).stale,false); assert.equal(view(s).updatedAt,null);
+ assert.equal(view(s).distanceKm,3.2505); assert.equal(view(s).partial,true); assert.equal(view(s).stale,false); assert.equal(view(s).updatedAt,'2026-11-02T12:00:00.000Z');
  assert.equal(s.participants[1].initialReconciled,false);
  s=apply(s,sync('slot-b',[a('b',2000)]));
  assert.equal(view(s).partial,false); assert.equal(view(s).stale,false); assert.equal(view(s).updatedAt,'2026-11-02T12:00:00.000Z');

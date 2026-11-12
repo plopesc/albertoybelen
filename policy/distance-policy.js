@@ -33,7 +33,8 @@ function meters(state) {
   return state.participants.reduce((sum, p) => sum + p.activities.reduce((subtotal, a) => subtotal + a.validMeters, 0), 0);
 }
 export function publicProgress(state) {
-  return { distanceKm: meters(state) / 1000, partial: state.participants.some(p => !p.connected || !p.initialReconciled || !p.scopes.includes('activity:read_all')), stale: state.participants.some(p => p.stale), updatedAt: state.lastCompleteUpdatedAt ?? null, unlockedMilestoneIds: [...state.unlockedMilestoneIds] };
+  const knownUpdates = state.participants.map(p => p.syncedAt).filter(Boolean).sort();
+  return { distanceKm: meters(state) / 1000, partial: state.participants.some(p => !p.connected || !p.initialReconciled || !p.scopes.includes('activity:read_all')), stale: state.participants.some(p => p.stale), updatedAt: state.lastCompleteUpdatedAt ?? knownUpdates[0] ?? null, unlockedMilestoneIds: [...state.unlockedMilestoneIds] };
 }
 export function applyParticipantSync(input, event) {
   const state = clone(input), p = state.participants.find(p => p.id === event.participantId);
