@@ -1,9 +1,11 @@
 import { readFileSync } from 'node:fs';
+import {loadInfrastructureConfig} from './infrastructure-config.mjs';
 import { createServer } from 'node:net';
 
 export function validateDdevProject(project, mounted, siteName) {
+  const expectedName = loadInfrastructureConfig().local.ddev.projectName;
   const name = /^name:\s*([^\n#]+)/m.exec(project)?.[1].trim().replace(/^['"]|['"]$/g, '');
-  if (project !== mounted || name !== 'albertoybelen' || (siteName && siteName !== 'albertoybelen')) throw new Error('Expected existing albertoybelen DDEV project; no changes made');
+  if (project !== mounted || name !== expectedName || (siteName && siteName !== expectedName)) throw new Error('Expected existing albertoybelen DDEV project; no changes made');
 }
 export function assertDdevProject() {
   try {

@@ -202,3 +202,7 @@ simulación conserva sus propios controles/datos; su botón Reiniciar no modific
 Retirar manualmente frontend/config/local.json si se quiere repetir su preparación;
 no copiarlo al build público. Los archivos privados de mocks continúan ignorados.
 No tocar la base remota, activar el piloto real ni desplegar como parte de estos pasos.
+
+## Metadatos comunes
+
+`frontend:local:prepare` deriva el mismo perfil aislado desde `local.profiles` en el `config.json` raíz. No sobrescribe `local.json` existente ni cambia `game.json`. El frontend no importa el JSON de infraestructura; sus guardas de origen y API siguen independientes. Los targets y puertos locales se contrastan mediante `npm run config:check` y `npm test`. Véase [configuración de infraestructura](infrastructure-configuration.md).

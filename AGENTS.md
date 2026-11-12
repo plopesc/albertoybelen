@@ -37,3 +37,9 @@ Juego web para un amigo: cada kilómetro registrado en Strava hace avanzar un pe
 - Controles de simulación para aumentar/reiniciar kilómetros; persistencia local.
 - Sin OAuth, sin base de datos, sin llamadas a Strava.
 - Documentar la forma de ejecutar el prototipo y verificarlo.
+
+## Metadatos de infraestructura
+- `config.json` raíz es tooling Node no secreto; `frontend/config/game.json` sigue siendo el juego público. Leer [la guía](docs/infrastructure-configuration.md) antes de modificar destinos/perfiles.
+- Nunca añadir secretos, tokens, invitaciones, cookies, IDs de atletas, `STRAVA_CLIENT_ID` ni cuentas Cloudflare al JSON. Producción permanece incompleta y deshabilitada.
+- Conservar la allowlist independiente de `scripts/lib/infrastructure-policy.mjs` y las guardas de Worker/navegador. No derivar una autorización de los mismos metadatos que se validan.
+- Al cambiar metadatos ejecutar `npm run config:check`, `npm test`, `npm run test:d1`, `npm run staging -- check` y `npm run staging -- dry-run` (solo empaquetado local). No ejecutar operaciones remotas sin autorización. No sobrescribir perfiles ignorados ni copiar el JSON raíz al frontend/artifact Pages.

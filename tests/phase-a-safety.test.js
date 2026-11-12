@@ -21,7 +21,8 @@ test('directorio y archivo privados: rechaza permisos públicos y enlaces simbó
 test('preparar frontend piloto solo escribe perfil aislado 500 km, no arranca ni conecta',()=>{
  const root=mkdtempSync(join(tmpdir(),'phase-a-profile-'));
  try{
-  mkdirSync(join(root,'scripts'));mkdirSync(join(root,'frontend/config'),{recursive:true});writeFileSync(join(root,'frontend/config/game.json'),JSON.stringify({game:{id:'public',title:'A y B',mode:'simulation',goalKm:100},rewards:{}}));
+  mkdirSync(join(root,'scripts/lib'),{recursive:true});
+  for(const file of ['config.json','scripts/lib/infrastructure-config.mjs','scripts/lib/infrastructure-policy.mjs'])writeFileSync(join(root,file),readFileSync(file));mkdirSync(join(root,'frontend/config'),{recursive:true});writeFileSync(join(root,'frontend/config/game.json'),JSON.stringify({game:{id:'public',title:'A y B',mode:'simulation',goalKm:100},rewards:{}}));
   const script=join(root,'scripts/prepare.mjs');writeFileSync(script,readFileSync('scripts/prepare-frontend-local.mjs'));
   assert.equal(spawnSync(process.execPath,[script,'--pilot']).status,0);
   const local=JSON.parse(readFileSync(join(root,'frontend/config/local.json')));assert.equal(local.game.goalKm,500);assert.equal(local.game.startDate,'2026-11-01');assert.equal(local.game.timeZone,'Europe/Madrid');assert.equal(local.game.mode,'real');assert.equal(local.game.id,'local-ddev-owner-pilot');assert.equal(local.api.allowFixtures,false);

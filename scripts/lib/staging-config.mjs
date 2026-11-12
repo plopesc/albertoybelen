@@ -1,14 +1,15 @@
 import { isDeepStrictEqual } from 'node:util';
 
-// Independent allowlist: changing the JSON cannot redirect the guarded commands to production.
-export const STAGING_WORKER = 'albertoybelen-api-staging';
-export const STAGING_DATABASE = 'albertoybelen-db-staging';
-export const STAGING_DATABASE_ID = 'c6bde806-cf94-4ff3-8c4f-c08b8de477f6';
-export function validateStagingConfig(config) {
+import {loadInfrastructureConfig, validateInfrastructureConfig} from './infrastructure-config.mjs';
+import {STAGING_WORKER, STAGING_DATABASE, STAGING_DATABASE_ID} from './infrastructure-policy.mjs';
+export {STAGING_WORKER, STAGING_DATABASE, STAGING_DATABASE_ID};
+export function validateStagingConfig(config, infrastructure = loadInfrastructureConfig()) {
+  validateInfrastructureConfig(infrastructure);
+  const target = infrastructure.cloudflare.staging;
   const expected = {
-    name:STAGING_WORKER, main:'backend/staging-entry.js', compatibility_date:'2026-11-01', compatibility_flags:['nodejs_compat'],
-    workers_dev:true, preview_urls:false, send_metrics:false, observability:{enabled:false}, triggers:{crons:[]}, vars:{APP_ENV:'staging-fixtures'},
-    d1_databases:[{binding:'DB',database_name:STAGING_DATABASE,database_id:STAGING_DATABASE_ID,migrations_dir:'backend/d1/migrations',remote:false}],
+    name:target.workerName, main:'backend/staging-entry.js', compatibility_date:'2026-11-01', compatibility_flags:['nodejs_compat'],
+    workers_dev:true, preview_urls:false, send_metrics:false, observability:{enabled:false}, triggers:{crons:[]}, vars:{APP_ENV:target.appEnv},
+    d1_databases:[{binding:target.binding,database_name:target.databaseName,database_id:target.databaseId,migrations_dir:'backend/d1/migrations',remote:false}],
   };
   if (!isDeepStrictEqual(config, expected)) throw new Error('Staging configuration mismatch; execution blocked');
 }

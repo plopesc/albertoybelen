@@ -1,3 +1,4 @@
+import {loadInfrastructureConfig,validateLocalTarget} from './lib/infrastructure-config.mjs';
 import {spawnSync} from 'node:child_process';
 import {readFileSync,writeFileSync,existsSync,mkdirSync,chmodSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
@@ -5,6 +6,8 @@ import {randomBytes} from 'node:crypto';
 import {hashSecret,newSecret} from '../auth/invitation-machine.js';
 import {openLocalOAuth} from './lib/local-oauth-runtime.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url));process.chdir(root);
+const target=loadInfrastructureConfig().local.ddev.oauthMock;
+validateLocalTarget(JSON.parse(readFileSync(new URL('../wrangler.oauth.local.jsonc',import.meta.url),'utf8')),'oauthMock');
 const operation=process.argv[2];
 if(process.argv.length!==3||!['init-mock','migrate','dev','admin'].includes(operation))throw new Error('Only init-mock/migrate/dev/admin without extra arguments');
 if(operation==='init-mock') {
@@ -15,7 +18,7 @@ if(operation==='init-mock') {
  const args=operation==='dev'?['dev','--local','--local-protocol','https','--log-level','error']:['d1','migrations','apply','DB','--local'];
  const env={...process.env,CLOUDFLARE_SEND_METRICS:'false',WRANGLER_LOG_PATH:'.local/oauth-wrangler.log'};
  for(const name of ['CLOUDFLARE_API_TOKEN','CLOUDFLARE_API_KEY','CLOUDFLARE_EMAIL','CLOUDFLARE_ACCOUNT_ID'])delete env[name];
- const result=spawnSync(process.execPath,['node_modules/wrangler/bin/wrangler.js',...args,'--config','wrangler.oauth.local.jsonc','--persist-to','.local/oauth-d1'],{cwd:root,stdio:'inherit',env});process.exit(result.status??1);
+ const result=spawnSync(process.execPath,['node_modules/wrangler/bin/wrangler.js',...args,'--config','wrangler.oauth.local.jsonc','--persist-to',target.persistence],{cwd:root,stdio:'inherit',env});process.exit(result.status??1);
 } else {
  let mf;
  try {
@@ -29,7 +32,7 @@ if(operation==='init-mock') {
    const result=await repository.transitionAuth({type:'issue',actor:{authenticated:true,role:'owner'},now,slot:request.slot,expectedAccountHash:hashSecret(String(request.expectedAthleteId)),tokenHash:hashSecret(token),expiresAt:now+3600000});
    if(!result.ok)throw Error();
    mkdirSync('.local/private-invitations',{recursive:true,mode:0o700});chmodSync('.local/private-invitations',0o700);
-   writeFileSync(`.local/private-invitations/${request.slot}.url`,`https://albertoybelen.ddev.site/invite#${token}\n`,{mode:0o600});chmodSync(`.local/private-invitations/${request.slot}.url`,0o600);
+   writeFileSync(`.local/private-invitations/${request.slot}.url`,`${loadInfrastructureConfig().local.ddev.origin}/invite#${token}\n`,{mode:0o600});chmodSync(`.local/private-invitations/${request.slot}.url`,0o600);
    console.log('Private invitation saved under .local/private-invitations (not printed).');
   } else if(['revoke','delete'].includes(request.action)) {
    if(request.action==='delete'&&request.confirm!=='verified-deletion')throw Error();

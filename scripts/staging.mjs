@@ -29,4 +29,4 @@ try {
       process.exitCode=result.status??1;
     } finally {unlinkSync(log);}
   }
-} catch {console.error('Staging operation rejected or failed. Check the pinned target, explicit confirmation, selected account and isolated configuration; no fallback to another environment.');process.exitCode=1;}
+} catch {console.error('Staging operation rejected or failed. Check config.json, the independent infrastructure allowlist, Wrangler target, explicit confirmation, selected account and isolated configuration; no fallback to another environment.');process.exitCode=1;}
