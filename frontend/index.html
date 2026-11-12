@@ -173,6 +173,13 @@
         <p class="game-start">Desde <time id="start-date">—</time> · <span id="time-zone">—</span> (inclusive)</p>
         <p id="unlocks-note" class="unlocks-note" hidden></p>
         <p id="journey-message" class="journey-message">Esperando la configuración del juego.</p>
+        <section id="api-card" class="api-card" hidden aria-label="Estado del progreso compartido">
+          <p id="api-source" class="eyebrow"></p>
+          <p id="api-state" role="status" aria-live="polite" aria-atomic="true"></p>
+          <p id="api-updated" class="hint"></p>
+          <button id="api-refresh" type="button">Actualizar vista</button>
+          <p class="hint">Consulta el progreso guardado. No sincroniza actividades.</p>
+        </section>
         <a hidden class="controls-link" href="#simulation-heading">IR A LOS CONTROLES <span aria-hidden="true">↓</span></a>
       </section>
       <section id="simulation-card" hidden class="simulation-card" aria-labelledby="simulation-heading">

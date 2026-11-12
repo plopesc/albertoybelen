@@ -179,11 +179,10 @@ export function createMilestoneReveals({ root, dialog, milestones, history }) {
       if (before !== null && state.current === null) close();
       updateControls();
     },
-    advance(previousRatio, nextRatio, distanceDelta, opener) {
+    advance(previousRatio, nextRatio, distanceDelta, opener, { hadFinal = history.isUnlocked(FINISH_MILESTONE_ID) } = {}) {
       const before = queue.getState().current;
-      const hadFinal = history.isUnlocked(FINISH_MILESTONE_ID);
       const state = queue.advance(previousRatio, nextRatio, distanceDelta);
-      if (!hadFinal && history.isUnlocked(FINISH_MILESTONE_ID)) celebrateFinal = true;
+      if (!hadFinal && history.isUnlocked(FINISH_MILESTONE_ID) && !history.hasSeenNotice(FINISH_MILESTONE_ID)) celebrateFinal = true;
       if (state.current !== null && (before !== state.current || !dialog.open)) present(opener);
       else updateControls();
     },

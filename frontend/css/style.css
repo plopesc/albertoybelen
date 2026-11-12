@@ -164,3 +164,10 @@ body:has(.reward-dialog[open]) { overflow: hidden; }
 @keyframes final-arrival { 0% { opacity: .3; transform: translateY(20px) scale(.95); } 65% { transform: translateY(-5px) scale(1.02); } 100% { opacity: 1; transform: none; } }
 @media (max-width: 760px) { .completion-card { display: block; } .completion-card button { width: 100%; margin-top: 12px; } }
 @media (prefers-reduced-motion: reduce) { .reward-dialog.is-celebrating { animation: none; } }
+
+.api-card { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--gold, #c58f4d); }
+.api-card p { overflow-wrap: anywhere; }
+.api-card button { min-height: 48px; padding: 10px 16px; border: 1px solid #d8b576; border-radius: 8px; background: #e2bc81; color: #24342c; font: inherit; cursor: pointer; }
+.api-card button:focus-visible { outline: 3px solid #fff0c3; outline-offset: 4px; }
+.api-card button:disabled { opacity: .65; cursor: wait; }
+.api-card[data-state="error"] #api-state { color: #ffe0ba; }

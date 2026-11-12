@@ -199,6 +199,24 @@ independiente. El selector devuelve ausencia de proveedor para `real`;
 una futura fuente remota necesitará un adaptador y gestión asíncrona. Ni los
 cálculos ni la geometría dependen del origen de datos.
 
+## Ver el mapa con API y D1 locales
+
+La [guía del frontend local](docs/frontend-local-api.md) muestra el juego en modo
+real **de pruebas**, alimentado por GET /api/progress y fixtures persistidos en D1.
+El JSON público conserva simulación. Desde el checkout de la PR dentro de DDEV:
+
+```sh
+npm run frontend:local:prepare
+# Preparar/iniciar el backend mock según la guía y abrir:
+# https://albertoybelen.ddev.site/frontend/?local-api=1
+npm run test:frontend:api
+```
+
+La configuración local es ignorada por Git y solo se activa explícitamente en
+DDEV HTTPS. Los fixtures se identifican en pantalla. Actualizar vista consulta
+únicamente el agregado guardado; no abre OAuth ni sincroniza Strava. La guía
+incluye preview de worktrees, pruebas DDEV con D1, capturas y limpieza.
+
 ## Preparación del piloto del propietario (sin conexión real)
 
 La [guía del piloto Strava](docs/strava-owner-pilot.md) prepara un ensayo aislado
