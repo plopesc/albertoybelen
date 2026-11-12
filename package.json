@@ -41,7 +41,10 @@
     "frontend:staging:smoke": "node scripts/staging-read-smoke.mjs",
     "test:frontend:staging": "node scripts/check-frontend-api.mjs --staging",
     "test:frontend:staging:ddev": "node scripts/check-staging-ddev.mjs",
-    "config:check": "node scripts/check-infrastructure-config.mjs"
+    "config:check": "node scripts/check-infrastructure-config.mjs",
+    "test:staging:auth": "node --test tests/staging-auth.test.js tests/d1/staging-auth-runtime.test.js",
+    "test:staging:auth:browser": "node scripts/check-staging-auth-browser.mjs",
+    "staging:auth:plan": "node scripts/staging-auth-plan.mjs"
   },
   "engines": {
     "node": ">=24"

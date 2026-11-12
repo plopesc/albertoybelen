@@ -7,23 +7,27 @@ const fresh = () => ({ policy: createDistanceState(FIXTURE_SETTINGS), auth: crea
 const key = (participant, activity) => JSON.stringify([participant, String(activity)]);
 
 /** Single canonical domain document plus relational projections, committed in one D1 batch. */
-export function createD1Repository(db, { settings = FIXTURE_SETTINGS } = {}) {
+export function createD1Repository(db, { settings = FIXTURE_SETTINGS, dataset = NAMESPACE } = {}) {
+  if (![NAMESPACE, 'staging-strava-test-v1'].includes(dataset)) throw Error('Unsupported repository dataset');
+  const namespace = dataset;
+  const prefix = dataset === NAMESPACE ? '' : 'staging_auth_';
   const freshState = () => ({ ...fresh(), policy: createDistanceState(settings) });
-  const prepare = (sql, ...values) => db.prepare(sql).bind(...values);
+  // Only fixed SQL identifiers from this repository are translated; never user input.
+  const prepare = (sql, ...values) => db.prepare(sql.replace(/\b(game_state|transaction_guard|participants|activities|rewards|invitations|oauth_attempts|oauth_credentials|oauth_sessions)\b/g, name => prefix + name)).bind(...values);
   async function initialize() {
-    await prepare('INSERT OR IGNORE INTO game_state(id,revision,document) VALUES(?,0,?)', NAMESPACE, JSON.stringify(freshState())).run();
+    await prepare('INSERT OR IGNORE INTO game_state(id,revision,document) VALUES(?,0,?)', namespace, JSON.stringify(freshState())).run();
   }
   async function read() {
     await initialize();
-    const row = await prepare('SELECT revision,document FROM game_state WHERE id=?', NAMESPACE).first();
+    const row = await prepare('SELECT revision,document FROM game_state WHERE id=?', namespace).first();
     const state = JSON.parse(row.document);
     state.sealedTokens ??= {}; state.oauthSessions ??= {}; state.syncControl ??= { slots: {} };
     return { revision: row.revision, state };
   }
   async function commit(revision, state) {
     const statements = [
-      prepare('INSERT INTO transaction_guard(id,valid) VALUES(1,COALESCE((SELECT revision=? FROM game_state WHERE id=?),0)) ON CONFLICT(id) DO UPDATE SET valid=excluded.valid', revision, NAMESPACE),
-      prepare('UPDATE game_state SET revision=revision+1,document=? WHERE id=?', JSON.stringify(state), NAMESPACE),
+      prepare('INSERT INTO transaction_guard(id,valid) VALUES(1,COALESCE((SELECT revision=? FROM game_state WHERE id=?),0)) ON CONFLICT(id) DO UPDATE SET valid=excluded.valid', revision, namespace),
+      prepare('UPDATE game_state SET revision=revision+1,document=? WHERE id=?', JSON.stringify(state), namespace),
       prepare('DELETE FROM oauth_credentials'), prepare('DELETE FROM oauth_sessions'), prepare('DELETE FROM oauth_attempts'), prepare('DELETE FROM invitations'), prepare('DELETE FROM activities'), prepare('DELETE FROM rewards'), prepare('DELETE FROM participants'),
     ];
     for (const p of state.policy.participants) {
@@ -99,7 +103,7 @@ export function createD1Repository(db, { settings = FIXTURE_SETTINGS } = {}) {
       return mutate(state => { state.policy.config.goalKm = goalKm; });
     },
     resetForTests(confirmation) {
-      if (confirmation !== NAMESPACE) throw new Error('Explicit local fixture confirmation required');
+      if (confirmation !== namespace) throw new Error('Explicit local fixture confirmation required');
       return mutate(state => {
         const next = freshState();
         for (const p of next.policy.participants) p.generation = state.policy.participants.find(old => old.id === p.id).generation + 1;

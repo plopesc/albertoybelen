@@ -139,3 +139,7 @@ y D1 locales, nunca los comandos remotos de esta guía.
 ## Metadatos compartidos y barrera independiente
 
 Los identificadores no secretos viven en el `config.json` raíz; consulta [su esquema y seguridad](infrastructure-configuration.md). `staging -- check`, `dry-run` y cada operación manual validan tanto ese JSON como Wrangler contra `scripts/lib/infrastructure-policy.mjs`, una allowlist independiente. Alterar solo el JSON no autoriza otro destino. Producción sigue reservada, incompleta y deshabilitada. `npm run config:check` también contrasta DDEV, los targets locales y el visor staging de #36, sin llamadas remotas.
+
+## Propuesta OAuth de dos cuentas (#40)
+
+El modo desplegable por este CLI sigue siendo fixtures. La [modalidad OAuth de prueba](staging-strava.md) tiene entry separado y migración 0003 aditiva para tablas `staging_auth_*`; su configuración de ensayo es solo local y está deshabilitada. `staging:auth:plan` imprime una propuesta no operativa. El CLI actual rechaza un entry/vars OAuth; activar esa modalidad requiere otra revisión y autorización, además del canal privado del operador y callback/capacidad confirmados.

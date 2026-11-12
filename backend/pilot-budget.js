@@ -7,7 +7,8 @@ const pair = value => {
 };
 
 /** All OAuth/activity requests share durable conservative limits. No URL or body is logged. */
-export function createPilotTransport({ repository, ready, fetchProvider = fetch, clock = Date.now }) {
+export function createPilotTransport({ repository, ready, fetchProvider = fetch, clock = Date.now, limits = PILOT_LIMITS, budgetKey = 'pilotBudget' }) {
+  if (!['pilotBudget', 'stagingBudget'].includes(budgetKey)) throw Error('Invalid budget namespace');
   let operationCount = 0;
   return async (address, options) => {
     await ready();
@@ -15,16 +16,16 @@ export function createPilotTransport({ repository, ready, fetchProvider = fetch,
     const token = url.pathname === '/oauth/token' && options.method === 'POST' && !url.search;
     const activities = url.pathname === '/api/v3/athlete/activities' && (options.method ?? 'GET') === 'GET' && [...url.searchParams.keys()].sort().join(',') === 'after,before,page,per_page' && [...url.searchParams.values()].every(v => /^\d+$/.test(v));
     if (url.origin !== 'https://www.strava.com' || url.username || url.password || url.hash || (!token && !activities) || options.redirect !== 'error') throw new Error('pilot_request_rejected');
-    if (++operationCount > PILOT_LIMITS.perOperation) throw unavailable();
+    if (++operationCount > limits.perOperation) throw unavailable();
     const now = clock();
     const permitted = await repository.updatePrivate(state => {
-      const b = state.pilotBudget ??= { quarterStart: now, quarterCount: 0, day: new Date(now).toISOString().slice(0,10), dayCount: 0, requests: 0, responses: {}, networkErrors: 0, blockedUntil: 0 };
+      const b = state[budgetKey] ??= { quarterStart: now, quarterCount: 0, day: new Date(now).toISOString().slice(0,10), dayCount: 0, requests: 0, responses: {}, networkErrors: 0, blockedUntil: 0 };
       if (now - b.quarterStart >= 900000) { b.quarterStart = now; b.quarterCount = 0; }
       const day = new Date(now).toISOString().slice(0,10);
       if (b.day !== day) { b.day = day; b.dayCount = 0; }
       if (b.blockedUntil > now) return false;
-      if (b.dayCount >= PILOT_LIMITS.perDay) { b.blockedUntil = Date.parse(`${day}T00:00:00Z`) + 86400000; return false; }
-      if (b.quarterCount >= PILOT_LIMITS.perQuarter) { b.blockedUntil = b.quarterStart + 900000; return false; }
+      if (b.dayCount >= limits.perDay) { b.blockedUntil = Date.parse(`${day}T00:00:00Z`) + 86400000; return false; }
+      if (b.quarterCount >= limits.perQuarter) { b.blockedUntil = b.quarterStart + 900000; return false; }
       b.quarterCount++; b.dayCount++; b.requests++; return true;
     });
     if (!permitted) throw unavailable();
@@ -36,14 +37,14 @@ export function createPilotTransport({ repository, ready, fetchProvider = fetch,
       if (response.redirected || (response.status >= 300 && response.status < 400) || (response.url && response.url !== url.href)) throw new Error('Unexpected response URL');
     } catch {
       await repository.updatePrivate(state => {
-        if (!state.pilotBudget) return; // A reset/deletion must not be undone by late work.
-        state.pilotBudget.networkErrors++;
-        state.pilotBudget.blockedUntil = Math.max(state.pilotBudget.blockedUntil, clock() + 60000);
+        if (!state[budgetKey]) return; // A reset/deletion must not be undone by late work.
+        state[budgetKey].networkErrors++;
+        state[budgetKey].blockedUntil = Math.max(state[budgetKey].blockedUntil, clock() + 60000);
       });
       throw new Error('pilot_transport_unavailable');
     }
     await repository.updatePrivate(state => {
-      const b = state.pilotBudget; if (!b) return;
+      const b = state[budgetKey]; if (!b) return;
       const status = String(response.status); b.responses[status] = (b.responses[status] ?? 0) + 1;
       let until = 0;
       for (const prefix of ['X-RateLimit', 'X-ReadRateLimit']) {

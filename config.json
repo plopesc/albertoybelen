@@ -53,6 +53,14 @@
       "stagingRead": {
         "port": 8792,
         "path": "/api/staging/progress"
+      },
+      "stagingAuth": {
+        "workerName": "albertoybelen-staging-auth-local",
+        "databaseName": "albertoybelen-staging-auth-local",
+        "databaseId": "00000000-0000-0000-0000-000000000040",
+        "binding": "DB",
+        "port": 8793,
+        "persistence": ".local/staging-auth-tests"
       }
     },
     "profiles": {
@@ -80,6 +88,14 @@
         "apiPath": "/api/staging/progress",
         "allowFixtures": true
       }
+    },
+    "stagingAuth": {
+      "datasetId": "staging-strava-test-v1",
+      "goalKm": 500,
+      "startDate": "2026-11-01",
+      "timeZone": "Europe/Madrid",
+      "authEnabled": false,
+      "networkEnabled": false
     }
   },
   "public": {

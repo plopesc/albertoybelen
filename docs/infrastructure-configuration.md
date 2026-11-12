@@ -98,3 +98,7 @@ Usa servidor y respuestas sintéticas en loopback. La prueba DDEV documentada en
 [frontend-staging.md](frontend-staging.md) también usa mocks, con activación
 local temporal del proxy. Abrir el visor normal con el proxy real sí realiza GET
 al staging: no es necesario para este refactor y no se hizo para validarlo.
+
+## OAuth staging local (#40)
+
+`local.ddev.stagingAuth` identifica un target solo local (UUID ficticio 0040, puerto 8793) y `local.stagingAuth` fija un dataset distinto, meta 500 km, inicio sintético 2026-11-01 y ambos interruptores apagados. El checker lo contrasta con las constantes del Worker y `wrangler.staging-auth.local.jsonc`. No modifica `cloudflare.staging` operativo, que sigue en fixtures. Véase el [runbook OAuth staging](staging-strava.md).
