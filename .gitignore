@@ -2,3 +2,10 @@
 .playwright-cli/
 node_modules/
 artifacts/
+# Local D1 state, journals, logs and future ignored credentials
+.local/
+.wrangler/
+.dev.vars
+.dev.vars.*
+.env
+.env.*

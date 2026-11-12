@@ -4,12 +4,19 @@
   "type": "module",
   "scripts": {
     "test": "node --test tests/*.test.js",
-    "capture:visual": "node scripts/capture-visuals.mjs"
+    "capture:visual": "node scripts/capture-visuals.mjs",
+    "d1:migrate:local": "node scripts/d1-local.mjs migrate",
+    "d1:dev:local": "node scripts/d1-local.mjs dev",
+    "test:d1": "CLOUDFLARE_SEND_METRICS=false node --test tests/d1/*.test.js",
+    "d1:reset:local": "node scripts/reset-d1-local.mjs"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
   "devDependencies": {
-    "playwright": "1.65.0"
+    "esbuild": "0.28.2",
+    "miniflare": "5.20261110.1-beta",
+    "playwright": "1.65.0",
+    "wrangler": "4.160.1"
   }
 }

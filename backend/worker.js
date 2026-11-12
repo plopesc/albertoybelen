@@ -4,8 +4,8 @@ import { createDistanceState, applyParticipantSync, publicProgress } from '../po
 export const LOCAL_SETTINGS = Object.freeze({ participants: ['slot-a', 'slot-b'], startDate: '2026-11-01', timeZone: 'Europe/Madrid', goalKm: 100, milestones: [20, 40, 60, 80].map(percent => ({ id: `milestone-${percent}`, percent })) });
 export const ALLOWED_ORIGINS = Object.freeze(['https://plopesc.github.io', 'https://albertoybelen.ddev.site', 'http://localhost:8787', 'http://127.0.0.1:8787']);
 
-/** In-memory local prototype. No network, bindings, credentials or active schedule. */
-export function createWorker({ initialState = createDistanceState(LOCAL_SETTINGS), loadFixture = async () => defaultFixtureEvents(), allowedOrigins = ALLOWED_ORIGINS } = {}) {
+/** Local prototype: optional injected persistence, without network, credentials or active schedule. */
+export function createWorker({ initialState = createDistanceState(LOCAL_SETTINGS), loadFixture = async () => defaultFixtureEvents(), allowedOrigins = ALLOWED_ORIGINS, repository } = {}) {
   let state = initialState;
   let tail = Promise.resolve();
   const transact = action => {
@@ -28,7 +28,8 @@ export function createWorker({ initialState = createDistanceState(LOCAL_SETTINGS
         return reply(null, 204);
       }
       if (request.method !== 'GET') { headers.Allow = 'GET, OPTIONS'; return reply({ error: 'method_not_allowed' }, 405); }
-      return reply({ schemaVersion: 1, source: 'fixture', ...publicProgress(state) });
+      try { return reply({ schemaVersion: 1, source: 'fixture', ...publicProgress(repository ? await repository.getState() : state) }); }
+      catch { return reply({ error: 'local_storage_unavailable' }, 503); }
     },
     scheduled(event, env, context) {
       const work = transact(async () => {
@@ -36,16 +37,18 @@ export function createWorker({ initialState = createDistanceState(LOCAL_SETTINGS
         try {
           const events = await loadFixture(event);
           if (!Array.isArray(events) || events.length > 100) throw new Error('Invalid fixture batch');
-          for (const update of events) state = applyParticipantSync(state, update);
+          if (repository) await repository.applyEvents(events);
+          else for (const update of events) state = applyParticipantSync(state, update);
         } catch {
-          for (const participant of state.participants.filter(p => p.connected)) state = applyParticipantSync(state, { participantId: participant.id, generation: participant.generation, status: 'error' });
+          if (repository) await repository.markFailures();
+          else for (const participant of state.participants.filter(p => p.connected)) state = applyParticipantSync(state, { participantId: participant.id, generation: participant.generation, status: 'error' });
           throw new Error('Fixture synchronization failed');
         }
       });
       context?.waitUntil(work);
       return work;
     },
-    applyLocalEvent(update) { return transact(() => { state = applyParticipantSync(state, update); }); },
+    applyLocalEvent(update) { return transact(async () => { if (repository) await repository.applyEvents([update]); else state = applyParticipantSync(state, update); }); },
   };
 }
 
