@@ -33,7 +33,14 @@
     "test:frontend:api": "node scripts/check-frontend-api.mjs",
     "test:frontend:ddev": "node scripts/check-frontend-ddev.mjs",
     "test:pilot:phase-a": "node scripts/check-pilot-browser.mjs --phase-a",
-    "staging": "node scripts/staging.mjs"
+    "staging": "node scripts/staging.mjs",
+    "frontend:staging:prepare": "node scripts/prepare-staging-view.mjs",
+    "frontend:staging:proxy": "node scripts/staging-read-proxy.mjs",
+    "frontend:staging:enable": "node scripts/staging-read-proxy-config.mjs enable",
+    "frontend:staging:disable": "node scripts/staging-read-proxy-config.mjs disable",
+    "frontend:staging:smoke": "node scripts/staging-read-smoke.mjs",
+    "test:frontend:staging": "node scripts/check-frontend-api.mjs --staging",
+    "test:frontend:staging:ddev": "node scripts/check-staging-ddev.mjs"
   },
   "engines": {
     "node": ">=24"

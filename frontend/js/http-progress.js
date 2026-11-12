@@ -10,13 +10,15 @@ export function resolveProgressEndpoint(address, pageUrl, allowFixtures = false)
   const page = new URL(pageUrl), url = new URL(address, page);
   const local = ['albertoybelen.ddev.site','localhost','127.0.0.1','[::1]'].includes(page.hostname);
   const loopback = ['localhost','127.0.0.1','[::1]'].includes(page.hostname);
-  if (url.origin !== page.origin || (url.protocol !== 'https:' && !(loopback && url.protocol === 'http:')) || url.username || url.password || url.search || url.hash || url.pathname !== '/api/progress' || (allowFixtures && !local)) throw new Error('La API debe usar el origen permitido y la ruta /api/progress.');
+  const permittedPath = url.pathname === '/api/progress' || (local && allowFixtures && url.pathname === '/api/staging/progress');
+  if (url.origin !== page.origin || (url.protocol !== 'https:' && !(loopback && url.protocol === 'http:')) || url.username || url.password || url.search || url.hash || !permittedPath || (allowFixtures && !local)) throw new Error('La API debe usar el origen y la ruta permitidos.');
   return url.href;
 }
 
-export function validatePublicProgress(raw, { allowFixtures = false }) {
+export function validatePublicProgress(raw, { allowFixtures = false, expectedSource } = {}) {
   const invalid = () => { throw new Error('invalid_response'); };
   if (!raw || typeof raw !== 'object' || Array.isArray(raw) || Object.keys(raw).length !== publicKeys.length || Object.keys(raw).some(key => !publicKeys.includes(key)) || raw.schemaVersion !== 1 || !['fixture','strava-pilot','strava'].includes(raw.source) || (raw.source === 'fixture' && !allowFixtures) || !Number.isFinite(raw.distanceKm) || raw.distanceKm < 0 || typeof raw.partial !== 'boolean' || typeof raw.stale !== 'boolean') invalid();
+  if (expectedSource !== undefined && raw.source !== expectedSource) invalid();
   if (raw.updatedAt !== null && !validInstant(raw.updatedAt)) invalid();
   if (!raw.partial && raw.updatedAt === null) invalid();
   // Archives are monotonic in D1 and may outlive the visible catalog. Validate
@@ -63,7 +65,7 @@ export function createHttpProgressProvider({ url, pageUrl, allowFixtures = false
           const bytes = new Uint8Array(length); let offset = 0;
           for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
           let raw; try { raw = JSON.parse(new TextDecoder().decode(bytes)); } catch { throw new Error('invalid_response'); }
-          return validatePublicProgress(raw, { allowFixtures });
+          return validatePublicProgress(raw, { allowFixtures, expectedSource: new URL(endpoint).pathname === '/api/staging/progress' ? 'fixture' : undefined });
         })();
         const snapshot = await Promise.race([work, stopped]);
         if (sequence !== current) return;
