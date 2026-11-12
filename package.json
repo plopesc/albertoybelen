@@ -32,7 +32,8 @@
     "frontend:local:proxy:disable": "node scripts/frontend-local-proxy.mjs disable",
     "test:frontend:api": "node scripts/check-frontend-api.mjs",
     "test:frontend:ddev": "node scripts/check-frontend-ddev.mjs",
-    "test:pilot:phase-a": "node scripts/check-pilot-browser.mjs --phase-a"
+    "test:pilot:phase-a": "node scripts/check-pilot-browser.mjs --phase-a",
+    "staging": "node scripts/staging.mjs"
   },
   "engines": {
     "node": ">=24"
