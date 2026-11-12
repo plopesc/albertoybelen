@@ -25,7 +25,13 @@
     "test:sync:browser": "node scripts/check-sync-browser.mjs",
     "pilot:local": "node scripts/pilot-local.mjs",
     "test:pilot:local": "node --test tests/pilot*.test.js tests/d1/pilot-runtime.test.js",
-    "test:pilot:browser": "node scripts/check-pilot-browser.mjs"
+    "test:pilot:browser": "node scripts/check-pilot-browser.mjs",
+    "frontend:local:prepare": "node scripts/prepare-frontend-local.mjs",
+    "frontend:local:serve": "node scripts/serve-frontend-local.mjs",
+    "frontend:local:proxy:enable": "node scripts/frontend-local-proxy.mjs enable",
+    "frontend:local:proxy:disable": "node scripts/frontend-local-proxy.mjs disable",
+    "test:frontend:api": "node scripts/check-frontend-api.mjs",
+    "test:frontend:ddev": "node scripts/check-frontend-ddev.mjs"
   },
   "engines": {
     "node": ">=24"

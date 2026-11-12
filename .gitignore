@@ -11,3 +11,6 @@ artifacts/
 .env.*
 !.dev.vars.example
 !.dev.vars.pilot.example
+# Explicit DDEV dataset/HTTP configuration; never published to Pages.
+frontend/config/local.json
+.ddev/nginx/frontend-local.conf
