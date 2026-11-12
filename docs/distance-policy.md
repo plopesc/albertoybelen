@@ -73,8 +73,11 @@ umbrales. Un total que desborde Number se rechaza.
   y `stale` son indicadores independientes y pueden coexistir.
 - Cada slot conserva su última sincronización correcta. `updatedAt` público es
   la más antigua de ambas cuentas reconciliadas, nunca un instante inventado en un
-  fallo. Hasta tener por primera vez ambos historiales reconciliados, updatedAt
-  es null: una fecha de subtotal no se presenta como actualización del conjunto.
+  fallo. La integración local #27 amplía la semántica de la fecha inicial: si
+  aún no están ambos historiales reconciliados, devuelve la fecha más antigua
+  conocida del subtotal disponible, o null si no hay ninguna. `partial:true`
+  sigue indicando que ese dato no es el conjunto completo; una autorización
+  sin importar actividades no proporciona fecha. No cambia el esquema ni los tipos.
   Después se conserva lastCompleteUpdatedAt ante revocación, reconexión o cambios
   de permisos mientras el nuevo backfill está pendiente; partial/stale describen
   ese pendiente sin perder la última fecha válida. La supresión la limpia porque
