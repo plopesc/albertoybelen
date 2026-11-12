@@ -67,7 +67,7 @@ test('error en última página no borra ni confirma páginas parciales', async t
   assert.equal((await f.progress()).distanceKm, old.distanceKm); assert.equal((await f.progress()).stale, true);
 });
 
-for (const mode of ['truncated','overlap','conflict','malformed','changing','page-limit']) test(`paginación ${mode}: rechaza snapshot inseguro sin borrados`, async t => {
+for (const mode of ['missing-terminal','overlap','conflict','malformed','changing','page-limit']) test(`paginación ${mode}: rechaza snapshot inseguro sin borrados`, async t => {
   const f = await fixture(t, { both: false, options: { perPage: 2, maxPages: mode === 'page-limit' ? 1 : 25 } });
   // Establish valid data independently of the intentionally small traversal limit.
   const established = createActivitySync({ repository: f.repository, oauth: f.service, client: createActivityClient({ enabled: true, fetchProvider: createFixtureActivityTransport() }), clock: () => f.time.now });
@@ -77,12 +77,35 @@ for (const mode of ['truncated','overlap','conflict','malformed','changing','pag
     const page = Number(new URL(url).searchParams.get('page')); if (page === 1) pass++;
     if (mode === 'malformed') return Response.json([{ id: 1 }]);
     if (mode === 'changing') return Response.json(page === 1 ? [row(1, pass)] : []);
-    if (mode === 'truncated') return Response.json(page <= 2 ? [row(page)] : []);
+    if (mode === 'missing-terminal') return Response.json([row(page)]);
     if (mode === 'overlap') return Response.json([row(1), row(2)]);
     if (mode === 'conflict') return Response.json([row(1), row(1, 30)]);
     return Response.json([row(1), row(2)]);
   };
   assert.equal((await f.sync.run()).status, 'stale'); assert.equal((await f.progress()).distanceKm, old.distanceKm);
+});
+
+test('varias páginas cortas intermedias llegan a vacía en ambos recorridos y se importan', async t => {
+  const f = await fixture(t, { both: false });
+  const calls = [];
+  f.transport.fetch = async url => {
+    const page = Number(new URL(url).searchParams.get('page'));
+    calls.push(page);
+    const row = (id, start_date) => ({ id, distance: id * 1000, sport_type: 'Walk', manual: false, private: true, start_date });
+    const pages = [
+      [row(1, '2026-11-01T10:00:00Z')],
+      [row(2, '2026-11-01T10:00:00Z')],
+      [row(3, '2026-11-01T09:00:00Z')],
+      [],
+    ];
+    assert.ok(page >= 1 && page <= pages.length);
+    return Response.json(pages[page - 1]);
+  };
+  assert.equal((await f.sync.run()).status, 'synced');
+  assert.deepEqual(calls, [1, 2, 3, 4, 1, 2, 3, 4]);
+  const p = await f.progress();
+  assert.equal(p.distanceKm, 6); assert.equal(p.stale, false); assert.equal(p.partial, true);
+  assert.equal((await f.repository.getState()).participants[0].initialReconciled, true);
 });
 
 test('duplicados idénticos en una página se deduplican, sin sumar doble', async t => {

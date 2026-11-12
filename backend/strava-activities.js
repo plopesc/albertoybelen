@@ -59,7 +59,7 @@ export async function completeActivitySnapshot({ client, credentials, config, be
   const start = startInstant(config.startDate, config.timeZone);
   const after = Math.floor(start / 1000) - 1; // API 'after' is exclusive; exact inclusive filter below.
   async function scan() {
-    const records = new Map(); let previousTime = Infinity, shortPage = false, count = 0;
+    const records = new Map(); let previousTime = Infinity, count = 0;
     for (let page = 1; page <= maxPages; page++) {
       signal.throwIfAborted();
       await guard();
@@ -67,8 +67,7 @@ export async function completeActivitySnapshot({ client, credentials, config, be
       signal.throwIfAborted();
       if (!Array.isArray(rows) || rows.length > perPage) throw new ActivityError('activity_incomplete');
       if (rows.length === 0) return [...records.values()].filter(a => Date.parse(a.start_date) >= start).sort((a, b) => a.id.localeCompare(b.id));
-      if (shortPage) throw new ActivityError('activity_inconsistent');
-      shortPage = rows.length < perPage;
+      // Strava permits short intermediate pages; only an empty page ends a scan.
       count += rows.length;
       if (count > maxRecords) throw new ActivityError('activity_limit');
       const pageIds = new Set();

@@ -113,8 +113,10 @@ un evento de borrado del endpoint de listado. No se guarda ninguna página suelt
 Se fija `before` al comenzar cada cuenta y se hacen **dos recorridos completos**
 con los mismos límites. Ambos deben producir el mismo conjunto normalizado.
 Se exige orden temporal descendente, campos mínimos válidos y página terminal
-vacía incluso después de una página corta. Una página corta seguida de datos,
-un ID repetido entre páginas, duplicados con valores distintos o un cambio entre
+vacía incluso después de una página corta: Strava permite páginas cortas
+intermedias y se siguen consultando hasta la vacía, según su
+[contrato de paginación](https://developers.strava.com/docs/#pagination).
+Un ID repetido entre páginas, duplicados con valores distintos o un cambio entre
 recorridos invalida todo el snapshot. Duplicados idénticos dentro de una página
 se cuentan una vez. Solo se comparan los campos necesarios para el juego.
 
