@@ -3,10 +3,13 @@ import {spawnSync} from 'node:child_process';
 const action=process.argv[2];if(process.argv.length!==3||!['enable','disable'].includes(action))throw new Error('Use enable or disable');
 if(!existsSync('/mnt/ddev_config/config.yaml'))throw new Error('Run only inside the existing DDEV container');
 const source=readFileSync(new URL('../.ddev/nginx/oauth-local.conf',import.meta.url),'utf8');
-const destination='/mnt/ddev_config/nginx/oauth-local.conf';
+// DDEV mounts /mnt/ddev_config read-only; edit its project source instead.
+const projectConfig='/var/www/html/.ddev';
+if(!existsSync(`${projectConfig}/config.yaml`)||!readFileSync(`${projectConfig}/config.yaml`).equals(readFileSync('/mnt/ddev_config/config.yaml')))throw new Error('Existing DDEV project configuration does not match; no changes made');
+const destination=`${projectConfig}/nginx/oauth-local.conf`;
 if(existsSync(destination)&&readFileSync(destination,'utf8')!==source)throw new Error('Existing proxy differs; no changes made');
 let created=false;
-if(action==='enable'&&!existsSync(destination)){mkdirSync('/mnt/ddev_config/nginx',{recursive:true});writeFileSync(destination,source);created=true;}
+if(action==='enable'&&!existsSync(destination)){mkdirSync(`${projectConfig}/nginx`,{recursive:true});writeFileSync(destination,source);created=true;}
 if(action==='disable'&&existsSync(destination))unlinkSync(destination);
 const checked=spawnSync('sudo',['nginx','-t'],{stdio:'inherit'});
 if(checked.status!==0){if(created)unlinkSync(destination);throw new Error('Nginx validation failed; no reload');}

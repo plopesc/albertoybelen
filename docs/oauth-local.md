@@ -65,8 +65,10 @@ npm run oauth:proxy:enable
 npm run oauth:dev:local
 ```
 
-El helper solo opera dentro del DDEV existente: copia a `/mnt/ddev_config/nginx/`,
-rechaza sobrescribir un snippet diferente, ejecuta `nginx -t` y recarga Nginx. No
+El helper solo opera dentro del DDEV existente: comprueba que la configuración de
+`/var/www/html/.ddev/` coincide con `/mnt/ddev_config/` (montado en solo lectura)
+y modifica la copia editable en `/var/www/html/.ddev/nginx/`.
+Rechaza sobrescribir un snippet diferente, ejecuta `nginx -t` y recarga Nginx. No
 crea otro proyecto, no cambia DNS ni expone puertos al exterior. Necesita el sudo
 local ya disponible en el contenedor. Para retirarlo después de la prueba:
 
