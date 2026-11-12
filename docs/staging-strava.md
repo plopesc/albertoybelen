@@ -291,3 +291,7 @@ peticiones en esa primera ejecución. No se usaron credenciales reales ni se
 ejecutaron operaciones de modificación remota. El arnés fue reemplazado por el
 proxy TLS/CONNECT exclusivamente local descrito arriba, con pruebas negativas
 de destino. Las capturas y el manifiesto entregados proceden del ensayo corregido.
+
+## Operador y release de #42
+
+La [preparación del operador privado](staging-operator.md) añade RPC por service binding y comandos firmados, sin rutas HTTP de administración, más `wrangler.staging-oauth.jsonc` y `wrangler.staging-operator.jsonc` cerrados. Reutiliza este backend/dataset y 0003; no requiere otra migración. Sus herramientas solo hacen check/plan/dry-run locales. El ingreso real desde terminal y la activación siguen bloqueados: las pruebas de Miniflare no constituyen un canal remoto. La propuesta inicial `staging:auth:plan` se conserva como antecedente; el plan actualizado es `staging:oauth -- plan`.

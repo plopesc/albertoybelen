@@ -143,3 +143,7 @@ Los identificadores no secretos viven en el `config.json` raíz; consulta [su es
 ## Propuesta OAuth de dos cuentas (#40)
 
 El modo desplegable por este CLI sigue siendo fixtures. La [modalidad OAuth de prueba](staging-strava.md) tiene entry separado y migración 0003 aditiva para tablas `staging_auth_*`; su configuración de ensayo es solo local y está deshabilitada. `staging:auth:plan` imprime una propuesta no operativa. El CLI actual rechaza un entry/vars OAuth; activar esa modalidad requiere otra revisión y autorización, además del canal privado del operador y callback/capacidad confirmados.
+
+## Release OAuth preparada, no operativa (#42)
+
+`npm run staging:oauth -- check` y sus variantes `plan`/`dry-run` validan aparte la [release y el operador privados](staging-operator.md), cerrados por defecto. Este CLI `staging` continúa fijado a fixtures, incluido deploy/rollback. No se añaden comandos remotos OAuth ni se altera el Worker desplegado.
