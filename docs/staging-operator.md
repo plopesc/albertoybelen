@@ -1,5 +1,9 @@
 # Operador privado y release OAuth cerrada (#42)
 
+**Política vigente #44 (16/11/2026): una app existente, staging como destino OAuth
+real exclusivo y DDEV aparcado.** Véase el [preflight y transición](staging-transition.md).
+No se cambia el callback real ni se ejecuta esta transición desde estas guías.
+
 Esta entrega solo prepara y prueba código local. No autoriza acceso a Cloudflare,
 Strava, secretos reales, migraciones remotas, despliegues, Cron ni merge. El
 staging existente sigue en fixtures; ese estado procede de la confirmación del
@@ -199,15 +203,17 @@ cambios visuales de producto: se conserva la página de conexión de #41.
    política de servicio mínima y límites. Confirmar condiciones/cuotas del plan.
    El Worker propuesto debe mantener workers.dev/previews/rutas públicas apagados;
    no basta con poner Access delante de un hostname dejando otro accesible.
-   Si no se puede garantizar gratis, permanecer bloqueado. No cambiar la app DDEV.
-3. **Confirmar app/callback/capacidad Strava.** Reutilizar el procedimiento de
-   [#41](staging-strava.md): app separada si sus políticas lo permiten, callback
-   propuesto exacto del staging y capacidad autorizada para dos atletas. Su
-   admisión por Strava sigue sin verificarse. No crear apps ni consentimientos
-   como parte de esta PR; sin confirmación no activar readiness ni OAuth.
+   Si no se puede garantizar gratis, permanecer bloqueado. La app única permanece
+   sin cambios hasta la ventana de callback autorizada descrita en #44.
+3. **App única, callback y capacidad (#44).** Seguir el [runbook de transición](staging-transition.md):
+   reutilizar la app existente, comprobar capacidad contando autorizaciones previas
+   y aceptación del hostname staging sin guardar hasta la ventana autorizada.
+   DDEV queda aparcado, no se prepara app adicional ni relay. El callback no se ha
+   confirmado ni cambiado; sin aprobación no activar readiness ni OAuth.
 4. **Claves nuevas y permisos.** Generar privadamente una clave Ed25519 para la
    terminal y registrar únicamente su pública/política en el backend; no copiar
-   claves del piloto. Autorizar separadamente los nuevos Workers Secrets OAuth/AES
+   claves ni tokens del piloto. Las credenciales de app son las de la única app
+   existente, introducidas manualmente, no leídas de DDEV. Autorizar los Workers Secrets OAuth/AES
    y versiones de #41. La clave de firma privada nunca entra en Workers. El
    gateway solo necesita la vinculación a `StagingOperatorTarget`, no DB/secrets.
    Seleccionar manualmente cuenta Cloudflare, nunca desde `config.json`.

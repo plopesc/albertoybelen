@@ -9,6 +9,15 @@ La invitación solo es referencia de estilo: el juego no descarga sus recursos.
 Sin frameworks, paquetes de runtime,
 servicios externos, Strava, OAuth ni Cloudflare. No requiere compilación.
 
+## Transición OAuth vigente (#44)
+
+Una única app Strava existente; staging es el destino OAuth real previsto y DDEV
+queda aparcado sin tocar sus datos ni credenciales. La activación sigue bloqueada.
+`npm run staging:preflight` es local y de solo lectura: muestra callback, guardas
+y aprobaciones pendientes; no comprueba Strava/Cloudflare ni cambia nada.
+Véase el [runbook corto de transición](docs/staging-transition.md). Los mocks y
+herramientas locales se conservan; no ejecutar el piloto persistente para esta tarea.
+
 ## Ejecutar localmente
 
 Desde la raíz, con Python 3:
@@ -270,7 +279,7 @@ DDEV HTTPS. Los fixtures se identifican en pantalla. Actualizar vista consulta
 únicamente el agregado guardado; no abre OAuth ni sincroniza Strava. La guía
 incluye preview de worktrees, pruebas DDEV con D1, capturas y limpieza.
 
-## Preparación del piloto del propietario (sin conexión real)
+## Preparación histórica del piloto (OAuth real DDEV aparcado)
 
 La [guía del piloto Strava](docs/strava-owner-pilot.md) prepara un ensayo aislado
 en DDEV con D1 local y solo la cuenta del propietario. Permanece apagado; cada
