@@ -17,7 +17,7 @@ test('backup mock privado validado/restaurado, ligado a cuenta/target; solo 0003
   for(const name of FIXTURE_TABLES)assert.deepEqual(f.db.sqlite.prepare(`SELECT * FROM ${name} ORDER BY rowid`).all(),f.original[name]);
   const migration=f.calls.find(call=>call.args[1]==='migrations');assert.equal(migration.options.migration.name,MIGRATION_PINS[2].name);assert.equal(migration.options.capture,true);
   assert.deepEqual(f.run(['list','--confirm-staging']).pending,[]);
-  assert.throws(()=>f.run(['migrate',backup.backupId,'--confirm-staging']),/inventory/);
+  assert.throws(()=>f.run(['migrate',backup.backupId,'--confirm-staging']),/INVENTORY_RESPONSE/);
   assert.doesNotMatch(JSON.stringify(backup),/signed|synthetic-private|activities|document/);
 });
 

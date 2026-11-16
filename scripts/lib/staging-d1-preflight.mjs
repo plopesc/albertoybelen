@@ -1,3 +1,4 @@
+import {atStage} from './staging-diagnostics.mjs';
 import {readFileSync,readdirSync,lstatSync} from 'node:fs';
 import {join} from 'node:path';
 import {createHash} from 'node:crypto';
@@ -31,20 +32,20 @@ export function assertApplied(applied,{after=false}={}) {
   if(JSON.stringify(applied)!==JSON.stringify(expected))throw Error('Unexpected migration history; only 0003 may be pending');
 }
 export function parseRemoteState(output,{after=false}={}) {
-  try {
+  return atStage('INVENTORY_RESPONSE',()=>{
     const data=JSON.parse(output);if(!Array.isArray(data)||data.length!==1||data[0].success!==true||!Array.isArray(data[0].results))throw Error();
     const migrations=[],counts={},tables=[],expectedTables=[...FIXTURE_TABLES,'d1_migrations',...(after?STAGE_TABLES:[])];
     for(const row of data[0].results) {
       if(row.kind==='migration'&&typeof row.name==='string'&&Number.isSafeInteger(row.value)&&row.value>0)migrations.push(row);
       else if(row.kind==='rows'&&FIXTURE_TABLES.includes(row.name)&&Number.isSafeInteger(row.value)&&row.value>=0&&!Object.hasOwn(counts,row.name))counts[row.name]=row.value;
-      else if(row.kind==='schema-table'&&expectedTables.includes(row.name)&&!tables.includes(row.name))tables.push(row.name);
+      else if(row.kind==='schema-table'&&row.value===0&&expectedTables.includes(row.name)&&!tables.includes(row.name))tables.push(row.name);
       else throw Error();
     }
     migrations.sort((a,b)=>a.value-b.value);if(new Set(migrations.map(m=>m.value)).size!==migrations.length)throw Error();
     const applied=migrations.map(m=>m.name);assertApplied(applied,{after});
     if(Object.keys(counts).length!==FIXTURE_TABLES.length||tables.length!==expectedTables.length)throw Error();
     return{applied,counts};
-  }catch{throw Error('Remote migration inventory rejected');}
+  });
 }
 // Compare schema tokens, preserving string literals; harmless quote/whitespace changes are allowed.
 const normalized=sql=>{const tokens=(sql.match(/'(?:''|[^'])*'|"(?:""|[^"])*"|\[[^\]]*\]|`[^`]*`|[a-zA-Z_][a-zA-Z_0-9]*|\d+|[^\s]/g)??[]).map(token=>token.startsWith("'")?token:token.replace(/^["`\[]|["`\]]$/g,'').toLowerCase());if(tokens.slice(0,5).join(' ')==='create table if not exists')tokens.splice(2,3);return tokens.join(' ');};

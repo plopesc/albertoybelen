@@ -8,6 +8,8 @@ export const FIXTURE_TABLES=Object.freeze(['game_state','transaction_guard','par
 export const STAGE_TABLES=Object.freeze(FIXTURE_TABLES.map(name=>'staging_auth_'+name));
 export const HISTORY_SQL='CREATE TABLE d1_migrations(id INTEGER PRIMARY KEY AUTOINCREMENT,name TEXT UNIQUE,applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL);';
 // Read only: unlike `d1 migrations list`, never creates the history table.
-export const STAGING_D1_READ_QUERY="SELECT 'migration' AS kind,name,id AS value FROM d1_migrations UNION ALL "+FIXTURE_TABLES.map(name=>`SELECT 'rows','${name}',COUNT(*) FROM ${name}`).join(' UNION ALL ')+" UNION ALL SELECT 'schema-table',name,0 FROM sqlite_schema WHERE type='table' AND name NOT GLOB 'sqlite_*' AND name NOT GLOB '_cf_*'";
+// D1 remote rejects the old 11-term compound SELECT. VALUES has no compound-SELECT
+// term limit; only three UNION branches remain, with the same fixed result columns.
+export const STAGING_D1_READ_QUERY="WITH fixture_counts(name,value) AS (VALUES "+FIXTURE_TABLES.map(name=>`('${name}',(SELECT COUNT(*) FROM ${name}))`).join(',')+") SELECT 'migration' AS kind,name,id AS value FROM d1_migrations UNION ALL SELECT 'rows',name,value FROM fixture_counts UNION ALL SELECT 'schema-table',name,0 FROM sqlite_schema WHERE type='table' AND name NOT GLOB 'sqlite_*' AND name NOT GLOB '_cf_*'";
 export const BACKUP_ID=/^[a-f0-9]{24}$/;
 export const MAX_BACKUP_BYTES=64*1024*1024;
