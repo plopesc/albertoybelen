@@ -50,7 +50,9 @@ Las suites de regresión usan DB temporales y credenciales exclusivamente sinté
    relay ni otra app.
 3. **Preparar staging antes de la ventana.** Otra tarea debe implementar el ingreso
    remoto privado del operador y la activación guardada. Backup, migración remota
-   0003, release y secretos requieren cada uno autorización explícita, conforme al
+   0003, release y secretos requieren cada uno autorización explícita. El
+   [backup y preflight D1](staging-d1-backup.md) no se ejecutan remotamente en la
+   preparación; se usarán tras consentimiento separado, conforme al
    [runbook del operador](staging-operator.md). Las credenciales de app serán las de
    **la misma app existente**, introducidas manualmente por el propietario, no
    leídas/copias de DDEV. Las claves AES y de firma serán nuevas y exclusivas de

@@ -55,7 +55,7 @@ test('CLI aislada es solo lectura: no red, procesos, datos privados, escrituras 
   const root=mkdtempSync(join(tmpdir(),'staging-preflight-'));
   try {
     for(const dir of ['scripts/lib','backend','.local/pilot-config','.local/pilot-d1','frontend/config'])mkdirSync(join(root,dir),{recursive:true});
-    for(const file of ['config.json','wrangler.staging.jsonc','wrangler.staging-oauth.jsonc','wrangler.staging-operator.jsonc','scripts/staging-preflight.mjs','scripts/lib/staging-transition.mjs','scripts/lib/staging-release-config.mjs','scripts/lib/staging-config.mjs','scripts/lib/infrastructure-config.mjs','scripts/lib/infrastructure-policy.mjs','backend/staging-operator-policy.js','backend/staging-auth-settings.js'])writeFileSync(join(root,file),readFileSync(file));
+    for(const file of ['scripts/lib/staging-d1-policy.mjs','config.json','wrangler.staging.jsonc','wrangler.staging-oauth.jsonc','wrangler.staging-operator.jsonc','scripts/staging-preflight.mjs','scripts/lib/staging-transition.mjs','scripts/lib/staging-release-config.mjs','scripts/lib/staging-config.mjs','scripts/lib/infrastructure-config.mjs','scripts/lib/infrastructure-policy.mjs','backend/staging-operator-policy.js','backend/staging-auth-settings.js'])writeFileSync(join(root,file),readFileSync(file));
     writeFileSync(join(root,'package.json'),'{"type":"module"}');
     const privateFiles=['.local/pilot-config/.dev.vars','.local/pilot-d1/sentinel','.dev.vars','frontend/config/local.json'];
     for(const path of privateFiles)writeFileSync(join(root,path),'synthetic-private-never-read');

@@ -536,3 +536,9 @@ La [configuración compartida de infraestructura](docs/infrastructure-configurat
 La [preparación de OAuth staging para dos cuentas](docs/staging-strava.md) reutiliza OAuth, D1 y sync, permanece desactivada y solo se prueba con mocks: `npm run test:staging:auth` y `npm run test:staging:auth:browser`. `npm run staging:auth:plan` muestra un diseño sin operaciones remotas.
 
 El [operador privado y la release OAuth cerrada](docs/staging-operator.md) se prueban con `npm run test:staging:operator` y `npm run test:staging:operator:browser`. `npm run staging:oauth -- check` y sus variantes `plan`/`dry-run` solo validan/compilan localmente; no ofrece despliegue ni acceso remoto. El ingreso de terminal remoto permanece bloqueado.
+
+El [backup protegido y preflight de 0003](docs/staging-d1-backup.md) se preparan
+con `npm run staging -- d1-check` y `npm run staging -- d1-plan`, sin red.
+El flujo remoto futuro usa etapas separadas y backup privado verificado;
+`migrate --confirm-staging` sin ID de backup está bloqueado. No se ha hecho ningún
+export real ni aplicado 0003 remotamente. Pruebas: `npm run test:staging:d1`.

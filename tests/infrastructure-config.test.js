@@ -62,7 +62,7 @@ test('Wrangler no puede divergir de config o añadir rutas, variables o D1 remot
 
 function replica(root) {
   for(const dir of ['scripts/lib','frontend/config','.ddev/nginx','.github/workflows']) mkdirSync(join(root,dir),{recursive:true});
-  for(const file of ['package.json','config.json','wrangler.staging.jsonc','scripts/staging.mjs','scripts/lib/staging-config.mjs','scripts/lib/infrastructure-config.mjs','scripts/lib/infrastructure-policy.mjs']) writeFileSync(join(root,file),readFileSync(file));
+  for(const file of ['scripts/lib/staging-release-config.mjs','scripts/lib/staging-d1-policy.mjs','scripts/lib/staging-private-files.mjs','scripts/lib/staging-runner.mjs','scripts/lib/staging-d1.mjs','scripts/lib/staging-d1-preflight.mjs','package.json','config.json','wrangler.staging.jsonc','scripts/staging.mjs','scripts/lib/staging-config.mjs','scripts/lib/infrastructure-config.mjs','scripts/lib/infrastructure-policy.mjs']) writeFileSync(join(root,file),readFileSync(file));
 }
 test('CLI rechaza config alterada antes de crear salida/invocar Wrangler, incluso con confirmación y cuenta', () => {
   const root=mkdtempSync(join(tmpdir(),'infra-cli-'));

@@ -11,7 +11,7 @@ no se ha comprobado su existencia, estado ni permisos en Cloudflare.
 | D1 | albertoybelen-db-staging |
 | Database ID | c6bde806-cf94-4ff3-8c4f-c08b8de477f6 |
 | Binding | DB |
-| Migraciones reutilizadas | backend/d1/migrations/0001_local_game.sql y 0002_oauth_vault.sql |
+| Migraciones reutilizadas | 0001_local_game.sql, 0002_oauth_vault.sql y 0003_staging_auth_test.sql (aditiva; no aplicada remotamente en esta PR) |
 
 Producción `albertoybelen-api` / `albertoybelen-db` no es un destino válido de estos
 comandos. Los archivos Wrangler locales y sus bases/piloto permanecen independientes.
@@ -57,41 +57,24 @@ terminar; no se conserva un log de credenciales. No guardar secretos en esa carp
 Una persona debe revisar la PR y el destino antes de usar operaciones remotas.
 No hay workflow de despliegue, auto-merge ni activación de Cron.
 
-1. Revisar el destino impreso por `staging -- check` contra la tabla y la base
-   staging en la cuenta prevista. Comprobar que la D1 existe y que su ID coincide.
-   Si falta o no hay permisos, detenerse; no sustituirla por producción ni crear
-   otra base automáticamente.
-2. Autenticarse en Cloudflare desde Ubuntu con la cuenta correcta. Si se utiliza
-   login interactivo, usar el binario fijado `./node_modules/.bin/wrangler login`.
-   También se puede proporcionar un token Cloudflare mediante el entorno privado
-   del operador con los permisos mínimos necesarios en la cuenta. No subirlo al
-   repo ni pegarlo en chat/PR; Strava no interviene.
-3. Seleccionar explícitamente el Account ID de esa cuenta. El valor siguiente es
-   un placeholder inválido deliberado: reemplazarlo localmente por el ID verificado
-   de 32 caracteres hexadecimales, sin cambiar ningún nombre/ID de D1 de la config.
+El procedimiento vigente para 0003 es [backup D1 y migración protegida](staging-d1-backup.md).
+Incluye confirmaciones separadas para lectura, export y escritura, carpeta privada,
+checksum y restauración local antes de migrar. Las comprobaciones locales son:
 
 ```sh
-export CLOUDFLARE_ACCOUNT_ID='ID_DE_CUENTA_VERIFICADO_LOCALMENTE'
-npm run staging -- check
-# Lectura remota del historial, siempre binding DB de esta configuración:
-npm run staging -- list --confirm-staging
-# Escritura remota: aplicar exclusivamente las migraciones existentes a staging:
-npm run staging -- migrate --confirm-staging
-npm run staging -- list --confirm-staging
-# Subir y desplegar exclusivamente albertoybelen-api-staging:
-npm run staging -- deploy --confirm-staging
+npm run staging -- d1-check
+npm run staging -- d1-plan
 ```
 
-Cada operación remota exige cuenta seleccionada y confirmación literal, valida
-otra vez la configuración y utiliza únicamente la copia generada. Las migraciones
-resuelven DB al nombre e ID de la tabla; siempre se pasan --remote y --config de
-forma interna, sin permitir al operador cambiarlos mediante flags. Deploy usa
-exactamente el mismo Worker/binding. Los permisos efectivos los controla también
-Cloudflare; validar el formato del Account ID no demuestra que sea la cuenta correcta.
-
-Usar este helper, no comandos Wrangler improvisados. Invocar Wrangler directamente,
-modificar el guard o usar el dashboard elude estas protecciones; no se pretende
-impedir a un administrador deliberado hacer cambios por otra vía.
+El listado remoto usa un SELECT fijo de solo lectura, sin inicializar historial.
+La escritura requiere `migrate BACKUP_ID_24_HEX --confirm-staging`, evidencia válida
+y que solo 0003 esté pendiente. **La forma antigua sin ID ya no funciona.** No hay
+SQL/target/output arbitrarios, import remoto, retry ni reparación automática.
+`staging -- deploy --confirm-staging` permanece fixture-only y exige autorización
+separada. Todos los subprocessos reutilizan un único runner guardado, con carpetas
+nuevas privadas dentro de `.local/staging-cli/`; el export captura stdout/stderr y
+retira el log temporal sin exponer la URL firmada de descarga. Las credenciales y
+cuenta Cloudflare solo se aportan manualmente en la etapa remota autorizada.
 
 ## Comportamiento del Worker preparado
 

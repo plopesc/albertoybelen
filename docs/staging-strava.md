@@ -258,7 +258,9 @@ ensayo aislado, no a una verificación del entorno remoto.
    en la D1 staging ya conocida, tras revisar copia de seguridad y listado de
    migraciones con el propietario. Los comandos guardados existentes son
    `npm run staging -- list --confirm-staging` y
-   `npm run staging -- migrate --confirm-staging`; **no se ejecutaron aquí**.
+   `npm run staging -- migrate BACKUP_ID_24_HEX --confirm-staging`; exige evidencia
+   del [backup protegido #46](staging-d1-backup.md) y solo 0003 pendiente.
+   **No se ejecutaron aquí**.
    No cambiar binding ni seleccionar otra base. No borrar tablas antiguas.
 6. **Despliegue manual aprobado.** Con la release de (3), comprobar target y
    bundle local, revisar ausencia de Cron/logs y hacer el despliegue manual solo
