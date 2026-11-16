@@ -47,7 +47,8 @@
     "staging:auth:plan": "node scripts/staging-auth-plan.mjs",
     "staging:oauth": "node scripts/staging-oauth.mjs",
     "test:staging:operator": "node --test tests/staging-operator.test.js tests/staging-release.test.js tests/d1/staging-operator-runtime.test.js",
-    "test:staging:operator:browser": "node scripts/check-staging-operator-browser.mjs"
+    "test:staging:operator:browser": "node scripts/check-staging-operator-browser.mjs",
+    "staging:preflight": "node scripts/staging-preflight.mjs"
   },
   "engines": {
     "node": ">=24"
