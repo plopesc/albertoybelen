@@ -1,5 +1,11 @@
 # Invitaciones privadas: diseño y prototipo local
 
+> **DDEV aparcado para OAuth real (#44, 16/11/2026).** Esta guía conserva el
+> histórico y las herramientas de mocks, no autoriza preparar/leer/migrar el
+> piloto persistente ni usar sus credenciales. Staging es el destino real previsto
+> con la única app existente; volver a DDEV requiere otra autorización y cambio
+> manual del callback. Véase [la transición vigente](staging-transition.md).
+
 Esta entrega es un **modelo local**, sin endpoints OAuth operativos, intercambio
 de códigos, llamadas a Strava, secretos reales ni persistencia. El reductor
 `auth/invitation-machine.js` consume eventos ficticios ya validados por un

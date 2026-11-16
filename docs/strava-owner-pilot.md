@@ -1,5 +1,11 @@
 # Piloto Strava del propietario: preparación local (#29)
 
+> **DDEV aparcado para OAuth real (#44, 16/11/2026).** Esta guía conserva el
+> histórico y las herramientas de mocks, no autoriza preparar/leer/migrar el
+> piloto persistente ni usar sus credenciales. Staging es el destino real previsto
+> con la única app existente; volver a DDEV requiere otra autorización y cambio
+> manual del callback. Véase [la transición vigente](staging-transition.md).
+
 Esta PR **prepara** el piloto. No autoriza a ejecutarlo con Strava real. La prueba
 real exige un mensaje específico y posterior del propietario **tras revisar y
 fusionar la PR**. No es una invitación para conectar a Alberto o Belén. No se han
@@ -11,7 +17,7 @@ sigue siendo 500 km desde 2026-11-28, Europe/Madrid. El piloto aislado usa 500 k
 Run/Walk/Hike, manuales excluidas, privadas con activity:read_all y medianoche
 inclusiva se evalúan con la misma política de #13/#27.
 
-## Preparación permitida ahora (sin red Strava)
+## Preparación histórica (no ejecutar sobre el piloto aparcado)
 
 En Ubuntu/DDEV, trabajar en la rama de la PR (o main después de su aprobación).
 Desde el host, anteponer `ddev exec` a los comandos npm. Node 24:

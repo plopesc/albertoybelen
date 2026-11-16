@@ -1,5 +1,11 @@
 # OAuth local en DDEV y vault cifrado
 
+> **DDEV aparcado para OAuth real (#44, 16/11/2026).** Esta guía conserva el
+> histórico y las herramientas de mocks, no autoriza preparar/leer/migrar el
+> piloto persistente ni usar sus credenciales. Staging es el destino real previsto
+> con la única app existente; volver a DDEV requiere otra autorización y cambio
+> manual del callback. Véase [la transición vigente](staging-transition.md).
+
 Esta PR implementa las rutas y el adaptador de protocolo OAuth de #25 sobre la
 máquina de #15 y el repositorio D1 de #23. **La configuración inicial es mock**:
 no contacta con Strava, no importa actividades y no programa sincronizaciones.

@@ -106,3 +106,12 @@ al staging: no es necesario para este refactor y no se hizo para validarlo.
 ## Operador reservado y release cerrada (#42)
 
 `cloudflare.stagingOperator` solo reserva `albertoybelen-operator-staging` con configured=false y deployEnabled=false, sin URL pública, cuenta, clave ni datos de personas. La allowlist independiente fija ese nombre; `config:check` contrasta los nuevos Wrangler OAuth/operador y fixture rollback. La [guía del operador](staging-operator.md) explica firmas, límites, ingreso bloqueado y herramientas sin operaciones remotas.
+
+## Transición de app única (#44)
+
+`npm run staging:preflight` reutiliza metadata, allowlist y validación de los tres
+Wrangler para describir la transición a staging. Compara el callback con la guarda
+independiente del Worker; no depende de la ruta callback de DDEV. No modifica el
+JSON, los switches o los perfiles existentes ni inspecciona datos privados.
+La decisión y los estados comunicados por el propietario se distinguen de los
+estados remotos no verificados; véase el [runbook](staging-transition.md).

@@ -1,5 +1,11 @@
 # Issue #33: fase A y parada antes de Strava real
 
+> **DDEV aparcado para OAuth real (#44, 16/11/2026).** Esta guía conserva el
+> histórico y las herramientas de mocks, no autoriza preparar/leer/migrar el
+> piloto persistente ni usar sus credenciales. Staging es el destino real previsto
+> con la única app existente; volver a DDEV requiere otra autorización y cambio
+> manual del callback. Véase [la transición vigente](staging-transition.md).
+
 **Alcance validado: solo fase A. Fase B pendiente.** Esta guía no contiene comandos
 que habiliten red Strava. No ejecutar las instrucciones de activación de otras
 guías hasta obtener autorización expresa posterior, separada de esta PR. Aprobar

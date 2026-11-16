@@ -1,5 +1,9 @@
 # Staging OAuth y sincronización: preparación local (#40)
 
+**Política vigente #44 (16/11/2026): una app existente, staging como destino OAuth
+real exclusivo y DDEV aparcado.** Véase el [preflight y transición](staging-transition.md).
+No se cambia el callback real ni se ejecuta esta transición desde estas guías.
+
 Esta fase entrega código y ensayos sintéticos. **No autoriza ninguna operación
 remota, conexión real, secreto remoto, migración remota, despliegue ni Cron.**
 El Worker desplegado sigue siendo el de fixtures; este documento no afirma que
@@ -43,32 +47,34 @@ cerrada, callback y aprobaciones pendientes. No crea un fichero desplegable,
 no ejecuta Wrangler y no admite argumentos ni overrides. No es autorización ni
 herramienta de despliegue. La configuración local tampoco es una config remota.
 
-## Callback: condición previa real
+## Callback: una sola aplicación, decisión vigente #44
 
-La [documentación de autenticación de Strava](https://developers.strava.com/docs/authentication/)
-exige que el redirect URI pertenezca al callback domain de la app. La app actual
-está configurada para `albertoybelen.ddev.site`, según confirmó el propietario.
-Por tanto, **no sirve sin cambios** para el callback de staging propuesto:
+La decisión del propietario del **16/11/2026** es reutilizar **una única app
+Strava existente**, con **un callback activo** y staging como único entorno OAuth
+real previsto. **DDEV queda aparcado**, sin borrar, leer, copiar ni revocar sus
+datos/credenciales. No se prepara una app adicional, un relay o uso simultáneo.
 
-`https://albertoybelen-api-staging.autumn-dream-2a39.workers.dev/oauth/callback`
+El dominio actual comunicado por el propietario es `albertoybelen.ddev.site`;
+no lo ha consultado el preflight ni se cambia en esta PR. El futuro valor del
+campo Authorization Callback Domain, solo con aprobación manual, sería:
 
-Ese hostname es conocido; **su admisión como callback por una app concreta no se
-ha verificado**. No se presupone una lista de dominios ni se hace un relay por
-DDEV. Recomendación: el propietario evalúa una **app separada de staging**, si las
-políticas vigentes lo permiten, con el callback domain exacto
-`albertoybelen-api-staging.autumn-dream-2a39.workers.dev` (sin esquema ni ruta).
-No usar el sufijo compartido `workers.dev` como dominio autorizado.
-Si el proveedor no lo acepta, detener la activación y revisar un dominio propio
-con una nueva autorización de infraestructura; no improvisar redirects abiertos.
-No se creó ni modificó ninguna app.
+`albertoybelen-api-staging.autumn-dream-2a39.workers.dev`
 
-La [documentación de límites de Strava](https://developers.strava.com/docs/rate-limits/)
-indica que las apps nuevas empiezan con capacidad para un atleta. El propietario
-debe confirmar una capacidad autorizada de **al menos dos** y las condiciones
-vigentes para ampliarla. No asumir que una app nueva admite a ambos ni que la
-ampliación está aprobada. Si implica coste o condiciones no aceptadas, parar.
-Estas consultas se hicieron solo sobre documentación pública, sin sesión ni API
-real; no sobre el dashboard del propietario.
+Sin esquema, puerto ni ruta; nunca `workers.dev` genérico. La URI del backend es
+`https://albertoybelen-api-staging.autumn-dream-2a39.workers.dev/oauth/callback`.
+Su aceptación por Strava **no está confirmada**. Si no se admite, detener la
+transición; no introducir un relay u otra app para sortear el bloqueo.
+
+Capacidad de atletas, autorizaciones ya contadas, cuotas y condiciones de la app
+existente también están **sin confirmar**. El propietario debe comprobar que
+caben al menos los dos participantes, considerando la cuenta del piloto y otras
+autorizaciones. No liberar plazas revocando el piloto ni asumir cuota disponible:
+la app única comparte cuotas y contexto de tokens entre sus usos.
+
+Un cambio de callback afecta a **nuevos flujos OAuth**, no migra tokens, D1 ni
+cofres, ni garantiza que las autorizaciones anteriores sean válidas en staging.
+La cuenta del piloto no se importa. El [runbook corto de transición](staging-transition.md)
+es la secuencia vigente; `npm run staging:preflight` solo comprueba archivos locales.
 
 ## Invitaciones y administración privada
 
@@ -122,8 +128,8 @@ edge logs y cualquier proxy del entorno remoto. No se ha auditado ese entorno.
 
 | Nombre | Tratamiento futuro, sin valores en Git |
 | --- | --- |
-| `STRAVA_CLIENT_ID` | Variable del Worker/aplicación de staging; tampoco en `config.json`. |
-| `STRAVA_CLIENT_SECRET` | Workers Secret nuevo de la app de staging. |
+| `STRAVA_CLIENT_ID` | Client ID de la app única existente, como variable del Worker; tampoco en `config.json`. |
+| `STRAVA_CLIENT_SECRET` | Workers Secret de staging con el Client Secret de la app única existente, introducido manualmente con autorización; sin leerlo de DDEV ni rotarlo en esta fase. |
 | `TOKEN_ENCRYPTION_KEY` | Workers Secret con clave AES-GCM de 32 bytes en base64, generada privadamente para staging. |
 | `TOKEN_ENCRYPTION_KEY_VERSION` | Versión activa no secreta, por ejemplo v1. |
 | `TOKEN_PREVIOUS_ENCRYPTION_KEY` | Workers Secret anterior durante una rotación supervisada. |
@@ -230,8 +236,9 @@ ensayo aislado, no a una verificación del entorno remoto.
    confirmaciones anteriores del propietario; no se verificó su configuración.
    Véase la incidencia del ensayo inicial más abajo.
 2. **App y consentimiento.** Autorizar por separado al propietario a evaluar la
-   app de staging, callback exacto y capacidad de dos atletas, con coste adicional
-   0 €. Mantener la app DDEV intacta. Confirmar los consentimientos y la identidad
+   app existente, capacidad incluyendo autorizaciones previas y callback exacto,
+   sin guardar cambios hasta la ventana autorizada del [runbook #44](staging-transition.md).
+   DDEV sigue aparcado. Confirmar los consentimientos y la identidad
    de cada participante por canal privado. Si el dominio/capacidad no se acepta,
    no avanzar.
 3. **Operador remoto y release guardada.** Revisar e implementar el canal privado
@@ -241,7 +248,9 @@ ensayo aislado, no a una verificación del entorno remoto.
    release habilitada. El CLI actual rechaza ese diff deliberadamente. Una nueva
    autorización/PR deberá habilitar el cambio explícito de modalidad: no saltar
    las guardas con `--name`, `--env`, `--config` arbitrarios o Wrangler directo.
-4. **Secretos nuevos.** Pedir autorización específica para introducirlos
+4. **Secretos de staging.** Reutilizar las credenciales de la app única solo por
+   introducción manual del propietario; generar claves AES/operador nuevas de
+   staging. No copiar nada desde DDEV. Pedir autorización específica para introducirlos
    manualmente, comprobar la cuenta/destino en terminal privada y no exponer
    valores. Verificar estrategia de copia de seguridad y rotación, nunca claves
    del piloto. No habilitar la red todavía.
