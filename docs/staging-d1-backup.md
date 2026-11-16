@@ -66,15 +66,16 @@ advierte que exportar puede hacer la base temporalmente indisponible.
 
    Hace inventario, export y lectura de consistencia dentro de esta operación
    autorizada. El único subprocess runner reutiliza el staging fixture guardado,
-   con config/.dev.vars vacíos aislados, sin leer los del proyecto/piloto. Captura
+   con configuración aislada y `.dev.vars` vacío, sin leer los del proyecto/piloto. Captura
    stdout/stderr de Wrangler y elimina su log privado temporal: **no imprime SQL,
    valores ni la URL firmada que Wrangler emite durante export**.
 
    Crea un ID aleatorio de 24 caracteres hexadecimales y una carpeta nueva
    `.local/staging-backups/<id>/` 0700. SQL y manifiesto tienen modo 0600. Rechaza
    permisos/propietario inseguros, symlinks, hardlinks, rutas publicadas y colisiones;
-   no permite `--output` ni un destino DB aportado por el usuario. Los ancestros
-   del proyecto no pueden ser escribibles por otros usuarios/grupos; usar un
+   no permite `--output` ni un destino DB aportado por el usuario. La raíz
+   del checkout y los directorios del backup no pueden ser escribibles por otros
+   usuarios/grupos; usar un
    checkout privado si es necesario, sin cambiar permisos del piloto automáticamente.
 
    Solo publica `manifest.json` tras salida exitosa del export, marcador del UUID
