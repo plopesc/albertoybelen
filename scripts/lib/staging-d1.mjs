@@ -1,3 +1,4 @@
+import {atStage} from './staging-diagnostics.mjs';
 import {writeFileSync,renameSync,lstatSync,openSync,closeSync,unlinkSync,mkdirSync,fsyncSync} from 'node:fs';
 import {join} from 'node:path';
 import {randomBytes} from 'node:crypto';
@@ -30,10 +31,10 @@ export function stagingD1Plan(config,migrations) {
 export function runStagingD1({root,config,argv,env,runWrangler,clock=Date.now,createId=()=>randomBytes(12).toString('hex')}) {
   const [op,arg,confirmation]=argv;
   if(['d1-check','d1-plan'].includes(op)?argv.length!==1:op==='inspect-backup'?argv.length!==2||!BACKUP_ID.test(arg??''):op==='migrate'?argv.length!==3||!BACKUP_ID.test(arg??'')||confirmation!=='--confirm-staging':!['list','backup'].includes(op)||argv.length!==2||arg!=='--confirm-staging')throw Error('Fixed staging D1 operation/confirmation required');
-  const migrations=migrationPreflight(root,config);
+  const migrations=atStage('LOCAL_PREFLIGHT',()=>migrationPreflight(root,config));
   if(op==='d1-check'||op==='d1-plan')return stagingD1Plan(config,migrations);
   if(op==='inspect-backup'){const {manifest}=inspectBackup(root,arg,migrations);return{status:'verified-locally',backupId:arg,target:manifest.target,bytes:manifest.sql.bytes,sha256:manifest.sql.sha256,createdAt:manifest.createdAt,freshForMigration:clock()-Date.parse(manifest.createdAt)<=86400000,accountCheck:'deferred-to-migrate',remoteChecked:false};}
-  requireStagingAccount(env);const account=env.CLOUDFLARE_ACCOUNT_ID;
+  atStage('ACCOUNT_SELECTION',()=>requireStagingAccount(env));const account=env.CLOUDFLARE_ACCOUNT_ID;
   const read=options=>parseRemoteState(runWrangler(readArgs,{capture:true}),options);
   if(op==='list'){const output=runWrangler(readArgs,{capture:true});let state;try{state=parseRemoteState(output);}catch{state=parseRemoteState(output,{after:true});}return{target:target(),applied:state.applied,pending:state.applied.length===3?[]:[migrations[2].name],kind:'remote-read-only'};}
   // Validate all backup evidence BEFORE any remote call or write preparation.

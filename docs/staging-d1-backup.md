@@ -1,10 +1,63 @@
 # Backup D1 staging y paso previo a 0003 (#46)
 
-Esta entrega **no ejecutó ninguna operación remota ni creó un backup real**.
-Solo se ensayó con SQLite/Miniflare temporales y un Wrangler simulado. La última
-información del propietario dice que staging sirve fixtures y tiene 0001/0002;
-no se ha consultado Cloudflare para confirmarlo. OAuth/red/operador siguen cerrados,
-DDEV aparcado y producción fuera de los destinos operativos.
+En #46 se preparó y ensayó este procedimiento sin operaciones remotas. En #48
+se autorizaron exclusivamente lecturas reales para reparar `list`; el resultado
+se documenta a continuación. **No se ha creado un backup real ni aplicado 0003**.
+OAuth/red del Worker/operador siguen cerrados, DDEV aparcado y producción fuera de
+los destinos operativos. Autenticar Wrangler no autoriza escrituras.
+
+## Diagnóstico de `list` en DDEV (#48)
+
+El 2026-11-16, con Node 24.22.1 y Wrangler 4.160.1 autenticado dentro de DDEV,
+se reprodujo el rechazo remoto `too many terms in compound SELECT: SQLITE_ERROR`.
+La consulta anterior concatenaba once términos con `UNION ALL`; no era un error
+del parser JSON ni una base vacía. SQLite local no reproducía ese límite de D1.
+La nueva consulta fija agrupa los nueve contadores en un CTE `VALUES` y conserva
+solo tres términos, las mismas columnas y las mismas validaciones. No se cambia
+la historia admitida, la allowlist ni la identidad del destino.
+
+La lectura corregida confirmó exactamente `0001_local_game.sql` y
+`0002_oauth_vault.sql` aplicadas, con **solo `0003_staging_auth_test.sql` pendiente**
+y las diez tablas esperadas. No se guardan respuestas reales ni filas de D1 en
+fixtures, logs o Git. Los tests usan valores sintéticos con el formato JSON de
+Wrangler: un array con un resultado exitoso, `results` y `meta`.
+
+Además, el checkout habitual DDEV tiene modo 0775, incompatible con el workspace
+privado que antes se creaba dentro del repositorio. Solo el inventario fijo de
+lectura usa ahora un temporal propio 0700 fuera del checkout, con archivos 0600,
+`.dev.vars` vacío y eliminación al terminar, también si falla. No modifica permisos
+ni lee perfiles del piloto. **Los destinos privados y las restricciones originales
+de backup/escritura no se relajan**: pueden seguir exigiendo un checkout privado.
+
+Desde DDEV, con cuenta seleccionada explícitamente por el propietario en
+`CLOUDFLARE_ACCOUNT_ID`, el comando autorizado de lectura es:
+
+```sh
+npm run staging -- list --confirm-staging
+```
+
+No se selecciona automáticamente una cuenta ni se imprime su ID. No usar
+`wrangler d1 migrations list`: puede crear historial. El resultado seguro muestra
+solo destino fijo, nombres de migraciones y pendientes; no contadores ni datos.
+Cada operación distinta sigue necesitando su propia autorización.
+
+Los fallos muestran un código cerrado de etapa, nunca mensajes sin filtrar del
+subproceso, SQL, stdout/stderr, credenciales, URLs o payloads:
+
+| Código | Comprobación segura / siguiente paso |
+| --- | --- |
+| `TARGET_CONFIG` / `LOCAL_PREFLIGHT` | Revisar configuración permitida y huellas de migraciones con los checks locales. |
+| `ACCOUNT_SELECTION` | La variable de cuenta debe estar exportada en el proceso DDEV que ejecuta el CLI; no compartir credenciales. |
+| `PRIVATE_WORKSPACE` | Revisar permisos/espacio del temporal; para backup/escritura, también el checkout privado. No relajar modos automáticamente. |
+| `WRANGLER_COMPOUND_SELECT_LIMIT` | El servidor rechazó el tamaño del compound SELECT. Revisar versión/código, sin aceptar una respuesta parcial. |
+| `WRANGLER_EXECUTION` | Subproceso fallido: no se puede inferir si es autenticación, permiso o red. Revisar acceso con el propietario sin volcar diagnósticos privados. |
+| `WRANGLER_TIMEOUT` / `WRANGLER_OUTPUT_LIMIT` | Ejecución incompleta; no existe inventario validado. |
+| `INVENTORY_RESPONSE` | JSON, historial, tablas o tipos/conteos inesperados: parar; no reparar por SQL manual. |
+| `STAGING_OPERATION_FAILED` | Otro fallo bloqueado; pedir revisión del código sin publicar payloads. |
+
+El permiso de #48 no incluye backup, export, migración, deploy, cambios OAuth,
+Strava o consultas a producción/piloto. Las lecturas realizadas no autorizaron
+ninguna de esas operaciones y no se ejecutaron.
 
 ## Comprobación local, sin cuenta ni red
 

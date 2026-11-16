@@ -8,8 +8,8 @@ import {DatabaseSync} from 'node:sqlite';
 import {createD1Repository} from '../../backend/d1/repository.js';
 import {defaultFixtureEvents} from '../../backend/fixtures.js';
 import fixtureWorker from '../../backend/staging-entry.js';
-import {HISTORY_SQL,MIGRATION_PINS,FIXTURE_TABLES} from '../../scripts/lib/staging-d1-policy.mjs';
-import {inspectSql} from '../../scripts/lib/staging-d1-preflight.mjs';
+import {HISTORY_SQL,MIGRATION_PINS,FIXTURE_TABLES,STAGING_D1_READ_QUERY} from '../../scripts/lib/staging-d1-policy.mjs';
+import {inspectSql,parseRemoteState} from '../../scripts/lib/staging-d1-preflight.mjs';
 
 test('D1 temporal: export SQL real de Miniflare, restauración local exacta, 0003 aditiva y fixture rollback',async()=>{
   const directory=await mkdtemp(join(tmpdir(),'staging-d1-backup-'));
@@ -21,12 +21,14 @@ test('D1 temporal: export SQL real de Miniflare, restauración local exacta, 000
     await createD1Repository(db).applyEvents(defaultFixtureEvents());
     await db.prepare('INSERT INTO oauth_credentials VALUES(?,?,?,?,?,?)').bind('slot-a',0,1,'v1','abcdefghijklmnop','synthetic-private-ciphertext-opaque-envelope').run();
     const snapshot=async()=>Object.fromEntries(await Promise.all([...FIXTURE_TABLES,'d1_migrations'].map(async name=>[name,(await db.prepare(`SELECT * FROM ${name} ORDER BY rowid`).all()).results])));
+    assert.equal(parseRemoteState(JSON.stringify([await db.prepare(STAGING_D1_READ_QUERY).all()])).applied.length,2);
     const before=await snapshot(),dto=await(await fixtureWorker.fetch(new Request('https://fixture.invalid/api/progress'),{APP_ENV:'staging-fixtures',DB:db})).json();
     const dump=await db.prepare('PRAGMA miniflare_d1_export(?,?,?);').bind(false,false).raw();const sql=dump[0].join('\n');
     const verified=inspectSql(Buffer.from(sql),migrations);assert.equal(verified.counts.participants,2);
     restored=new DatabaseSync(':memory:',{enableForeignKeyConstraints:false});restored.exec(sql);
     for(const name of [...FIXTURE_TABLES,'d1_migrations'])assert.equal(JSON.stringify(restored.prepare(`SELECT * FROM ${name} ORDER BY rowid`).all()),JSON.stringify(before[name]));
     const statements=migrations[2].sql.split(';').map(s=>s.trim()).filter(Boolean).map(s=>db.prepare(s));statements.push(db.prepare('INSERT INTO d1_migrations(name) VALUES(?)').bind(MIGRATION_PINS[2].name));await db.batch(statements);
+    assert.equal(parseRemoteState(JSON.stringify([await db.prepare(STAGING_D1_READ_QUERY).all()]),{after:true}).applied.length,3);
     const after=await snapshot();for(const name of FIXTURE_TABLES)assert.deepEqual(after[name],before[name]);
     await assert.rejects(db.batch(statements));for(const name of FIXTURE_TABLES)assert.deepEqual((await snapshot())[name],before[name]);
     assert.deepEqual(await(await fixtureWorker.fetch(new Request('https://fixture.invalid/api/progress'),{APP_ENV:'staging-fixtures',DB:db})).json(),dto);
