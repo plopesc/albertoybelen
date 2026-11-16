@@ -1,4 +1,5 @@
 import test from'node:test';import assert from'node:assert/strict';import{readFileSync}from'node:fs';import{spawnSync}from'node:child_process';
+import{STAGING_D1_READ_QUERY}from'../scripts/lib/staging-d1-policy.mjs';
 import{validateStagingConfig,stagingCommand,stagingEnvironment}from'../scripts/lib/staging-config.mjs';import staging from'../backend/staging-entry.js';
 const config=()=>JSON.parse(readFileSync('wrangler.staging.jsonc','utf8'));
 const account={CLOUDFLARE_ACCOUNT_ID:'a'.repeat(32)};
@@ -14,14 +15,14 @@ test('cambiar cualquier destino a producción, añadir env/rutas/secretos o Cron
 
 test('operaciones remotas solo manuales, confirmadas y con cuenta seleccionada; sin overrides',()=>{
  assert.equal(stagingCommand(config(),['check']),null);assert.deepEqual(stagingCommand(config(),['dry-run']),['deploy','--dry-run','--outdir','dist']);
- assert.deepEqual(stagingCommand(config(),['migrate','--confirm-staging'],account),['d1','migrations','apply','DB','--remote']);assert.deepEqual(stagingCommand(config(),['list','--confirm-staging'],account),['d1','migrations','list','DB','--remote']);assert.deepEqual(stagingCommand(config(),['deploy','--confirm-staging'],account),['deploy']);
+ assert.throws(()=>stagingCommand(config(),['migrate','--confirm-staging'],account),/verified backup/);assert.deepEqual(stagingCommand(config(),['list','--confirm-staging'],account),['d1','execute','DB','--remote','--json','--command',STAGING_D1_READ_QUERY]);assert.deepEqual(stagingCommand(config(),['deploy','--confirm-staging'],account),['deploy']);
  for(const args of [['migrate'],['deploy'],['list'],['delete','--confirm-staging'],['deploy','--confirm-staging','--env','production'],['migrate','--confirm-staging','albertoybelen-db'],['dry-run','--config','other'],['check','--remote']])assert.throws(()=>stagingCommand(config(),args,account));
  for(const operation of ['list','migrate','deploy'])assert.throws(()=>stagingCommand(config(),[operation,'--confirm-staging'],{}),/ACCOUNT_ID/);
 });
 
 test('dry-run elimina credenciales Cloudflare/Strava y variables de selección de entorno',()=>{
- const original={PATH:'/bin',HOME:'/tmp/test',CLOUDFLARE_ACCOUNT_ID:account.CLOUDFLARE_ACCOUNT_ID,CLOUDFLARE_API_TOKEN:'fake-cloudflare-token',CLOUDFLARE_ENV:'production',WRANGLER_ENV:'production',STRAVA_CLIENT_SECRET:'fake-strava',TOKEN_ENCRYPTION_KEY:'fake-vault',PILOT_ENABLED:'enabled'};
- const local=stagingEnvironment(original,false);assert.equal(local.PATH,'/bin');assert.equal(local.HOME,original.HOME);assert.equal(local.CLOUDFLARE_API_TOKEN,undefined);assert.equal(local.CLOUDFLARE_ACCOUNT_ID,undefined);assert.equal(local.STRAVA_CLIENT_SECRET,undefined);assert.equal(local.TOKEN_ENCRYPTION_KEY,undefined);assert.equal(local.PILOT_ENABLED,undefined);assert.equal(local.WRANGLER_ENV,undefined);assert.equal(local.CLOUDFLARE_ENV,undefined);assert.equal(local.CLOUDFLARE_SEND_METRICS,'false');assert.equal(local.WRANGLER_LOG_PATH,'staging.log');
+ const original={CF_ACCOUNT_ID:'synthetic-legacy',CF_API_TOKEN:'synthetic-legacy',STAGING_OPERATOR_KEYS:'synthetic-private-policy',PATH:'/bin',HOME:'/tmp/test',CLOUDFLARE_ACCOUNT_ID:account.CLOUDFLARE_ACCOUNT_ID,CLOUDFLARE_API_TOKEN:'fake-cloudflare-token',CLOUDFLARE_ENV:'production',WRANGLER_ENV:'production',STRAVA_CLIENT_SECRET:'fake-strava',TOKEN_ENCRYPTION_KEY:'fake-vault',PILOT_ENABLED:'enabled'};
+ const local=stagingEnvironment(original,false);assert.equal(local.PATH,'/bin');assert.equal(local.HOME,original.HOME);assert.equal(local.CF_ACCOUNT_ID,undefined);assert.equal(local.CF_API_TOKEN,undefined);assert.equal(local.STAGING_OPERATOR_KEYS,undefined);assert.equal(local.CLOUDFLARE_API_TOKEN,undefined);assert.equal(local.CLOUDFLARE_ACCOUNT_ID,undefined);assert.equal(local.STRAVA_CLIENT_SECRET,undefined);assert.equal(local.TOKEN_ENCRYPTION_KEY,undefined);assert.equal(local.PILOT_ENABLED,undefined);assert.equal(local.WRANGLER_ENV,undefined);assert.equal(local.CLOUDFLARE_ENV,undefined);assert.equal(local.CLOUDFLARE_SEND_METRICS,'false');assert.equal(local.WRANGLER_LOG_PATH,'staging.log');
  const remote=stagingEnvironment(original,true);assert.equal(remote.CLOUDFLARE_API_TOKEN,'fake-cloudflare-token');assert.equal(remote.CLOUDFLARE_ACCOUNT_ID,account.CLOUDFLARE_ACCOUNT_ID);assert.equal(remote.CLOUDFLARE_ENV,undefined);assert.equal(remote.STRAVA_CLIENT_SECRET,undefined);assert.equal(original.STRAVA_CLIENT_SECRET,'fake-strava');
 });
 

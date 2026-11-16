@@ -223,8 +223,8 @@ cambios visuales de producto: se conserva la página de conexión de #41.
    archivo 0600 y checksum. No usar una selección de base arbitraria ni imprimir
    el SQL: puede contener datos privados/cifrados. Verificar esquema y legibilidad
    del backup local, custodiar las claves y acordar una prueba de restauración sin
-   sobreescribir remoto. El CLI de esta PR **no implementa export remoto**; revisar
-   la invocación protegida del propietario antes de autorizarla. No ejecutar esta
+   sobreescribir remoto. La [herramienta protegida de #46](staging-d1-backup.md) prepara export e inspección
+   locales/guardados para uso futuro; cada etapa requiere autorización. No ejecutar esta
    exportación para probar esta PR.
 6. **Migración 0003.** Tras backup válido, autorizar aparte listado/aplicación con
    el CLI staging existente y cuenta manual. Solo 0003 es nueva respecto al estado
@@ -235,7 +235,7 @@ cambios visuales de producto: se conserva la página de conexión de #41.
    ```sh
    # AUTORIZACIÓN REMOTA SEPARADA Y CUENTA VERIFICADA:
    # npm run staging -- list --confirm-staging
-   # npm run staging -- migrate --confirm-staging
+   # npm run staging -- migrate BACKUP_ID_24_HEX --confirm-staging
    ```
 
 7. **Release manual protegida.** Autorizar en una fase posterior el comando remoto
