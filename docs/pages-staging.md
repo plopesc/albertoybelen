@@ -17,10 +17,17 @@ La URL del Worker está fijada en el código frontend y la validación exige el
 host `plopesc.github.io`, la ruta `/albertoybelen/` y el parámetro único
 `pages-staging=strava`. El perfil no acepta fixtures. La API remota solo permite
 ser leída por este origen desde navegador; Worker y backend no reciben
-credenciales del navegador. El navegador envía un GET sin cookies ni
-Authorization. El Worker responde `Access-Control-Allow-Origin` únicamente para
+credenciales del navegador. El navegador envía un GET sin cookies,
+Authorization ni `Referer`. El Worker responde `Access-Control-Allow-Origin` únicamente para
 ese GET agregado y ese origen; no habilita preflight ni CORS para administración,
 OAuth u otras rutas. La lectura directa sin `Origin` sigue siendo pública.
+
+Algunos navegadores añaden UTM al enlace. En este opt-in se permiten solo
+`utm_source`, `utm_medium`, `utm_campaign`, `utm_content` y `utm_term`, una vez
+cada uno y con valores breves de texto. Se ignoran por completo; no se añaden a
+las peticiones. Por ejemplo, también funciona
+`?pages-staging=strava&utm_source=chatgpt.com`. Claves desconocidas, duplicadas,
+valores excesivos y UTM fuera del enlace Pages de prueba se rechazan.
 
 ## Privacidad y publicación
 

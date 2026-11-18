@@ -22,8 +22,8 @@ test('endpoint mismo origen HTTPS, subdirectorio Pages y fixtures locales explí
  assert.throws(()=>resolveProgressEndpoint('/api/progress','https://plopesc.github.io/albertoybelen/',true));
 });
 
-test('proveedor no usa storage ni credenciales, sin caché y GET público únicamente',async()=>{
- let calls=0;const p=createHttpProgressProvider({...settings,fetchProgress:async(url,options)=>{calls++;assert.equal(url,'https://albertoybelen.ddev.site/api/progress');assert.equal(options.credentials,'omit');assert.equal(options.cache,'no-store');assert.equal(options.redirect,'error');return Response.json(dto());}});
+test('proveedor no usa storage ni credenciales, sin caché ni referrer y GET público únicamente',async()=>{
+ let calls=0;const p=createHttpProgressProvider({...settings,fetchProgress:async(url,options)=>{calls++;assert.equal(url,'https://albertoybelen.ddev.site/api/progress');assert.equal(options.credentials,'omit');assert.equal(options.cache,'no-store');assert.equal(options.redirect,'error');assert.equal(options.referrerPolicy,'no-referrer');return Response.json(dto());}});
  assert.equal(p.getState().snapshot,null);const statuses=[];p.subscribe(s=>statuses.push(s.status));await p.refresh();assert.deepEqual(statuses,['loading','ready']);assert.equal(calls,1);assert.equal(p.getState().snapshot.distanceKm,25.125);
  const copy=p.getState();copy.snapshot.distanceKm=999;assert.equal(p.getState().snapshot.distanceKm,25.125);
 });
