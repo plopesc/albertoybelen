@@ -35,6 +35,7 @@ definitivos del reto**. El título conserva los nombres de Alberto y Belén.
 | `game.startDate` | Fecha existente en formato exacto `YYYY-MM-DD`; admite años 0001–9999 y comprueba años bisiestos. |
 | `game.timeZone` | Zona horaria reconocida por `Intl.DateTimeFormat`, como `UTC` o `Europe/Madrid`. Opcional: por defecto `UTC`. |
 | `game.mode` | Exactamente `simulation` o `real`, en minúsculas. No hay selección automática ni modo de reserva. |
+| `game.presentation` | Opcional: `standard` (predeterminado) o `live`. `live` requiere `mode: "real"` y una API configurada; no se activa con parámetros de URL. |
 | `rewards.milestones` | Lista opcional de objetos `{id, percent, image?, title?, alt?}`. IDs únicos con el mismo formato que `game.id`; `finish` está reservado. Porcentajes únicos, crecientes y entre 0 y 100 sin extremos. Por defecto 20/40/60/80 con IDs `milestone-20`, etc. `[]` muestra solo salida y meta. |
 | `rewards.finish` | Si se incluye, debe ser el número 100. |
 
@@ -107,6 +108,17 @@ se ocultan el marcador, la barra y los controles de simulación. No se lee ni
 escribe su almacenamiento y no se atribuyen kilómetros simulados al modo real.
 El selector de proveedor devuelve ausencia de proveedor real hasta que exista
 una integración expresamente autorizada.
+
+Un perfil de API que se prepare para la interfaz pública definitiva puede
+añadir `"presentation": "live"` dentro de `game`. Ese valor solo se acepta
+con `mode: "real"` y `api` configurados; las etiquetas y controles técnicos se
+conservan en los perfiles estándar de staging. La vista live oculta la fuente
+técnica, el selector de modo, la actualización manual, la instrucción interna y
+el mensaje redundante de kilómetros. Mantiene los estados de carga, conexión,
+datos parciales o desactualizados, además de la actualización conocida. Al
+volver a una pestaña en segundo plano consulta una vez el progreso y no hace
+sondeos periódicos. La configuración actual de simulación y el perfil Pages
+staging no activan esa presentación.
 
 Si falta el archivo, hay un error HTTP/de red, JSON mal formado o un campo
 inválido, la interfaz muestra un mensaje de error y la partida no arranca. No se

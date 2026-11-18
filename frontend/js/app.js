@@ -11,7 +11,9 @@ let provider;
 let history;
 let reveals;
 let usingApi = false;
+let livePresentation = false;
 const number = new Intl.NumberFormat('es-ES', { maximumSignificantDigits: 12 });
+const distanceNumber = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const percentageNumber = new Intl.NumberFormat('es-ES', { maximumFractionDigits: 1 });
 const $ = (id) => document.getElementById(id);
 const gameTitle = document.createElement('span');
@@ -105,9 +107,9 @@ reducedMotion.addEventListener('change', () => {
 
 function render(state, animate = true) {
   const result = calculateProgress(state.distanceKm, state.goalKm);
-  $('distance').textContent = number.format(result.distanceKm);
+  $('distance').textContent = distanceNumber.format(result.distanceKm);
   $('goal').textContent = number.format(result.goalKm);
-  $('remaining').textContent = number.format(result.remainingKm);
+  $('remaining').textContent = distanceNumber.format(result.remainingKm);
   $('percentage').textContent = `${percentageNumber.format(result.percentage)} %`;
   $('progress').value = result.percentage;
   $('progress').textContent = `${percentageNumber.format(result.percentage)} %`;
@@ -124,7 +126,7 @@ function render(state, animate = true) {
     : 'No se ha podido leer o guardar todo el avance y los hitos. Puedes seguir; los cambios podrían perderse al recargar.';
   $('traveler').setAttribute('visibility', 'visible');
   moveTraveler(result.ratio, animate);
-  if (animate) $('status').textContent = `${number.format(result.distanceKm)} km recorridos. ${percentageNumber.format(result.percentage)} % completado. ${$('journey-message').textContent} ${milestoneDescription}`;
+  if (animate) $('status').textContent = `${distanceNumber.format(result.distanceKm)} km recorridos. ${percentageNumber.format(result.percentage)} % completado. ${livePresentation ? result.complete ? '¡Reto completado!' : '' : $('journey-message').textContent} ${milestoneDescription}`;
 }
 
 function showNotice(message, error = false) {
@@ -138,6 +140,9 @@ function showNotice(message, error = false) {
 async function start() {
   try {
     const { game, rewards, api } = await loadRuntimeConfig();
+    livePresentation = game.presentation === 'live';
+    document.body.classList.toggle('live-presentation', livePresentation);
+    if (livePresentation) document.querySelector('.intro .eyebrow').textContent = 'NUESTRO RECORRIDO';
     document.title = game.title;
     $('game-title').textContent = game.title;
     $('goal').textContent = number.format(game.goalKm);
@@ -246,13 +251,20 @@ function startReal(game, rewards, api) {
         : `${snapshot.partial ? 'Progreso parcial. Conexión o carga de datos pendiente.' : 'Datos completos.'} ${snapshot.stale ? 'Actualización pendiente. Se conserva el último progreso válido.' : 'Datos actualizados.'}`;
     } else {
       $('api-source').textContent = staging ? stagingSource : 'API · SIN DATOS';
-      $('api-state').textContent = error === 'timeout' ? 'La API no ha respondido a tiempo. Puedes volver a actualizar.' : 'Sin conexión o sin datos válidos. Puedes volver a actualizar.';
+      $('api-state').textContent = livePresentation
+        ? error === 'timeout' ? 'No se pudo actualizar a tiempo. Se conserva el último progreso disponible y se volverá a comprobar al regresar a esta página.' : 'No se pudo cargar el progreso. Se conserva el último dato válido y se volverá a comprobar al regresar a esta página.'
+        : error === 'timeout' ? 'La API no ha respondido a tiempo. Puedes volver a actualizar.' : 'Sin conexión o sin datos válidos. Puedes volver a actualizar.';
       $('journey-message').textContent = 'Progreso pendiente de la API.';
       $('map-description').textContent = `Mapa ilustrativo. Sin progreso disponible. ${renderMilestones(null)}`;
     }
     $('api-state').setAttribute('role', status === 'error' ? 'alert' : 'status');
   });
   $('journey-message').textContent = 'Esperando datos de la API.';
+  let wasHidden = document.visibilityState === 'hidden';
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') wasHidden = true;
+    else if (wasHidden) { wasHidden = false; provider.refresh(); }
+  });
   provider.refresh();
 }
 

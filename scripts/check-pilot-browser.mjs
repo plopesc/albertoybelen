@@ -57,16 +57,16 @@ try{
   const credentials=await pilot.service.credentials('slot-a');assert.equal(typeof credentials.accessToken,'string');
   const settled=()=>page.waitForFunction(()=>document.getElementById('api-card').dataset.state==='ready');
   const refresh=async()=>{const before=requests;await page.locator('#api-refresh').click();await settled();assert.equal(requests,before);};
-  await page.goto(`${PILOT_ORIGIN}/frontend/?local-api=1`);await settled();assert.equal(await page.locator('#distance').innerText(),'2,2345');assert.equal(await page.locator('#goal').innerText(),'500');assert.match(await page.locator('#api-state').innerText(),/parcial/);assert.equal(await page.locator('#simulation-card').isVisible(),false);
+  await page.goto(`${PILOT_ORIGIN}/frontend/?local-api=1`);await settled();assert.equal(await page.locator('#distance').innerText(),'2,23');assert.equal(await page.locator('#goal').innerText(),'500');assert.match(await page.locator('#api-state').innerText(),/parcial/);assert.equal(await page.locator('#simulation-card').isVisible(),false);
   rows=[{...pilotRows()[0],distance:600000}];pilot=openPilot();await pilot.sync();await refresh();
   while(await page.locator('#milestone-dialog').isVisible()){if(await page.locator('#reward-next').isVisible())await page.locator('#reward-next').click();else await page.locator('#reward-close').click();}
-  assert.equal(await page.locator('#percentage').innerText(),'100 %');assert.equal(await page.locator('#remaining').innerText(),'0');
-  rows=[{...pilotRows()[0],distance:20000}];pilot=openPilot();await pilot.sync();await refresh();assert.equal(await page.locator('#distance').innerText(),'20');assert.equal(await page.locator('#completion-card').isVisible(),true);
+  assert.equal(await page.locator('#percentage').innerText(),'100 %');assert.equal(await page.locator('#remaining').innerText(),'0,00');
+  rows=[{...pilotRows()[0],distance:20000}];pilot=openPilot();await pilot.sync();await refresh();assert.equal(await page.locator('#distance').innerText(),'20,00');assert.equal(await page.locator('#completion-card').isVisible(),true);
   await page.reload();await settled();assert.equal(await page.locator('#milestone-dialog').isVisible(),false);
-  activityStatus=429;pilot=openPilot();await pilot.sync();await refresh();assert.match(await page.locator('#api-state').innerText(),/Actualización pendiente/);assert.equal(await page.locator('#distance').innerText(),'20');
+  activityStatus=429;pilot=openPilot();await pilot.sync();await refresh();assert.match(await page.locator('#api-state').innerText(),/Actualización pendiente/);assert.equal(await page.locator('#distance').innerText(),'20,00');
   const stopped=requests;pilot=openPilot();await pilot.sync();assert.equal(requests,stopped);await pilot.refresh();assert.equal(requests,stopped);
   await pilot.revoke();await refresh();assert.equal(requests,stopped);assert.deepEqual((await pilot.repository.read()).state.sealedTokens,{});
-  await pilot.erase();await refresh();assert.equal(await page.locator('#distance').innerText(),'0');assert.equal(await page.locator('#completion-card').isVisible(),false);
+  await pilot.erase();await refresh();assert.equal(await page.locator('#distance').innerText(),'0,00');assert.equal(await page.locator('#completion-card').isVisible(),false);
   const clean=(await pilot.repository.read()).state;assert.deepEqual(clean.auth.invitations,{});assert.deepEqual(clean.auth.attempts,{});assert.deepEqual(clean.oauthSessions,{});assert.equal(Object.keys(clean.metadata).length,0);
   const output=resolve('artifacts/phase-a');await mkdir(output,{recursive:true});await writeFile(join(output,'evidence.json'),JSON.stringify({phase:'A',synthetic:true,realStravaRequests:0,interceptedRequests:requests,oauthCiphertext:true,map:true,partial:true,history:true,rateLimit:true,revoked:true,erased:true,phaseB:'pending-authorization'},null,2));
  }
