@@ -36,6 +36,8 @@ jobs:
         with:
           node-version: '24'
           package-manager-cache: false
+      - name: Instalar dependencias fijadas
+        run: npm ci
       - name: Comprobar el frontend antes de publicar
         run: |
           for module in frontend/js/*.js; do node --check "$module"; done
