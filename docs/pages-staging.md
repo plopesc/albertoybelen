@@ -47,10 +47,17 @@ incluyen CORS.
 
 La publicación Pages sigue bajo control del propietario mediante la variable
 `PAGES_TEST_DEPLOY_ENABLED` del workflow existente. No habilitarla ni ejecutar
-`workflow_dispatch` sin autorización específica de publicación. Una vez
-autorizado, publicar la rama revisada desde `main`, abrir el enlace anterior en
-móvil y escritorio, y confirmar que la ruta raíz `/albertoybelen/` sigue en
-modo simulado. No cambiar el objetivo definitivo ni la fecha del juego público.
+`workflow_dispatch` sin autorización específica de publicación. Una vez aprobada
+la PR, fusionada por la persona responsable y autorizada la publicación, con la
+variable ya habilitada, el comando manual existente es:
+
+```sh
+gh workflow run pages.yml --repo plopesc/albertoybelen --ref main
+```
+
+Después, abrir el enlace anterior en móvil y escritorio, y confirmar que la ruta
+raíz `/albertoybelen/` sigue en modo simulado. No cambiar el objetivo definitivo
+ni la fecha del juego público.
 
 ## Comprobaciones locales
 
