@@ -156,7 +156,7 @@ async (page) => {
   await blocked.goto(page.url());
   await blocked.locator('#simulation-card').waitFor({ state: 'visible' });
   await blocked.getByRole('button', { name: '+5 km', exact: true }).click();
-  assert(await blocked.locator('#distance').textContent() === '5', 'Debe funcionar sin almacenamiento');
+  assert(await blocked.locator('#distance').textContent() === '5,00', 'Debe funcionar sin almacenamiento');
   assert((await blocked.locator('#storage-note').textContent()).includes('podrían perderse'), 'Debe avisar de persistencia bloqueada');
   await blocked.close();
   await page.unroute(configUrl); await page.reload();

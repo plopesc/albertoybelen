@@ -7,7 +7,7 @@ export function validateGameConfig(value) {
   if (!isObject(value) || !isObject(value.game)) {
     throw new Error('La configuración debe incluir el objeto game.');
   }
-  const { id = 'alberto-belen', title, goalKm, startDate, mode, timeZone = 'UTC' } = value.game;
+  const { id = 'alberto-belen', title, goalKm, startDate, mode, timeZone = 'UTC', presentation = 'standard' } = value.game;
   if (typeof id !== 'string' || !/^[a-z][a-z0-9-]{0,63}$/.test(id)) throw new Error('game.id debe ser un identificador estable con letras minúsculas, números y guiones.');
   if (typeof title !== 'string' || !title.trim()) {
     throw new Error('game.title debe ser un texto no vacío.');
@@ -25,6 +25,8 @@ export function validateGameConfig(value) {
   if (mode !== 'simulation' && mode !== 'real') {
     throw new Error('game.mode debe ser exactamente simulation o real.');
   }
+  if (presentation !== 'standard' && presentation !== 'live') throw new Error('game.presentation debe ser standard o live.');
+  if (presentation === 'live' && mode !== 'real') throw new Error('game.presentation live requiere modo real.');
   try {
     if (typeof timeZone !== 'string' || !timeZone.trim()) throw new Error();
     new Intl.DateTimeFormat('es-ES', { timeZone });
@@ -62,8 +64,9 @@ export function validateGameConfig(value) {
     if (!isObject(value.api) || Object.keys(value.api).some(key => !['url','allowFixtures'].includes(key)) || typeof value.api.url !== 'string' || !value.api.url || typeof value.api.allowFixtures !== 'boolean') throw new Error('api requiere url y allowFixtures válidos.');
     api = Object.freeze({ url: value.api.url, allowFixtures: value.api.allowFixtures });
   }
+  if (presentation === 'live' && !api) throw new Error('game.presentation live requiere una API configurada.');
   return Object.freeze({
-    game: Object.freeze({ id, title: title.trim(), goalKm, startDate, timeZone, mode }),
+    game: Object.freeze({ id, title: title.trim(), goalKm, startDate, timeZone, mode, presentation }),
     rewards: Object.freeze({ milestones: Object.freeze([...milestones]), finish }),
     ...(api ? { api } : {}),
   });

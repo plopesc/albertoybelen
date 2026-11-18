@@ -53,7 +53,8 @@
     "staging:mvp": "node scripts/staging-mvp.mjs",
     "test:staging:mvp": "node --test tests/staging-mvp.test.js tests/d1/staging-mvp-runtime.test.js",
     "test:staging:mvp:browser": "node scripts/check-staging-mvp-browser.mjs",
-    "test:pages:staging:browser": "node scripts/check-pages-staging-browser.mjs"
+    "test:pages:staging:browser": "node scripts/check-pages-staging-browser.mjs",
+    "test:live-ui:browser": "node scripts/check-live-ui-browser.mjs"
   },
   "engines": {
     "node": ">=24"

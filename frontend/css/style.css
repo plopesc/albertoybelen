@@ -54,7 +54,7 @@ progress::-moz-progress-bar { background: var(--accent); }
 .stats { display: grid; grid-template-columns: 1fr 1fr; margin: 0; gap: 12px; }
 .stats > div + div { border-left: 1px solid var(--line); padding-left: 16px; }
 .stats dt { color: var(--muted); font: 10px ui-monospace, monospace; margin-bottom: 8px; }
-.stats dd { font: bold 27px ui-monospace, monospace; margin: 0; overflow-wrap: anywhere; }
+.stats dd { font: bold clamp(18px, 5vw, 27px) ui-monospace, monospace; margin: 0; white-space: nowrap; }
 .stats small { font-size: 12px; font-weight: 400; }
 .journey-message { border-top: 1px solid var(--line); padding-top: 16px; margin: 20px 0 12px; color: var(--muted); font-size: 12px; line-height: 1.6; }
 .controls-link { display: inline-block; padding-block: 6px; color: var(--accent); }
@@ -171,3 +171,15 @@ body:has(.reward-dialog[open]) { overflow: hidden; }
 .api-card button:focus-visible { outline: 3px solid #fff0c3; outline-offset: 4px; }
 .api-card button:disabled { opacity: .65; cursor: wait; }
 .api-card[data-state="error"] #api-state { color: #ffe0ba; }
+
+/* La fuente y los controles de diagnóstico permanecen disponibles en staging.
+   Solo el perfil explícito live usa la presentación pública simplificada. */
+body.live-presentation header.site-header .mode,
+body.live-presentation #api-source,
+body.live-presentation #api-refresh,
+body.live-presentation #api-instruction,
+body.live-presentation #journey-message,
+body.live-presentation #data-source { display: none; }
+body.live-presentation .api-card { margin-top: 18px; }
+body.live-presentation .distance > span:first-child { white-space: nowrap; overflow-wrap: normal; font-size: clamp(36px, 10vw, 64px); }
+body.live-presentation .distance > span:last-child { white-space: nowrap; }

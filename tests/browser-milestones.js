@@ -104,7 +104,7 @@ async page => {
 
     configured.game.goalKm = 500; await distance(500); await reload(); await isClosed();
     configured.game.goalKm = 700; await reload(); await isClosed();
-    assert(await page.locator('#distance').textContent() === '500', 'Cambiar meta conserva kilómetros');
+    assert(await page.locator('#distance').textContent() === '500,00', 'Cambiar meta conserva kilómetros');
     assert((await page.locator('#unlocks-note').textContent()).includes('Meta conseguida anteriormente'), 'Distinguir meta histórica del porcentaje actual');
     assert(await node('milestone-80').getAttribute('aria-disabled') === 'false', '80 % histórico sigue disponible con meta más alta');
     await node('milestone-80').click(); await reveal('milestone-80'); await close();

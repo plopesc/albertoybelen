@@ -50,6 +50,16 @@ test('valida zona horaria explícita y modo real sin cambiarlo a simulación', (
     assert.throws(() => validateGameConfig(input), /timeZone/);
   }
 });
+test('solo activa presentación live desde un perfil real con API configurada', () => {
+  const live = config(); live.game.mode = 'real'; live.game.presentation = 'live'; live.api = { url: '/api/progress', allowFixtures: false };
+  assert.equal(validateGameConfig(live).game.presentation, 'live');
+  const invalid = structuredClone(live); invalid.game.mode = 'simulation';
+  assert.throws(() => validateGameConfig(invalid), /presentation live requiere modo real/);
+  const withoutApi = structuredClone(live); delete withoutApi.api;
+  assert.throws(() => validateGameConfig(withoutApi), /presentation live requiere una API/);
+  const unknown = structuredClone(live); unknown.game.presentation = 'staging';
+  assert.throws(() => validateGameConfig(unknown), /game.presentation/);
+});
 test('valida hitos opcionales, orden, límites y meta fija', () => {
   for (const milestones of [[], [25, 50, 75], [0.1, 99.9]]) {
     const input = config(); input.rewards = { milestones, finish: 100 };
