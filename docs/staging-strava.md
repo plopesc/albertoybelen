@@ -1,5 +1,7 @@
 # Staging OAuth y sincronización: preparación local (#40)
 
+> Para la primera cuenta real, seguir el [MVP de un solo Worker (#50)](staging-mvp.md). Los planes de operador/Ed25519 descritos aquí son legacy inactivo; no son requisito del MVP.
+
 **Política vigente #44 (16/11/2026): una app existente, staging como destino OAuth
 real exclusivo y DDEV aparcado.** Véase el [preflight y transición](staging-transition.md).
 No se cambia el callback real ni se ejecuta esta transición desde estas guías.

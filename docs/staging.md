@@ -1,5 +1,7 @@
 # Staging independiente: preparación y operación manual desde Ubuntu
 
+> Estado posterior comunicado en #50: el propietario ya aplicó 0003 y confirmó `pending: []`. No repetir migraciones ni exigir un backup adicional para el [MVP de un Worker](staging-mvp.md). El historial de preparación/lecturas anteriores de esta guía no sustituye esa decisión posterior.
+
 Esta PR prepara archivos y comandos. **No se han ejecutado migraciones remotas,
 consultas a recursos remotos ni despliegues.** El ID de D1 procede del propietario;
 no se ha comprobado su existencia, estado ni permisos en Cloudflare.

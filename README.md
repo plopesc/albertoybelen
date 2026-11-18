@@ -542,3 +542,7 @@ con `npm run staging -- d1-check` y `npm run staging -- d1-plan`, sin red.
 El flujo remoto futuro usa etapas separadas y backup privado verificado;
 `migrate --confirm-staging` sin ID de backup está bloqueado. No se ha hecho ningún
 export real ni aplicado 0003 remotamente. Pruebas: `npm run test:staging:d1`.
+
+### Primera cuenta Strava en staging (un Worker)
+
+La [guía MVP de staging](docs/staging-mvp.md) prepara secretos nuevos, invitaciones, OAuth y sync manual con el backend existente. `npm run staging:mvp -- check` y `npm run staging:mvp -- dry-run` son locales; `npm run test:staging:mvp` y `npm run test:staging:mvp:browser` usan D1 temporal y mocks. Secretos, deploy y conexión real quedan para ejecución manual posterior. El visor opt-in `?staging-api=strava` muestra «STAGING · STRAVA» y rechaza fixtures.
