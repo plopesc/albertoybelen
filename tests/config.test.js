@@ -69,6 +69,7 @@ test('carga con URL relativa al módulo y evita caché del navegador', async () 
     assert.equal(url, CONFIG_URL);
     assert.ok(url.pathname.endsWith('/frontend/config/game.json'));
     assert.equal(options.cache, 'no-store');
+    assert.equal(options.referrerPolicy, 'no-referrer');
     return { ok: true, json: async () => config() };
   });
   assert.equal(result.game.goalKm, 100);

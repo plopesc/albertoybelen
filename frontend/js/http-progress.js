@@ -2,6 +2,25 @@ const publicKeys = ['schemaVersion','source','distanceKm','partial','stale','upd
 export const MAX_UNLOCKED_IDS = 256;
 // Independent code allowlist: public config cannot authorize another remote host.
 export const PAGES_STAGING_PROGRESS_URL = 'https://albertoybelen-api-staging.autumn-dream-2a39.workers.dev/api/progress';
+export const PAGES_TRACKING_KEYS = Object.freeze(['utm_source','utm_medium','utm_campaign','utm_content','utm_term']);
+const pagesOrigin='https://plopesc.github.io',pagesPath='/albertoybelen/';
+const validTrackingValue=value=>typeof value==='string'&&value.length<=100&&/^[A-Za-z0-9](?:[A-Za-z0-9._~ -]{0,98}[A-Za-z0-9])?$/.test(value);
+export function hasPagesTrackingParams(pageUrl) {
+  const page=pageUrl instanceof URL?pageUrl:new URL(pageUrl);
+  return PAGES_TRACKING_KEYS.some(key=>page.searchParams.has(key));
+}
+export function isPagesStagingPage(pageUrl) {
+  const page=pageUrl instanceof URL?pageUrl:new URL(pageUrl);
+  if(page.origin!==pagesOrigin||!page.pathname.startsWith(pagesPath)||page.hash||page.search.length>1024)return false;
+  const values=new Map();
+  for(const [key,value]of page.searchParams){
+    if(key!=='pages-staging'&&!PAGES_TRACKING_KEYS.includes(key))return false;
+    if(values.has(key))return false;
+    values.set(key,value);
+  }
+  if(values.get('pages-staging')!=='strava')return false;
+  return PAGES_TRACKING_KEYS.every(key=>!values.has(key)||validTrackingValue(values.get(key)));
+}
 export const validRewardId = id => typeof id === 'string' && /^[a-z][a-z0-9-]{0,63}$/.test(id);
 const validInstant = value => {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d{1,3})?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/.test(value) || !Number.isFinite(Date.parse(value))) return false;
@@ -12,7 +31,7 @@ export function resolveProgressEndpoint(address, pageUrl, allowFixtures = false)
   const page = new URL(pageUrl), url = new URL(address, page);
   const local = ['albertoybelen.ddev.site','localhost','127.0.0.1','[::1]'].includes(page.hostname);
   const loopback = ['localhost','127.0.0.1','[::1]'].includes(page.hostname);
-  const pagesStaging = page.origin === 'https://plopesc.github.io' && page.pathname.startsWith('/albertoybelen/') && page.searchParams.getAll('pages-staging').length === 1 && page.searchParams.get('pages-staging') === 'strava' && !page.searchParams.has('local-api') && !page.searchParams.has('staging-api') && [...page.searchParams.keys()].every(key => key === 'pages-staging') && !page.hash;
+  const pagesStaging = isPagesStagingPage(page);
   if (pagesStaging && address === PAGES_STAGING_PROGRESS_URL && url.href === PAGES_STAGING_PROGRESS_URL && !allowFixtures) return url.href;
   const permittedPath = url.pathname === '/api/progress' || (local && allowFixtures && url.pathname === '/api/staging/progress') || (local && !allowFixtures && url.pathname === '/api/staging/strava-progress');
   if (url.origin !== page.origin || (url.protocol !== 'https:' && !(loopback && url.protocol === 'http:')) || url.username || url.password || url.search || url.hash || !permittedPath || (allowFixtures && !local)) throw new Error('La API debe usar el origen y la ruta permitidos.');
@@ -53,7 +72,7 @@ export function createHttpProgressProvider({ url, pageUrl, allowFixtures = false
       state = { ...state, status: 'loading', error: null }; emit();
       try {
         const work = (async () => {
-          const response = await fetchProgress(endpoint, { cache: 'no-store', credentials: 'omit', redirect: 'error', signal: controller.signal, headers: { Accept: 'application/json' } });
+          const response = await fetchProgress(endpoint, { cache: 'no-store', credentials: 'omit', redirect: 'error', referrerPolicy: 'no-referrer', signal: controller.signal, headers: { Accept: 'application/json' } });
           if (response.status !== 200) throw new Error('unavailable');
           const reader = response.body?.getReader();
           if (!reader) throw new Error('invalid_response');

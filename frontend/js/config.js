@@ -72,7 +72,7 @@ export function validateGameConfig(value) {
 export async function loadGameConfig(fetchConfig = globalThis.fetch, configUrl = CONFIG_URL) {
   let response;
   try {
-    response = await fetchConfig(configUrl, { cache: 'no-store' });
+    response = await fetchConfig(configUrl, { cache: 'no-store', referrerPolicy: 'no-referrer' });
   } catch (cause) {
     throw new Error('No se pudo descargar config/game.json. Comprueba la conexión o el archivo.', { cause });
   }
