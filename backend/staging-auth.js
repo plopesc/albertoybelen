@@ -8,6 +8,7 @@ import {createWorker} from './worker.js';
 import {createActivitySync} from './activity-sync.js';
 import {createActivityClient} from './strava-activities.js';
 import {createPilotTransport} from './pilot-budget.js';
+import {stagingOperatorState,automaticSyncStatus} from './staging-operator-state.js';
 import {STAGING_AUTH_ORIGIN as origin,STAGING_AUTH_DATASET as dataset,STAGING_AUTH_SETTINGS as settings,STAGING_AUTH_ENABLE,STAGING_NETWORK_ENABLE,STAGING_AUTH_LIMITS as limits} from './staging-auth-settings.js';
 
 /** Capabilities for trusted server code; HTTP exposure requires a separate authenticated adapter. */
@@ -62,10 +63,15 @@ export function createStagingAuth(env,{fetchProvider,clock=Date.now,progressOrig
         if(!ok)throw Error('invalid_invitation');
         return `${origin}/invite#${token}`;
       },
-      async sync({actor,fence=()=>true}) {
-        owner(actor);await networkReady();
-        const initial=(await repository.read()).state,epoch=initial.stagingOperator?.epoch??0;
-        return createActivitySync({repository,oauth:service,clock,client:syncClient,snapshotOptions:{maxPages:limits.maxPages,maxRecords:limits.maxRecords},allowed:state=>state.stagingOperator?.syncDisabled!==true&&(state.stagingOperator?.epoch??0)===epoch&&fence(state)}).run();
+      async sync({actor,fence=()=>true,automatic=false}) {
+        owner(actor);await ready();
+        const initial=(await repository.read()).state,hasOperator=Boolean(initial.stagingOperator),initialControl=hasOperator?stagingOperatorState(initial):null,epoch=initialControl?.epoch??0,autoSyncEpoch=initialControl?.autoSyncEpoch??0;
+        if(initialControl?.syncDisabled===true||automatic&&initialControl?.autoSyncEnabled!==true)return{status:'disabled'};
+        await networkReady();
+        const allowed=state=>{const c=state.stagingOperator?stagingOperatorState(state):null;return (c?!c.syncDisabled:!automatic)&&(c?.epoch??0)===epoch&&(!automatic||(c?.autoSyncEnabled===true&&c.autoSyncEpoch===autoSyncEpoch))&&fence(state);};
+        const result=await createActivitySync({repository,oauth:service,clock,client:syncClient,snapshotOptions:{maxPages:limits.maxPages,maxRecords:limits.maxRecords},allowed}).run();
+        if(automatic)await repository.updatePrivate(state=>{const c=stagingOperatorState(state);if(c.autoSyncEnabled&&c.autoSyncEpoch===autoSyncEpoch)c.lastAutomaticSync={at:new Date(clock()).toISOString(),status:automaticSyncStatus(result.status)};});
+        return result;
       },
       async revoke({actor,slot}) {owner(actor);await ready();return repository.transitionAuth({type:'revoke',actor,slot,now:clock()});},
       async erase({actor,slot,verified=false,purgeMilestones=false}) {

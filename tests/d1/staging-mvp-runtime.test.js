@@ -1,7 +1,7 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {mvpRuntime} from '../helpers/staging-mvp-runtime.js';
 import {mvpCommand} from '../../scripts/lib/staging-mvp-client.mjs';
-import {MVP_ORIGIN} from '../../backend/staging-mvp-policy.js';
+import {MVP_AUTO_SYNC_CRON,MVP_ORIGIN} from '../../backend/staging-mvp-policy.js';
 import fixture from '../../backend/staging-entry.js';
 import {createD1Repository} from '../../backend/d1/repository.js';
 
@@ -25,6 +25,38 @@ test('MVP único workerd/D1 temporal: invitación, OAuth cifrado, sync manual, r
   assert.equal((await f.execute({type:'disable-sync'})).status,'disabled');assert.equal((await f.execute({type:'sync'})).status,'disabled');
   assert.deepEqual(await createD1Repository(f.db).read(),old);
   dto=await(await fixture.fetch(new Request('https://fixture.invalid/api/progress'),{APP_ENV:'staging-fixtures',DB:f.db})).json();assert.equal(dto.source,'fixture');
+ }finally{await f.close();}
+});
+
+test('scheduled UTC usa D1 existente, se mantiene OFF, respeta lease y budget con una o dos cuentas',async()=>{
+ const f=await mvpRuntime();try {
+  async function connect(slot,id){
+   const issued=await f.execute({type:'issue',slot,expectedAthleteId:id});assert.equal(issued.status,'issued');
+   const invite=await f.request('/invite'),cookie=invite.headers.get('Set-Cookie').split(';')[0];
+   const start=await f.request('/invite/start',{method:'POST',headers:{Origin:MVP_ORIGIN,Cookie:cookie,'Content-Type':'application/json'},body:JSON.stringify({token:new URL(issued.invitation).hash.slice(1)})});const authorize=new URL((await start.json()).authorizeUrl);
+   const callback=await f.request(`/oauth/callback?${new URLSearchParams({state:authorize.searchParams.get('state'),code:`synthetic-code-${id}`,scope:'activity:read_all'})}`,{headers:{Cookie:cookie}});assert.equal(callback.status,303);
+  }
+  let status=await f.execute({type:'status'});assert.equal(status.autoSyncEnabled,false);assert.equal(status.syncDisabled,true);assert.equal(status.lastAutomaticSync,null);
+  assert.equal((await f.execute({type:'enable-auto-sync',confirmation:'enable-staging-auto-sync'})).status,'enabled');
+  const beforeSyncEnabled=await f.requestCount();assert.equal((await f.scheduled()).outcome,'ok');assert.equal(await f.requestCount(),beforeSyncEnabled);status=await f.execute({type:'status'});assert.equal(status.syncDisabled,true);assert.equal(status.autoSyncEnabled,true);assert.equal(status.lastAutomaticSync,null);
+  assert.equal((await f.execute({type:'enable-sync',confirmation:'enable-staging-sync'})).status,'enabled');
+  const beforeNoAccounts=await f.requestCount();assert.equal((await f.scheduled()).outcome,'ok');assert.equal(await f.requestCount(),beforeNoAccounts);status=await f.execute({type:'status'});assert.equal(status.lastAutomaticSync.status,'idle');
+  assert.equal((await f.execute({type:'disable-auto-sync'})).status,'disabled');await connect('slot-a',101);
+  const beforeOff=await f.requestCount();assert.equal((await f.scheduled('0 0 * * *')).outcome,'ok');assert.equal((await f.scheduled()).outcome,'ok');assert.equal(await f.requestCount(),beforeOff);
+  const offStatus=await f.execute({type:'status'});assert.equal(offStatus.autoSyncEnabled,false);assert.equal(offStatus.syncDisabled,false);assert.equal(offStatus.lastAutomaticSync.status,'idle');
+  assert.equal((await f.execute({type:'enable-auto-sync',confirmation:'enable-staging-auto-sync'})).status,'enabled');
+  assert.equal((await f.scheduled()).outcome,'ok');status=await f.execute({type:'status'});assert.equal(status.progress.distanceKm,1);assert.equal(status.progress.partial,true);assert.equal(status.autoSyncEnabled,true);assert.equal(status.lastAutomaticSync.status,'synced');assert.match(status.lastAutomaticSync.at,/Z$/);
+
+  await connect('slot-b',202);assert.equal((await f.scheduled()).outcome,'ok');status=await f.execute({type:'status'});assert.equal(status.progress.distanceKm,2);assert.equal(status.progress.partial,false);assert.equal(status.lastAutomaticSync.status,'synced');
+  const beforeDisabled=await f.requestCount();assert.equal((await f.execute({type:'disable-auto-sync'})).status,'disabled');assert.equal((await f.scheduled()).outcome,'ok');assert.equal(await f.requestCount(),beforeDisabled);
+  status=await f.execute({type:'status'});assert.equal(status.autoSyncEnabled,false);assert.equal(status.syncDisabled,false);assert.equal(status.progress.distanceKm,2);assert.equal((await f.execute({type:'sync'})).status,'synced');
+
+  assert.equal((await f.execute({type:'enable-auto-sync',confirmation:'enable-staging-auto-sync'})).status,'enabled');
+  const row=await f.db.prepare('SELECT document FROM staging_auth_game_state WHERE id=?').bind('staging-strava-test-v1').first(),state=JSON.parse(row.document),now=Date.now();
+  state.stagingBudget={quarterStart:now,quarterCount:40,day:new Date(now).toISOString().slice(0,10),dayCount:0,requests:40,responses:{},networkErrors:0,blockedUntil:0};
+  await f.db.prepare('UPDATE staging_auth_game_state SET document=?,revision=revision+1 WHERE id=?').bind(JSON.stringify(state),'staging-strava-test-v1').run();
+  const beforeQuota=await f.requestCount();assert.equal((await f.scheduled()).outcome,'ok');assert.equal(await f.requestCount(),beforeQuota);
+  status=await f.execute({type:'status'});assert.equal(status.progress.distanceKm,2);assert.equal(status.progress.stale,true);assert.equal(status.lastAutomaticSync.status,'stale');
  }finally{await f.close();}
 });
 

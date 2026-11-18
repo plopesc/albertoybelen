@@ -24,7 +24,8 @@ export async function callMvp({root,operation,fetchAdmin=globalThis.fetch}) {
     writeFileSync(join(mvpPrivateDirectory(root),file),url.href+'\n',{flag:'wx',mode:0o600});
     return{status:'issued',file:`.local/staging-mvp/${file}`};
   }
-  if(result.status==='ok'&&operation.type==='status'&&typeof result.syncDisabled!=='boolean')throw Error('Invalid response');
-  if(result.status==='ok'&&operation.type==='status')return{status:'ok',syncDisabled:result.syncDisabled===true,progress:validatePublicProgress({schemaVersion:1,source:'strava',...result.progress},{expectedSource:'strava'})};
+  if(result.status==='ok'&&operation.type==='status'&&(typeof result.syncDisabled!=='boolean'||typeof result.autoSyncEnabled!=='boolean'||!(result.lastAutomaticSync===null||result.lastAutomaticSync&&Object.keys(result.lastAutomaticSync).sort().join()==='at,status'&&typeof result.lastAutomaticSync.at==='string'&&Number.isFinite(Date.parse(result.lastAutomaticSync.at))&&['synced','idle','busy','stale','disabled','failed'].includes(result.lastAutomaticSync.status))))throw Error('Invalid response');
+  if(result.status==='ok'&&operation.type==='status')return{status:'ok',syncDisabled:result.syncDisabled,autoSyncEnabled:result.autoSyncEnabled,lastAutomaticSync:result.lastAutomaticSync,progress:validatePublicProgress({schemaVersion:1,source:'strava',...result.progress},{expectedSource:'strava'})};
+  if(['enable-auto-sync','disable-auto-sync'].includes(operation.type)&&result.status===(operation.type==='enable-auto-sync'?'enabled':'disabled')&&result.autoSyncEnabled!==(operation.type==='enable-auto-sync'))throw Error('Invalid response');
   return{status:result.status};
 }

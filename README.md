@@ -545,6 +545,6 @@ export real ni aplicado 0003 remotamente. Pruebas: `npm run test:staging:d1`.
 
 ### Primera cuenta Strava en staging (un Worker)
 
-La [guía MVP de staging](docs/staging-mvp.md) prepara secretos nuevos, invitaciones, OAuth y sync manual con el backend existente. `npm run staging:mvp -- check` y `npm run staging:mvp -- dry-run` son locales; `npm run test:staging:mvp` y `npm run test:staging:mvp:browser` usan D1 temporal y mocks. Secretos, deploy y conexión real quedan para ejecución manual posterior. El visor opt-in `?staging-api=strava` muestra «STAGING · STRAVA» y rechaza fixtures.
+La [guía MVP de staging](docs/staging-mvp.md) prepara secretos nuevos, invitaciones, OAuth y sync manual, y deja el Cron cada tres horas desactivado por un interruptor durable hasta autorización admin separada. `npm run staging:mvp -- check` y `npm run staging:mvp -- dry-run` son locales; `npm run test:staging:mvp` y `npm run test:staging:mvp:browser` usan D1 temporal y mocks. Secretos, deploy y conexión real quedan para ejecución manual posterior. El visor opt-in `?staging-api=strava` muestra «STAGING · STRAVA» y rechaza fixtures.
 
 La [vista de prueba de Strava en GitHub Pages](docs/pages-staging.md) es opt-in mediante `?pages-staging=strava`; la URL pública normal sigue en simulación. Requiere autorización y despliegue manual posterior del Worker para habilitar CORS de lectura agregada. `npm run test:pages:staging:browser` usa solo red interceptada y snapshots sintéticos.
