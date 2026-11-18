@@ -48,3 +48,13 @@ test('proveedor staging mantiene la respuesta más nueva y valida fixture exclus
  let first,count=0;const p=createHttpProgressProvider({url:'/api/staging/progress',pageUrl:'https://albertoybelen.ddev.site/frontend/?staging-api=1',allowFixtures:true,fetchProgress:()=>++count===1?new Promise(r=>{first=r;}):Promise.resolve(Response.json(dto({distanceKm:40}))) });
  const old=p.refresh();await p.refresh();first(Response.json(dto({distanceKm:20})));await old;assert.equal(p.getState().snapshot.distanceKm,40);
 });
+
+test('visor Strava opt-in aislado: perfil real, proxy fijo y rechazo cruzado de fixtures/piloto',async()=>{
+ const {stagingStravaViewConfig}=await import('../scripts/lib/staging-read.mjs');const {STAGING_STRAVA_CONFIG_URL}=await import('../frontend/js/runtime-config.js');
+ const profile=stagingStravaViewConfig({game:{title:'A y B'},rewards:{}});assert.equal(profile.game.goalKm,500);assert.equal(profile.api.allowFixtures,false);
+ const pageUrl='https://albertoybelen.ddev.site/frontend/?staging-api=strava';
+ const config=await loadRuntimeConfig({pageUrl,fetchConfig:async url=>{assert.equal(String(url),String(STAGING_STRAVA_CONFIG_URL));return Response.json(profile);}});assert.equal(config.game.id,'local-ddev-cloudflare-staging-strava');
+ const address='/api/staging/strava-progress';assert.equal(resolveProgressEndpoint(address,pageUrl,false),'https://albertoybelen.ddev.site'+address);assert.throws(()=>resolveProgressEndpoint(address,'https://plopesc.github.io/albertoybelen/',false));assert.throws(()=>resolveProgressEndpoint(address,pageUrl,true));
+ for(const source of ['fixture','strava-pilot','strava']){const p=createHttpProgressProvider({url:address,pageUrl,allowFixtures:false,fetchProgress:async()=>Response.json(dto({source}))});await p.refresh();assert.equal(p.getState().status,source==='strava'?'ready':'error');}
+ assert.equal((await readStaging({expectedSource:'strava',fetchUpstream:async()=>Response.json(dto({source:'strava'}))})).source,'strava');await assert.rejects(readStaging({expectedSource:'strava',fetchUpstream:async()=>Response.json(dto())}));
+});

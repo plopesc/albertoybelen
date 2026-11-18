@@ -10,7 +10,7 @@ import {createActivityClient} from './strava-activities.js';
 import {createPilotTransport} from './pilot-budget.js';
 import {STAGING_AUTH_ORIGIN as origin,STAGING_AUTH_DATASET as dataset,STAGING_AUTH_SETTINGS as settings,STAGING_AUTH_ENABLE,STAGING_NETWORK_ENABLE,STAGING_AUTH_LIMITS as limits} from './staging-auth-settings.js';
 
-/** Private capabilities are returned to trusted code, NEVER dispatched from HTTP. */
+/** Capabilities for trusted server code; HTTP exposure requires a separate authenticated adapter. */
 export function createStagingAuth(env,{fetchProvider,clock=Date.now}={}) {
   if (env.APP_ENV !== 'staging-strava-test' || !env.DB || env.STAGING_AUTH_ENABLED !== STAGING_AUTH_ENABLE) throw Error('staging_auth_disabled');
   const repository=createD1Repository(env.DB,{settings,dataset});

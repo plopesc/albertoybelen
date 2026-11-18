@@ -34,12 +34,16 @@ jobs:
         run: npm run test:staging:auth:browser
       - name: Probar operador RPC privado y release OAuth con red local cerrada
         run: npm run test:staging:operator:browser
+      - name: Probar MVP de un Worker y mapa Strava con proveedor simulado
+        run: npm run test:staging:mvp:browser
       - name: Guardar capturas para revisión
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: capturas-pr-${{ github.event.pull_request.number }}-${{ github.run_attempt }}
           path: |
+            artifacts/staging-mvp/*.png
+            artifacts/staging-mvp/manifest.json
             artifacts/staging-operator/*.png
             artifacts/staging-operator/manifest.json
             artifacts/staging-auth/*.png

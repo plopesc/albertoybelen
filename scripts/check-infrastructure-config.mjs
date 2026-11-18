@@ -4,6 +4,7 @@ import {isDeepStrictEqual} from 'node:util';
 import {loadInfrastructureConfig, validateLocalTarget} from './lib/infrastructure-config.mjs';
 import {OPERATOR_TARGET} from '../backend/staging-operator-policy.js';
 import {validateStagingRelease} from './lib/staging-release-config.mjs';
+import {validateMvpConfiguration} from './lib/staging-mvp-config.mjs';
 import {validateStagingConfig} from './lib/staging-config.mjs';
 import {STAGING_AUTH_ORIGIN,STAGING_AUTH_SETTINGS,STAGING_AUTH_DATASET} from '../backend/staging-auth-settings.js';
 import {PILOT_ORIGIN, PILOT_SETTINGS} from '../backend/pilot.js';
@@ -17,6 +18,7 @@ export function checkInfrastructureFiles(root = new URL('../', import.meta.url))
   for (const [name, file] of Object.entries({stagingAuth:'wrangler.staging-auth.local.jsonc',fixtures:'wrangler.local.jsonc', oauthMock:'wrangler.oauth.local.jsonc', ownerPilot:'wrangler.pilot.local.jsonc'})) {
     validateLocalTarget(JSON.parse(read(file)), name, config);
   }
+  validateMvpConfiguration(JSON.parse(read('wrangler.staging-mvp.jsonc')),JSON.parse(read('wrangler.staging.jsonc')),config);
   const {ddev, profiles} = config.local;
   assert(OPERATOR_TARGET.worker===config.cloudflare.staging.workerName&&OPERATOR_TARGET.dataset===config.local.stagingAuth.datasetId,'independent operator target');
   assert(STAGING_AUTH_ORIGIN===config.cloudflare.staging.apiOrigin && STAGING_AUTH_DATASET===config.local.stagingAuth.datasetId && isDeepStrictEqual({...STAGING_AUTH_SETTINGS,datasetId:STAGING_AUTH_DATASET,authEnabled:false,networkEnabled:false},config.local.stagingAuth),'independent staging auth pins');
@@ -30,7 +32,7 @@ export function checkInfrastructureFiles(root = new URL('../', import.meta.url))
     const hosts = [...text.matchAll(/(?:\$host != |proxy_set_header Host )([^; )]+)/g)].map(match => match[1]);
     const upstreams = [...text.matchAll(/proxy_pass ([^;]+);/g)].map(match => match[1]);
     assert(hosts.length > 0 && hosts.every(host => host === new URL(ddev.origin).hostname), `${file} host`);
-    assert(upstreams.length > 0 && upstreams.every(url => url === `${protocol}://${ddev.host}:${port}` + (file.includes('staging-read') ? config.public.progressPath : '')), `${file} upstream`);
+    assert(upstreams.length > 0 && upstreams.every(url => [`${protocol}://${ddev.host}:${port}` + (file.includes('staging-read') ? config.public.progressPath : ''),...(file.includes('staging-read')?[`${protocol}://${ddev.host}:${port}/api/progress-strava`]:[])].includes(url)), `${file} upstream`);
   }
   assert(read('.ddev/nginx/staging-read-local.conf.example').includes(`location = ${ddev.stagingRead.path} {`), 'staging nginx route');
   assert(PILOT_ORIGIN === ddev.origin, 'independent pilot origin');

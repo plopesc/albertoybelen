@@ -9,9 +9,14 @@ export function stagingViewConfig(base) {
   return {...base,game:{...base.game,id,title:`${base.game.title} · Staging ficticio`,mode:'real',goalKm,startDate,timeZone},api:{url:apiPath,allowFixtures}};
 }
 
+export function stagingStravaViewConfig(base) {
+  const {goalKm,startDate,timeZone}=infrastructure.local.stagingAuth;
+  return {...base,game:{...base.game,id:'local-ddev-cloudflare-staging-strava',title:`${base.game.title} · Staging Strava`,mode:'real',goalKm,startDate,timeZone},api:{url:'/api/staging/strava-progress',allowFixtures:false}};
+}
+
 /** Fixed public GET; no incoming URL/header/body is forwarded. No request until called. */
-export async function readStaging({fetchUpstream=globalThis.fetch,signal,timeoutMs=6000}={}) {
-  if(process.env.NODE_TLS_REJECT_UNAUTHORIZED==='0')throw Error('staging_unavailable');
+export async function readStaging({fetchUpstream=globalThis.fetch,signal,timeoutMs=6000,expectedSource='fixture'}={}) {
+  if(!['fixture','strava'].includes(expectedSource)||process.env.NODE_TLS_REJECT_UNAUTHORIZED==='0')throw Error('staging_unavailable');
   const controller=new AbortController();
   const aborted=()=>controller.abort();signal?.addEventListener('abort',aborted,{once:true});
   if(signal?.aborted)controller.abort();
@@ -30,7 +35,7 @@ export async function readStaging({fetchUpstream=globalThis.fetch,signal,timeout
       try{while(true){const {done,value}=await reader.read();if(done)break;length+=value.byteLength;if(length>65536)throw Error('staging_unavailable');chunks.push(value);}}
       finally{await reader.cancel().catch(()=>{});}
       const bytes=new Uint8Array(length);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}
-      return validatePublicProgress(JSON.parse(new TextDecoder().decode(bytes)),{allowFixtures:true,expectedSource:'fixture'});
+      return validatePublicProgress(JSON.parse(new TextDecoder().decode(bytes)),{allowFixtures:expectedSource==='fixture',expectedSource});
     })(),stopped]);
   } catch {throw Error('staging_unavailable');}
   finally{clearTimeout(timer);signal?.removeEventListener('abort',aborted);}
@@ -38,12 +43,12 @@ export async function readStaging({fetchUpstream=globalThis.fetch,signal,timeout
 export function stagingReadServer(options={}) {
   return createServer(async(request,response)=>{
     const send=(value,status)=>{if(response.destroyed)return;response.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}).end(JSON.stringify(value));};
-    if(request.url!=='/api/progress'){send({error:'not_found'},404);return;}
+    if(!['/api/progress','/api/progress-strava'].includes(request.url)){send({error:'not_found'},404);return;}
     if(request.method!=='GET'){response.setHeader('Allow','GET');send({error:'method_not_allowed'},405);return;}
     if(request.headers['transfer-encoding']||Number(request.headers['content-length'])>0){send({error:'invalid_request'},400);return;}
     const controller=new AbortController();
     response.once('close',()=>{if(!response.writableFinished)controller.abort();});
-    try{send(await readStaging({...options,signal:controller.signal}),200);}
+    try{send(await readStaging({...options,signal:controller.signal,expectedSource:request.url==='/api/progress-strava'?'strava':'fixture'}),200);}
     catch{send({error:'staging_unavailable'},502);}
   });
 }

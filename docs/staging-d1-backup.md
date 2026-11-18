@@ -1,5 +1,7 @@
 # Backup D1 staging y paso previo a 0003 (#46)
 
+> Estado posterior comunicado en #50: el propietario ya aplicó 0003 y confirmó `pending: []`. No repetir migraciones ni exigir un backup adicional para el [MVP de un Worker](staging-mvp.md). El historial de preparación/lecturas anteriores de esta guía no sustituye esa decisión posterior.
+
 En #46 se preparó y ensayó este procedimiento sin operaciones remotas. En #48
 se autorizaron exclusivamente lecturas reales para reparar `list`; el resultado
 se documenta a continuación. **No se ha creado un backup real ni aplicado 0003**.

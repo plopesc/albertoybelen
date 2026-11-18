@@ -1,5 +1,7 @@
 # Transición a una app Strava y callback exclusivo de staging (#44)
 
+> Para la primera cuenta real, seguir el [MVP de un solo Worker (#50)](staging-mvp.md). Los planes de operador/Ed25519 descritos aquí son legacy inactivo; no son requisito del MVP.
+
 **Decisión del propietario, 16/11/2026:** usar la aplicación Strava existente,
 con un solo callback activo. Staging será el único entorno OAuth real por ahora;
 DDEV queda aparcado. No hay app adicional, relay, puente ni uso simultáneo.

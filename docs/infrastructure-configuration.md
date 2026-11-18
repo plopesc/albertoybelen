@@ -115,3 +115,7 @@ independiente del Worker; no depende de la ruta callback de DDEV. No modifica el
 JSON, los switches o los perfiles existentes ni inspecciona datos privados.
 La decisión y los estados comunicados por el propietario se distinguen de los
 estados remotos no verificados; véase el [runbook](staging-transition.md).
+
+## MVP staging de un Worker (#50)
+
+`wrangler.staging-mvp.jsonc` mantiene switches cerrados y el mismo destino staging fijado. `staging:mvp` valida JSON, allowlist y runtime antes de preparar una release explícita; no usa el Worker operador legacy. El perfil Strava deriva su meta/fecha/zona de `local.stagingAuth`, separado del perfil fixture y del piloto. El proxy conserva puerto 8792 y añade una ruta fija que exige `source=strava`, sin overrides de upstream. Véase [el procedimiento MVP](staging-mvp.md).
