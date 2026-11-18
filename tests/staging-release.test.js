@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
 import {spawnSync} from 'node:child_process';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import {validateStagingRelease,stagingReleasePlan} from '../scripts/lib/staging-release-config.mjs';
 import {validateInfrastructureConfig} from '../scripts/lib/infrastructure-config.mjs';
 import {stagingCommand} from '../scripts/lib/staging-config.mjs';
@@ -30,6 +32,15 @@ test('CLI OAuth no ofrece remoto ni flags de override, incluso con credenciales/
     const r=spawnSync(process.execPath,['scripts/staging-oauth.mjs',...args],{env:{...process.env,CLOUDFLARE_ACCOUNT_ID:'a'.repeat(32),CLOUDFLARE_API_TOKEN:'synthetic-must-not-print',STRAVA_CLIENT_SECRET:'synthetic-must-not-print'}});
     assert.notEqual(r.status,0);assert.equal((r.stdout.toString()+r.stderr.toString()).includes('synthetic-must-not-print'),false);
   }
-  assert.equal(spawnSync(process.execPath,['scripts/staging-oauth.mjs','check']).status,0);
-  const plan=spawnSync(process.execPath,['scripts/staging-oauth.mjs','plan']);assert.equal(plan.status,0);assert.equal(JSON.parse(plan.stdout).deploymentAllowed,false);
+  const check=spawnSync(process.execPath,['scripts/staging-oauth.mjs','check'],{encoding:'utf8'});assert.equal(check.status,0,`staging-oauth check failed:\n${check.stderr||check.stdout||'no diagnostic output'}`);
+  const plan=spawnSync(process.execPath,['scripts/staging-oauth.mjs','plan'],{encoding:'utf8'});assert.equal(plan.status,0,`staging-oauth plan failed:\n${plan.stderr||plan.stdout||'no diagnostic output'}`);assert.equal(JSON.parse(plan.stdout).deploymentAllowed,false);
+});
+
+test('check/plan funcionan en checkout limpio sin esbuild; solo dry-run intenta importarlo',t=>{
+  const directory=mkdtempSync(join(tmpdir(),'staging-oauth-no-esbuild-'));t.after(()=>rmSync(directory,{recursive:true,force:true}));
+  const loader=join(directory,'block-esbuild.mjs');writeFileSync(loader,`import {registerHooks} from 'node:module';\nregisterHooks({resolve(specifier,context,nextResolve){if(specifier==='esbuild')throw new Error('synthetic clean checkout has no esbuild');return nextResolve(specifier,context);}});\n`);
+  const run=operation=>spawnSync(process.execPath,['--import',loader,'scripts/staging-oauth.mjs',operation],{encoding:'utf8'});
+  for(const operation of ['check','plan']){const result=run(operation);assert.equal(result.status,0,`${operation} unexpectedly required esbuild:\n${result.stderr||result.stdout||'no diagnostic output'}`);assert.doesNotMatch(result.stdout+result.stderr,/synthetic clean checkout has no esbuild/);}
+  const dryRun=run('dry-run');assert.notEqual(dryRun.status,0);assert.match(dryRun.stderr,/Staging OAuth preparation blocked/);assert.doesNotMatch(dryRun.stderr,/synthetic clean checkout has no esbuild/);
+  const denied=run('check --remote');assert.notEqual(denied.status,0);assert.match(denied.stderr,/Staging OAuth preparation blocked/);
 });

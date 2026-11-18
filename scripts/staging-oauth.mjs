@@ -1,5 +1,4 @@
 import {readFileSync} from 'node:fs';
-import {build} from 'esbuild';
 import {validateStagingRelease,stagingReleasePlan} from './lib/staging-release-config.mjs';
 const [operation]=process.argv.slice(2);
 try {
@@ -9,6 +8,7 @@ try {
   validateStagingRelease(oauth,operator,fixture);
   if(operation==='plan')console.log(JSON.stringify(stagingReleasePlan(oauth,operator,fixture),null,2));
   else if(operation==='dry-run') {
+    const {build}=await import('esbuild');
     for(const config of [oauth,operator]) {
       // In-memory esbuild only: no Wrangler, automatic env discovery, subprocess or network.
       const result=await build({absWorkingDir:new URL('../',import.meta.url).pathname,entryPoints:[config.main],bundle:true,write:false,format:'esm',platform:'neutral',external:['node:*','cloudflare:workers'],metafile:true,logLevel:'silent'});
