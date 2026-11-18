@@ -16,3 +16,5 @@ frontend/config/local.json
 frontend/config/staging.local.json
 .ddev/nginx/frontend-local.conf
 .ddev/nginx/staging-read-local.conf
+
+frontend/config/staging-strava.local.json

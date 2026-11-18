@@ -10,7 +10,7 @@ export function resolveProgressEndpoint(address, pageUrl, allowFixtures = false)
   const page = new URL(pageUrl), url = new URL(address, page);
   const local = ['albertoybelen.ddev.site','localhost','127.0.0.1','[::1]'].includes(page.hostname);
   const loopback = ['localhost','127.0.0.1','[::1]'].includes(page.hostname);
-  const permittedPath = url.pathname === '/api/progress' || (local && allowFixtures && url.pathname === '/api/staging/progress');
+  const permittedPath = url.pathname === '/api/progress' || (local && allowFixtures && url.pathname === '/api/staging/progress') || (local && !allowFixtures && url.pathname === '/api/staging/strava-progress');
   if (url.origin !== page.origin || (url.protocol !== 'https:' && !(loopback && url.protocol === 'http:')) || url.username || url.password || url.search || url.hash || !permittedPath || (allowFixtures && !local)) throw new Error('La API debe usar el origen y la ruta permitidos.');
   return url.href;
 }
@@ -65,7 +65,7 @@ export function createHttpProgressProvider({ url, pageUrl, allowFixtures = false
           const bytes = new Uint8Array(length); let offset = 0;
           for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
           let raw; try { raw = JSON.parse(new TextDecoder().decode(bytes)); } catch { throw new Error('invalid_response'); }
-          return validatePublicProgress(raw, { allowFixtures, expectedSource: new URL(endpoint).pathname === '/api/staging/progress' ? 'fixture' : undefined });
+          return validatePublicProgress(raw, { allowFixtures, expectedSource: new URL(endpoint).pathname === '/api/staging/progress' ? 'fixture' : new URL(endpoint).pathname === '/api/staging/strava-progress' ? 'strava' : undefined });
         })();
         const snapshot = await Promise.race([work, stopped]);
         if (sequence !== current) return;
