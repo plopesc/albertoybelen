@@ -8,8 +8,10 @@ de esta entrega.
 
 Se reutilizan OAuth, AES-GCM, tablas `staging_auth_*`, reglas de kilómetros y sync.
 No requiere Worker operador, Ed25519, Access, dominio nuevo, certificados nuevos,
-túnel, Cron ni servicios de pago. Los archivos de operador anteriores se conservan
-inactivos; sus planes cerrados (`staging:oauth`) no son el camino de esta guía.
+túnel ni servicios de pago. El Worker existente incorporará un Cron UTC cada tres
+horas, con un interruptor durable que permanece apagado hasta activación admin.
+Los archivos de operador anteriores se conservan inactivos; sus planes cerrados
+(`staging:oauth`) no son el camino de esta guía.
 
 ## Procedimiento del propietario después de revisar/mergear la PR
 
@@ -71,9 +73,13 @@ Wrangler ya autenticado y una copia actualizada de `main`:
    npm run staging:mvp -- status --confirm-staging-admin
    ```
 
-   El deploy genera la configuración activa del mismo Worker/D1; no añade Cron ni
-   servicios. No usa el deploy fixture. Runtime exige switches coherentes, todos
-   los secretos y el historial exacto 0001–0003 antes de inicializar el dataset.
+   El deploy genera la configuración activa del mismo Worker/D1 e instala el único
+   Cron `0 */3 * * *` (ocho veces al día, UTC). Esto no lo habilita: el estado
+   privado de D1 empieza con `autoSyncEnabled: false`, y ni el deploy ni
+   `enable-sync` lo cambian. Los cinco Workers Secrets, la base D1 y sus datos
+   existentes se conservan; no hay comandos de secreto ni migraciones en este paso.
+   No usa el deploy fixture. Runtime exige switches coherentes, los cinco secretos
+   y el historial exacto 0001–0003 antes de inicializar el dataset.
    Si algo falta: 503/cerrado; no migra, repara ni cae a fixtures automáticamente.
    `status` es una operación administrativa HTTPS autenticada; también requiere
    consentimiento. Sin cuenta conectada es normal ver 0 km y `partial: true`.
@@ -106,7 +112,25 @@ Wrangler ya autenticado y una copia actualizada de `main`:
    ante errores se conserva el último dato válido. Reto **de staging**: 500 km,
    inicio inclusivo 2026-11-01 Europe/Madrid; Run/Walk/Hike no manuales. No modifica
    la configuración definitiva prevista ni transfiere premios de pruebas.
-8. **Ver el mapa con origen veraz y sin tocar el piloto o Pages:**
+8. **Activar por separado la sincronización automática, solo con autorización
+   específica posterior:**
+
+   ```sh
+   npm run staging:mvp -- enable-auto-sync --confirm-staging-admin --confirm-staging-auto-sync
+   npm run staging:mvp -- status --confirm-staging-admin
+   ```
+
+   `status` muestra por separado `syncDisabled`, `autoSyncEnabled` y
+   `lastAutomaticSync` (hora UTC y resultado acotado, sin PII). El permiso auto
+   no habilita el sync manual por sí mismo: ambos interruptores deben permitirlo.
+   Cada evento utiliza el lease D1 del motor actual, presupuesto compartido de
+   staging, máximo de cinco páginas y 400 registros por cuenta; cuotas 24 por
+   operación, 40 por 15 minutos y 120 al día incluyen tokens y páginas. A ocho
+   ciclos diarios, el presupuesto diario puede posponer un ciclo si se alcanza;
+   nunca se sobrepasa. Una cuenta conectada mantiene progreso parcial.
+   Desactivar auto da prioridad al comando, incrementa su fence y evita publicar
+   resultados tardíos; el GET de Pages nunca sincroniza.
+9. **Ver el mapa con origen veraz y sin tocar el piloto o Pages:**
 
    ```sh
    npm run frontend:staging:prepare -- --strava
@@ -122,15 +146,16 @@ Wrangler ya autenticado y una copia actualizada de `main`:
    piloto; el modo anterior `?staging-api=1` sigue admitiendo solo fixtures.
    El enable reconoce el snippet anterior exacto; rechaza archivos personalizados
    sin sobrescribirlos. No cambia `/api/progress` del piloto ni arranca DDEV OAuth.
-9. **Detener sync y volver al fixture cuando se decida:**
+10. **Detener sync y volver al fixture cuando se decida:**
 
    ```sh
+   npm run staging:mvp -- disable-auto-sync --confirm-staging-admin
    npm run staging:mvp -- disable-sync --confirm-staging-admin
    npm run staging -- deploy --confirm-staging
    ```
 
-   El primero invalida trabajos en curso mediante el fence existente; no borra
-   tokens/histórico. El segundo es el rollback **manual del Worker**, siempre
+   Los comandos desactivan automática y manual, respectivamente; ambos invalidan
+   trabajos en curso mediante fences y no borran tokens/histórico. El tercero es el rollback **manual del Worker**, siempre
    fixture-only. Volver al mapa `?staging-api=1`. D1 y los secretos se conservan;
    rollback no restaura ni borra datos. Producción permanece fuera de los destinos.
 

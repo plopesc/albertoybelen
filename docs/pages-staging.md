@@ -46,8 +46,9 @@ separada, el procedimiento manual protegido para actualizar el mismo Worker es:
 npm run staging:mvp -- deploy --confirm-staging-oauth
 ```
 
-El deploy reutiliza el Worker/D1 staging existentes; no ejecuta migraciones, no
-activa Cron y no cambia secretos. Tras el despliegue, comprobar en navegador que
+El deploy reutiliza el Worker/D1 staging existentes; no ejecuta migraciones ni
+cambia secretos. Registra el Cron `0 */3 * * *` UTC, pero el interruptor durable
+`autoSyncEnabled` comienza apagado y requiere activación admin separada. Tras el despliegue, comprobar en navegador que
 el GET del origen Pages devuelve `Access-Control-Allow-Origin` exacto y
 `Cache-Control: no-store`, y que otros orígenes, `/admin/staging` y `/oauth/*` no
 incluyen CORS.

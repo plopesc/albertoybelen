@@ -12,7 +12,9 @@
     "enabled": false
   },
   "triggers": {
-    "crons": []
+    "crons": [
+      "0 */3 * * *"
+    ]
   },
   "vars": {
     "APP_ENV": "staging-strava-test",

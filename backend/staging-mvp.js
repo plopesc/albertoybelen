@@ -1,7 +1,7 @@
 import {timingSafeEqual} from 'node:crypto';
 import {createStagingAuth} from './staging-auth.js';
 import {createStagingCommandExecutor} from './staging-command-executor.js';
-import {MVP_ENABLE,MVP_READY,MVP_ADMIN_PATH,MVP_ORIGIN,validateMvpCommand} from './staging-mvp-policy.js';
+import {MVP_ENABLE,MVP_READY,MVP_ADMIN_PATH,MVP_AUTO_SYNC_CRON,MVP_ORIGIN,validateMvpCommand} from './staging-mvp-policy.js';
 import {STAGING_AUTH_ENABLE,STAGING_NETWORK_ENABLE} from './staging-auth-settings.js';
 const headers={'Cache-Control':'no-store','Pragma':'no-cache','Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff','X-Frame-Options':'DENY'};
 const PAGES_READ_ORIGIN='https://plopesc.github.io';
@@ -35,7 +35,11 @@ export function createStagingMvp(env,{clock=Date.now,fetchProvider,admit=createM
     if(rows.success===false||!Array.isArray(rows.results)||JSON.stringify(rows.results.map(r=>r.name))!==JSON.stringify(migrations))throw Error('closed');
     const api=createStagingAuth(env,{clock,fetchProvider,progressOrigins:[MVP_ORIGIN,PAGES_READ_ORIGIN]});await api.vault.ready();return api;
   }
-  return {async fetch(request) {
+  return {async scheduled(event,env,context) {
+    if(event?.cron!==MVP_AUTO_SYNC_CRON)return{status:'ignored'};
+    const work=(async()=>{try{return await(await runtime()).admin.sync({actor:{authenticated:true,role:'owner'},automatic:true});}catch{return{status:'unavailable'};}})();
+    context?.waitUntil(work);return work;
+  },async fetch(request) {
     const url=new URL(request.url);
     if(url.origin!==MVP_ORIGIN||url.username||url.password||url.hash||(url.pathname!=='/oauth/callback'&&url.search))return response(400,'rejected');
     if(url.pathname===MVP_ADMIN_PATH) {
