@@ -2,7 +2,7 @@ import { FINAL_REWARD } from './final-reward.js';
 import { calculateProgress } from './progress.js';
 import { createDistanceProvider } from './game.js';
 import { loadRuntimeConfig } from './runtime-config.js';
-import { createHttpProgressProvider } from './http-progress.js';
+import { createHttpProgressProvider, PAGES_STAGING_PROGRESS_URL } from './http-progress.js';
 import { createApiHistory } from './api-history.js';
 import { createMilestoneHistory, FINISH_MILESTONE_ID } from './milestone-history.js';
 import { createMilestoneReveals } from './milestone-dialog.js';
@@ -198,10 +198,11 @@ async function start() {
 function startReal(game, rewards, api) {
   usingApi = true;
   provider = createHttpProgressProvider({ ...api, pageUrl: window.location.href });
+  const pagesStaging=provider.endpoint===PAGES_STAGING_PROGRESS_URL;
   const stagingStrava=new URL(provider.endpoint).pathname==='/api/staging/strava-progress';
-  const staging = stagingStrava || new URL(provider.endpoint).pathname === '/api/staging/progress';
-  const stagingLabel=stagingStrava?'STAGING · STRAVA':'STAGING · DATOS FICTICIOS';
-  const stagingSource=stagingStrava?'STAGING · STRAVA · PROGRESO COMPARTIDO':'DATOS FICTICIOS · STAGING CLOUDFLARE';
+  const staging = pagesStaging || stagingStrava || new URL(provider.endpoint).pathname === '/api/staging/progress';
+  const stagingLabel=pagesStaging?'PRUEBA · STAGING STRAVA':stagingStrava?'STAGING · STRAVA':'STAGING · DATOS FICTICIOS';
+  const stagingSource=pagesStaging?'PRUEBA · STAGING STRAVA · PROGRESO COMPARTIDO':stagingStrava?'STAGING · STRAVA · PROGRESO COMPARTIDO':'DATOS FICTICIOS · STAGING CLOUDFLARE';
   if (staging) {
     $('mode-label').textContent = stagingLabel;
     $('data-source').textContent = stagingSource;

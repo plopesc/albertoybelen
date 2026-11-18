@@ -4,6 +4,7 @@ import {createStagingCommandExecutor} from './staging-command-executor.js';
 import {MVP_ENABLE,MVP_READY,MVP_ADMIN_PATH,MVP_ORIGIN,validateMvpCommand} from './staging-mvp-policy.js';
 import {STAGING_AUTH_ENABLE,STAGING_NETWORK_ENABLE} from './staging-auth-settings.js';
 const headers={'Cache-Control':'no-store','Pragma':'no-cache','Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff','X-Frame-Options':'DENY'};
+const PAGES_READ_ORIGIN='https://plopesc.github.io';
 const response=(status,code)=>Response.json({status:code},{status,headers});
 const migrations=['0001_local_game.sql','0002_oauth_vault.sql','0003_staging_auth_test.sql'];
 const tokenValid=value=>typeof value==='string'&&/^[\w-]{43}$/.test(value)&&Buffer.from(value,'base64url').length===32&&Buffer.from(value,'base64url').toString('base64url')===value;
@@ -13,12 +14,26 @@ export function createMvpRateLimit(clock=Date.now) {
   return ()=>{const m=Math.floor(clock()/60000);if(m!==minute){minute=m;requests=0;}return ++requests<=60;};
 }
 export function createStagingMvp(env,{clock=Date.now,fetchProvider,admit=createMvpRateLimit(clock)}={}) {
+  const publicProgressResponse=(request,result)=>{
+    const url=new URL(request.url);
+    if(url.pathname!=='/api/progress'||url.search||request.method!=='GET'){
+      if(!result.headers.has('Access-Control-Allow-Origin'))return result;
+      const responseHeaders=new Headers(result.headers);for(const key of ['Access-Control-Allow-Origin','Access-Control-Allow-Methods','Access-Control-Allow-Headers','Access-Control-Allow-Credentials','Access-Control-Expose-Headers'])responseHeaders.delete(key);
+      return new Response(result.body,{status:result.status,statusText:result.statusText,headers:responseHeaders});
+    }
+    const responseHeaders=new Headers(result.headers);responseHeaders.set('Cache-Control','no-store');responseHeaders.append('Vary','Origin');
+    const origin=request.headers.get('Origin');
+    if(origin===PAGES_READ_ORIGIN&&!request.headers.has('Cookie')&&!request.headers.has('Authorization'))responseHeaders.set('Access-Control-Allow-Origin',PAGES_READ_ORIGIN);
+    else responseHeaders.delete('Access-Control-Allow-Origin');
+    for(const key of ['Access-Control-Allow-Methods','Access-Control-Allow-Headers','Access-Control-Allow-Credentials','Access-Control-Expose-Headers'])responseHeaders.delete(key);
+    return new Response(result.body,{status:result.status,statusText:result.statusText,headers:responseHeaders});
+  };
   async function runtime() {
     if(env.APP_ENV!=='staging-strava-test'||env.STAGING_MVP_ENABLED!==MVP_ENABLE||env.STAGING_MVP_READY!==MVP_READY||env.STAGING_AUTH_ENABLED!==STAGING_AUTH_ENABLE||env.STAGING_NETWORK_ENABLED!==STAGING_NETWORK_ENABLE||!tokenValid(env.STAGING_ADMIN_TOKEN)||!env.DB||!/^[1-9]\d*$/.test(env.STRAVA_CLIENT_ID??'')||typeof env.STRAVA_CLIENT_SECRET!=='string'||!env.STRAVA_CLIENT_SECRET.trim())throw Error('closed');
     // No initialize/migration before this independent read-only schema/history check.
     const rows=await env.DB.prepare('SELECT name FROM d1_migrations ORDER BY id').bind().all();
     if(rows.success===false||!Array.isArray(rows.results)||JSON.stringify(rows.results.map(r=>r.name))!==JSON.stringify(migrations))throw Error('closed');
-    const api=createStagingAuth(env,{clock,fetchProvider});await api.vault.ready();return api;
+    const api=createStagingAuth(env,{clock,fetchProvider,progressOrigins:[MVP_ORIGIN,PAGES_READ_ORIGIN]});await api.vault.ready();return api;
   }
   return {async fetch(request) {
     const url=new URL(request.url);
@@ -48,6 +63,6 @@ export function createStagingMvp(env,{clock=Date.now,fetchProvider,admit=createM
         return Response.json(result,{headers});
       }catch{return response(503,'unavailable');}
     }
-    try{return await(await runtime()).fetch(request);}catch{return response(503,'unavailable');}
+    try{return publicProgressResponse(request,await(await runtime()).fetch(request));}catch{return publicProgressResponse(request,response(503,'unavailable'));}
   }};
 }

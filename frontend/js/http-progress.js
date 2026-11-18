@@ -1,5 +1,7 @@
 const publicKeys = ['schemaVersion','source','distanceKm','partial','stale','updatedAt','unlockedMilestoneIds'];
 export const MAX_UNLOCKED_IDS = 256;
+// Independent code allowlist: public config cannot authorize another remote host.
+export const PAGES_STAGING_PROGRESS_URL = 'https://albertoybelen-api-staging.autumn-dream-2a39.workers.dev/api/progress';
 export const validRewardId = id => typeof id === 'string' && /^[a-z][a-z0-9-]{0,63}$/.test(id);
 const validInstant = value => {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d{1,3})?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/.test(value) || !Number.isFinite(Date.parse(value))) return false;
@@ -10,6 +12,8 @@ export function resolveProgressEndpoint(address, pageUrl, allowFixtures = false)
   const page = new URL(pageUrl), url = new URL(address, page);
   const local = ['albertoybelen.ddev.site','localhost','127.0.0.1','[::1]'].includes(page.hostname);
   const loopback = ['localhost','127.0.0.1','[::1]'].includes(page.hostname);
+  const pagesStaging = page.origin === 'https://plopesc.github.io' && page.pathname.startsWith('/albertoybelen/') && page.searchParams.getAll('pages-staging').length === 1 && page.searchParams.get('pages-staging') === 'strava' && !page.searchParams.has('local-api') && !page.searchParams.has('staging-api') && [...page.searchParams.keys()].every(key => key === 'pages-staging') && !page.hash;
+  if (pagesStaging && address === PAGES_STAGING_PROGRESS_URL && url.href === PAGES_STAGING_PROGRESS_URL && !allowFixtures) return url.href;
   const permittedPath = url.pathname === '/api/progress' || (local && allowFixtures && url.pathname === '/api/staging/progress') || (local && !allowFixtures && url.pathname === '/api/staging/strava-progress');
   if (url.origin !== page.origin || (url.protocol !== 'https:' && !(loopback && url.protocol === 'http:')) || url.username || url.password || url.search || url.hash || !permittedPath || (allowFixtures && !local)) throw new Error('La API debe usar el origen y la ruta permitidos.');
   return url.href;
@@ -65,7 +69,8 @@ export function createHttpProgressProvider({ url, pageUrl, allowFixtures = false
           const bytes = new Uint8Array(length); let offset = 0;
           for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
           let raw; try { raw = JSON.parse(new TextDecoder().decode(bytes)); } catch { throw new Error('invalid_response'); }
-          return validatePublicProgress(raw, { allowFixtures, expectedSource: new URL(endpoint).pathname === '/api/staging/progress' ? 'fixture' : new URL(endpoint).pathname === '/api/staging/strava-progress' ? 'strava' : undefined });
+          const path = new URL(endpoint).pathname;
+          return validatePublicProgress(raw, { allowFixtures, expectedSource: path === '/api/staging/progress' ? 'fixture' : path === '/api/staging/strava-progress' || endpoint === PAGES_STAGING_PROGRESS_URL ? 'strava' : undefined });
         })();
         const snapshot = await Promise.race([work, stopped]);
         if (sequence !== current) return;

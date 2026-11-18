@@ -11,7 +11,7 @@ import {createPilotTransport} from './pilot-budget.js';
 import {STAGING_AUTH_ORIGIN as origin,STAGING_AUTH_DATASET as dataset,STAGING_AUTH_SETTINGS as settings,STAGING_AUTH_ENABLE,STAGING_NETWORK_ENABLE,STAGING_AUTH_LIMITS as limits} from './staging-auth-settings.js';
 
 /** Capabilities for trusted server code; HTTP exposure requires a separate authenticated adapter. */
-export function createStagingAuth(env,{fetchProvider,clock=Date.now}={}) {
+export function createStagingAuth(env,{fetchProvider,clock=Date.now,progressOrigins=[origin]}={}) {
   if (env.APP_ENV !== 'staging-strava-test' || !env.DB || env.STAGING_AUTH_ENABLED !== STAGING_AUTH_ENABLE) throw Error('staging_auth_disabled');
   const repository=createD1Repository(env.DB,{settings,dataset});
   const version=env.TOKEN_ENCRYPTION_KEY_VERSION;
@@ -35,7 +35,7 @@ export function createStagingAuth(env,{fetchProvider,clock=Date.now}={}) {
   const adapter=createStravaAdapter({enabled:true,clientId:env.STRAVA_CLIENT_ID,clientSecret:env.STRAVA_CLIENT_SECRET,fetchProvider:transport});
   const provider={...adapter,async authorizeUrl(options){await networkReady();return adapter.authorizeUrl(options);}};
   const service=createOAuthService({repository,provider,vault,origin,clock});
-  const router=createOAuthRouter({service,provider,origin,label:'Staging · conexión de prueba',publicWorker:createWorker({repository,source:'strava',allowedOrigins:[origin],loadFixture:async()=>[]})});
+  const router=createOAuthRouter({service,provider,origin,label:'Staging · conexión de prueba',publicWorker:createWorker({repository,source:'strava',allowedOrigins:progressOrigins,loadFixture:async()=>[]})});
   const syncClient=createActivityClient({enabled:true,fetchProvider:transport});
   const owner=actor=>{if(actor?.authenticated!==true||actor.role!=='owner')throw Error('private_operator_required');};
   return {

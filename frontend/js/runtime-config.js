@@ -1,12 +1,20 @@
 import { loadGameConfig } from './config.js';
-import { resolveProgressEndpoint } from './http-progress.js';
+import { PAGES_STAGING_PROGRESS_URL, resolveProgressEndpoint } from './http-progress.js';
 export const LOCAL_CONFIG_URL = new URL('../config/local.json', import.meta.url);
 export const STAGING_CONFIG_URL = new URL('../config/staging.local.json', import.meta.url);
 export const STAGING_STRAVA_CONFIG_URL = new URL('../config/staging-strava.local.json', import.meta.url);
+export const PAGES_STAGING_CONFIG_URL = new URL('../config/pages-staging.json', import.meta.url);
+const PAGES_ORIGIN = 'https://plopesc.github.io';
+const PAGES_PATH = '/albertoybelen/';
 export async function loadRuntimeConfig({ pageUrl = globalThis.location.href, fetchConfig = globalThis.fetch } = {}) {
-  const page = new URL(pageUrl), local = page.searchParams.getAll('local-api'), staging = page.searchParams.getAll('staging-api');
+  const page = new URL(pageUrl), local = page.searchParams.getAll('local-api'), staging = page.searchParams.getAll('staging-api'), pages = page.searchParams.getAll('pages-staging');
   let config;
-  if (staging.length) {
+  if (pages.length) {
+    if (pages.length !== 1 || pages[0] !== 'strava' || local.length || staging.length || page.origin !== PAGES_ORIGIN || !page.pathname.startsWith(PAGES_PATH) || [...page.searchParams.keys()].some(key => key !== 'pages-staging') || page.hash) throw new Error('La prueba Strava solo está disponible mediante su enlace explícito de GitHub Pages.');
+    try { config = await loadGameConfig(fetchConfig, PAGES_STAGING_CONFIG_URL); }
+    catch { throw new Error('No se pudo cargar el perfil de prueba de GitHub Pages.'); }
+    if (config.game.mode !== 'real' || config.game.id !== 'pages-staging-strava' || config.game.goalKm !== 500 || config.game.startDate !== '2026-11-01' || config.game.timeZone !== 'Europe/Madrid' || config.api?.url !== PAGES_STAGING_PROGRESS_URL || config.api.allowFixtures !== false) throw new Error('El perfil Pages debe usar únicamente el progreso agregado de staging.');
+  } else if (staging.length) {
     if (local.length || page.origin !== 'https://albertoybelen.ddev.site' || staging.length !== 1 || !['1','strava'].includes(staging[0])) throw new Error('El perfil staging solo está disponible explícitamente en DDEV HTTPS.');
     try { config = await loadGameConfig(fetchConfig, staging[0]==='strava'?STAGING_STRAVA_CONFIG_URL:STAGING_CONFIG_URL); }
     catch { throw new Error('No se pudo cargar el perfil staging. Ejecuta frontend:staging:prepare.'); }

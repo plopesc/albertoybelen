@@ -52,7 +52,8 @@
     "test:staging:d1": "node --test tests/staging-backup.test.js tests/staging-runner.test.js tests/staging-list.test.js tests/d1/staging-backup-runtime.test.js",
     "staging:mvp": "node scripts/staging-mvp.mjs",
     "test:staging:mvp": "node --test tests/staging-mvp.test.js tests/d1/staging-mvp-runtime.test.js",
-    "test:staging:mvp:browser": "node scripts/check-staging-mvp-browser.mjs"
+    "test:staging:mvp:browser": "node scripts/check-staging-mvp-browser.mjs",
+    "test:pages:staging:browser": "node scripts/check-pages-staging-browser.mjs"
   },
   "engines": {
     "node": ">=24"
