@@ -1,0 +1,23 @@
+{
+  "game": {
+    "id": "pages-staging-strava",
+    "title": "Alberto y Belén · Prueba Strava Staging",
+    "goalKm": 500,
+    "startDate": "2026-11-01",
+    "timeZone": "Europe/Madrid",
+    "mode": "real"
+  },
+  "rewards": {
+    "milestones": [
+      { "id": "milestone-20", "percent": 20, "title": "Un camino entre árboles", "alt": "Imagen provisional de un bosque luminoso, sin personas." },
+      { "id": "milestone-40", "percent": 40, "title": "Junto al río", "alt": "Imagen provisional de un río turquesa entre montañas, sin personas." },
+      { "id": "milestone-60", "percent": 60, "title": "La luz del cañón", "alt": "Imagen provisional de un cañón de roca dorada, sin personas." },
+      { "id": "milestone-80", "percent": 80, "title": "Cerca de las cumbres", "alt": "Imagen provisional de montañas nevadas bajo el cielo, sin personas." }
+    ],
+    "finish": 100
+  },
+  "api": {
+    "url": "https://albertoybelen-api-staging.autumn-dream-2a39.workers.dev/api/progress",
+    "allowFixtures": false
+  }
+}
