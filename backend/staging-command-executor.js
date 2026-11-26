@@ -25,11 +25,16 @@ export function createStagingCommandExecutor({runtime,clock=Date.now}) {
       let result={status:'failed'};
       const fence=state=>state.stagingOperator?.lease?.nonce===nonce&&state.stagingOperator.lease.expiresAt>clock();
       try {
-        if(op.type==='issue')result={status:'issued',invitation:await runtime.admin.issue({actor,slot:op.slot,expectedAthleteId:op.expectedAthleteId,fence})};
+        if (['revoke-slot','erase-slot'].includes(op.type)) {
+          const removed = await runtime.admin.removeSlot({actor,operation:op,fence});
+          result = {status:removed.ok ? (op.type === 'erase-slot' ? 'erased' : 'revoked') : 'failed'};
+        }
+        else if(op.type==='issue')result={status:'issued',invitation:await runtime.admin.issue({actor,slot:op.slot,expectedAthleteId:op.expectedAthleteId,fence})};
         else if(op.type==='sync')result=await runtime.admin.sync({actor,fence});
         else if(op.type==='status') {
           const {state}=await runtime.repository.read(),c=control(state),budget=state.stagingBudget;
-          result={status:'ok',progress:await runtime.repository.getProgress(),syncDisabled:c.syncDisabled,autoSyncEnabled:c.autoSyncEnabled,lastAutomaticSync:c.lastAutomaticSync,budget:{requests:budget?.requests??0,blockedUntil:budget?.blockedUntil??0,quarterCount:budget?.quarterCount??0,dayCount:budget?.dayCount??0}};
+          const slots=state.auth.slots.map(({id,status,generation})=>({id,status,generation}));
+          result={status:'ok',slots,progress:await runtime.repository.getProgress(),syncDisabled:c.syncDisabled,autoSyncEnabled:c.autoSyncEnabled,lastAutomaticSync:c.lastAutomaticSync,budget:{requests:budget?.requests??0,blockedUntil:budget?.blockedUntil??0,quarterCount:budget?.quarterCount??0,dayCount:budget?.dayCount??0}};
         } else if(['disable-sync','enable-sync'].includes(op.type)) {
           await runtime.repository.updatePrivate(state=>{const c=control(state);if(op.type==='enable-sync'&&!fence(state))throw Error('operator_rejected');c.syncDisabled=op.type==='disable-sync';c.epoch++;});result={status:op.type==='disable-sync'?'disabled':'enabled'};
         } else if(['disable-auto-sync','enable-auto-sync'].includes(op.type)) {

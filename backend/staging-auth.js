@@ -57,6 +57,8 @@ export function createStagingAuth(env,{fetchProvider,clock=Date.now,progressOrig
         const ok=await repository.updatePrivate(state=>{
           if(!fence(state))throw Error('operator_lease_expired');
           if(state.auth.slots.some(s=>s.id!==slot&&(s.accountHash===expectedAccountHash||s.expectedAccountHash===expectedAccountHash)))return false;
+          const current = state.auth.slots.find(s => s.id === slot);
+          if (current.status === 'connected' || (current.accountHash && current.accountHash !== expectedAccountHash)) return false;
           const next=transitionInvitation(state.auth,{type:'issue',actor,now,slot,expectedAccountHash,tokenHash:hashSecret(token),expiresAt:now+3600000});
           state.auth=next.state;return next.result.ok;
         });
@@ -77,6 +79,26 @@ export function createStagingAuth(env,{fetchProvider,clock=Date.now,progressOrig
       async erase({actor,slot,verified=false,purgeMilestones=false}) {
         owner(actor);await ready();if(verified!==true)throw Error('verified_deletion_required');
         return repository.transitionAuth({type:'delete',actor,slot,now:clock(),requestVerified:true,purgeMilestones:purgeMilestones===true});
+      },
+      async removeSlot({actor,operation:op,fence}) {
+        owner(actor);await ready();
+        const expected = hashSecret(String(op.expectedAthleteId));
+        const erase = op.type === 'erase-slot';
+        return repository.transitionAuth({
+          type: erase ? 'delete' : 'revoke', actor, slot: op.slot, now: clock(),
+          requestVerified: erase, purgeMilestones: erase && op.purgeMilestones,
+        }, state => {
+          const slot = state.auth.slots.find(s => s.id === op.slot);
+          const participant = state.policy.participants.find(p => p.id === op.slot);
+          const control = stagingOperatorState(state);
+          return fence(state) && control.syncDisabled && !control.autoSyncEnabled &&
+            slot?.accountHash === expected && slot.generation === op.generation &&
+            participant?.generation === op.generation &&
+            (!erase || !op.purgeMilestones || (
+              state.auth.slots.every(s => s.id === op.slot || (!s.accountHash && !s.expectedAccountHash)) &&
+              state.policy.participants.every(p => p.id === op.slot || (!p.connected && !p.activities.length))
+            ));
+        });
       },
       async rotate({actor,slot,fence=()=>true}) {owner(actor);await ready();return service.rotate(slot,{fence});},
     },

@@ -19,6 +19,16 @@ try {
     } else console.log(JSON.stringify({status:'ready-locally',target:config.name,database:config.d1_databases[0].database_name,closedConfiguration:config.vars,releaseNeedsConfirmation:true,requiresExistingMigration:'0003_staging_auth_test.sql',secrets:['STRAVA_CLIENT_ID','STRAVA_CLIENT_SECRET','TOKEN_ENCRYPTION_KEY','TOKEN_ENCRYPTION_KEY_VERSION','STAGING_ADMIN_TOKEN'],operatorWorker:false,cron:{schedule:config.triggers.crons[0],utc:true,automaticSyncDefault:false}},null,2));
   } else if(operation==='rotate-admin'&&argv.length===2&&flag==='--confirm-local-key-rotation'){rotateMvpAdmin(root);console.log('New local admin credential prepared. Update the Worker Secret manually; AES unchanged.');}
   else if(['deploy','secret','secret-delete'].includes(operation))console.log(JSON.stringify(runMvpWrangler({root,config,fixture,env:process.env,argv})));
+  else if (['revoke-slot','erase-slot'].includes(operation) && argv.length === 3 &&
+      flag === '--confirm-staging-admin' &&
+      argv[2] === (operation === 'erase-slot' ? '--confirm-verified-deletion' : '--confirm-revocation')) {
+    requireStagingAccount(process.env);
+    const input = JSON.parse(readMvpPrivate(root,'slot-removal.json'));
+    const confirmation = operation === 'erase-slot' ? 'verified-staging-deletion' : 'revoke-staging-consent';
+    const result = await callMvp({root,operation:{...input,type:operation,confirmation}});
+    if (result.status !== (operation === 'erase-slot' ? 'erased' : 'revoked')) throw Error();
+    console.log(JSON.stringify(result));
+  }
   else if(['invite','status','sync','enable-sync','disable-sync','enable-auto-sync','disable-auto-sync'].includes(operation)&&flag==='--confirm-staging-admin'&&((operation==='enable-auto-sync'&&argv.length===3&&argv[2]==='--confirm-staging-auto-sync')||(operation!=='enable-auto-sync'&&argv.length===2))) {
     requireStagingAccount(process.env);
     const op=operation==='invite'?JSON.parse(readMvpPrivate(root,'invitation-request.json')):['enable-sync','enable-auto-sync'].includes(operation)?{type:operation,confirmation:operation==='enable-sync'?'enable-staging-sync':'enable-staging-auto-sync'}:{type:operation};

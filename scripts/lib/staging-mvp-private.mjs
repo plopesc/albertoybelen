@@ -14,7 +14,7 @@ export function mvpPrivateDirectory(root,{create=false}={}) {
   return path;
 }
 export function readMvpPrivate(root,name) {
-  if(!['admin-token','aes-key','strava-client-id','strava-client-secret','invitation-request.json'].includes(name))throw Error('Fixed private input required');
+  if(!['admin-token','aes-key','strava-client-id','strava-client-secret','invitation-request.json','slot-removal.json'].includes(name))throw Error('Fixed private input required');
   return privateFile(join(mvpPrivateDirectory(root),name),4096).toString('utf8').trim();
 }
 export function prepareMvpPrivate(root) {
