@@ -1,8 +1,8 @@
-/** Contenido provisional público. Sustituir aquí imagen/textos sin tocar los hitos. */
+/** Contenido del cofre final. Imagen y mensajes públicos en GitHub Pages. */
 export const FINAL_REWARD = Object.freeze({
   id: 'finish', percent: 100, notifyOnVisit: false,
   image: 'assets/milestones/milestone-100.webp',
-  title: 'Un regalo para vuestro camino',
-  alt: 'Paisaje provisional de cumbres y pradera, sin personas.',
-  message: 'Cada kilómetro os ha traído hasta aquí. Este es un regalo provisional para celebrar vuestro camino juntos.',
+  title: '¡500 km y un brindis!',
+  alt: 'Dos personas posan sonrientes junto a un vaso levantado ante la cámara.',
+  message: '¡Reto completado! Quinientos kilómetros de esfuerzo compartido, recuerdos y muchas risas. Que este sea solo el comienzo de muchos caminos más. ¡Salud!',
 });
