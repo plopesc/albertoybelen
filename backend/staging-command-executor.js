@@ -26,9 +26,6 @@ export function createStagingCommandExecutor({runtime,clock=Date.now}) {
       const fence=state=>state.stagingOperator?.lease?.nonce===nonce&&state.stagingOperator.lease.expiresAt>clock();
       try {
         if(op.type==='issue')result={status:'issued',invitation:await runtime.admin.issue({actor,slot:op.slot,expectedAthleteId:op.expectedAthleteId,fence})};
-        else if(op.type==='promote-challenge') {
-          result = {status:await runtime.admin.promoteChallenge({actor,fence}) ? 'promoted' : 'failed'};
-        }
         else if(op.type==='sync')result=await runtime.admin.sync({actor,fence});
         else if(op.type==='status') {
           const {state}=await runtime.repository.read(),c=control(state),budget=state.stagingBudget;
@@ -41,6 +38,9 @@ export function createStagingCommandExecutor({runtime,clock=Date.now}) {
           result={status:enabled?'enabled':'disabled',autoSyncEnabled:enabled};
         } else if(op.type==='revoke') {const r=await runtime.admin.revoke({actor,slot:op.slot});result={status:r.ok?'revoked':'failed'};}
         else if(op.type==='erase') {const r=await runtime.admin.erase({actor,slot:op.slot,verified:true,purgeMilestones:op.purgeMilestones});result={status:r.ok?'erased':'failed'};}
+        else if(op.type==='promote-challenge') {
+          result = {status:await runtime.admin.promoteChallenge({actor,fence}) ? 'promoted' : 'failed'};
+        }
         else if(op.type==='rotate') {await runtime.admin.rotate({actor,slot:op.slot,fence});result={status:'rotated'};}
       }catch{result={status:'failed'};}
       try {
