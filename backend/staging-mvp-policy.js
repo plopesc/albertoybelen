@@ -1,3 +1,4 @@
+import {OFFICIAL_CHALLENGE} from './official-challenge.js';
 import {STAGING_AUTH_ORIGIN} from './staging-auth-settings.js';
 export const MVP_ENABLE='owner-authorized-single-worker-staging';
 export const MVP_READY='owner-confirmed-0003-callback-capacity';
@@ -15,7 +16,7 @@ export function validateMvpCommand(command,now=Date.now()) {
   if(command.version!==1||!/^[\w-]{43}$/.test(command.nonce??'')||!Number.isSafeInteger(command.issuedAt)||!Number.isSafeInteger(command.expiresAt)||command.issuedAt>now+30000||command.issuedAt<now-120000||command.expiresAt<=now||command.expiresAt<=command.issuedAt||command.expiresAt-command.issuedAt>120000)throw Error('invalid_command');
   if (command.operation?.type === 'promote-challenge') {
     exact(command.operation,'type confirmation');
-    if (command.operation.confirmation !== 'promote-official-2026-11-28') throw Error('invalid_command');
+    if (command.operation.confirmation !== `promote-official-${OFFICIAL_CHALLENGE.startDate}`) throw Error('invalid_command');
     return command;
   }
   const op=command.operation;if(!op||!MVP_ACTIONS.includes(op.type))throw Error('invalid_command');

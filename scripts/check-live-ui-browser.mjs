@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {extname,resolve,relative,sep} from 'node:path';
 import {chromium,devices} from 'playwright';
+import {FINAL_REWARD} from '../frontend/js/final-reward.js';
+import demoProfile from '../frontend/config/game.json' with {type:'json'};
 import {PAGES_MODE} from '../frontend/js/pages-mode.js';
 const endpoint='https://production-browser.example/api/progress';
 
@@ -14,7 +16,7 @@ const snapshots=[
  {schemaVersion:1,source:'strava',distanceKm:500,partial:false,stale:false,updatedAt:'2026-11-28T10:02:00Z',unlockedMilestoneIds:['milestone-20','milestone-40','milestone-60','milestone-80','finish']},
 ];
 let reads=0;const requests=[];
-async function servePage(route,live=true){
+async function servePage(route,live=true,startDate){
  const url=new URL(route.request().url());let path=decodeURIComponent(url.pathname.slice(prefix.length));if(!path)path='index.html';
  const mode=live?'live':'simulation';
  if(path==='js/pages-mode.js'&&PAGES_MODE!==mode) return route.fulfill({contentType:'text/javascript',body:`export const PAGES_MODE = '${mode}';`});
@@ -25,21 +27,23 @@ async function servePage(route,live=true){
  if(live&&path==='config/pages-live.json'){
   const profile=JSON.parse(await readFile('frontend/config/pages-live.json','utf8'));
   profile.api.url=endpoint;
+  if(startDate)profile.game.startDate=startDate;
   return route.fulfill({json:profile});
  }
  const file=resolve('frontend',path),relativePath=relative(resolve('frontend'),file);if(relativePath.startsWith(`..${sep}`)||relativePath==='..')return route.abort();
  try{await route.fulfill({status:200,contentType:({'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp'})[extname(file)]??'application/octet-stream',body:await readFile(file)});}catch{await route.fulfill({status:404,body:'not found'});}
 }
-async function openLivePage(context,viewport,instant,mode='official'){
+async function openLivePage(context,viewport,instant,mode='official',{startDate,snapshot:fixedSnapshot}={}){
  const page=await context.newPage();await page.setViewportSize(viewport);const errors=[];page.on('pageerror',error=>errors.push(error.message));
- await page.route('**/*',route=>route.abort());await page.route(`${origin}${prefix}**`,route=>servePage(route));
+ await page.route('**/*',route=>route.abort());await page.route(`${origin}${prefix}**`,route=>servePage(route,true,startDate));
  await page.clock.setFixedTime(new Date(instant));
  await page.route(endpoint,async route=>{
   const req=route.request(),headers=await req.allHeaders();
-  requests.push({url:req.url(),method:req.method(),referer:headers.referer,cookie:headers.cookie,authorization:headers.authorization});
-  const snapshot=mode!=='official'?snapshots[1]:snapshots[Math.min(reads++,snapshots.length-1)];
+  if(!startDate)requests.push({url:req.url(),method:req.method(),referer:headers.referer,cookie:headers.cookie,authorization:headers.authorization});
+  if(mode==='offline')return route.abort('failed');
+  const snapshot=fixedSnapshot??(mode!=='official'?snapshots[1]:snapshots[Math.min(reads++,snapshots.length-1)]);
   const cors={'Cache-Control':'no-store','Access-Control-Allow-Origin':origin};
-  Object.assign(cors,{'X-Challenge-Start':mode==='wrong-date'?'2026-11-01':'2026-11-28','X-Challenge-Environment':mode==='pilot'?'staging':'production','Access-Control-Expose-Headers':'X-Challenge-Start, X-Challenge-Environment'});
+  Object.assign(cors,{'X-Challenge-Start':mode==='wrong-date'?'2026-11-01':(startDate??'2026-11-28'),'X-Challenge-Environment':mode==='pilot'?'staging':'production','Access-Control-Expose-Headers':'X-Challenge-Start, X-Challenge-Environment'});
   await route.fulfill({status:200,contentType:'application/json',headers:cors,body:JSON.stringify(snapshot)});
  });
  await page.goto(`${origin}${prefix}?utm_source=presentacion`);
@@ -59,18 +63,21 @@ async function checkDemoRewards(context, device) {
  await increment.waitFor();
  assert.equal(await demo.locator('#mode-label').innerText(),'MODO SIMULADO');
  assert.equal(await demo.locator('#api-card').isVisible(),false);
+ assert.equal(await demo.locator('#welcome-dialog').isVisible(),false);
+ const preview=demo.locator('#welcome-preview');
+ await preview.click();
+ assert.equal(await demo.locator('#welcome-dialog').isVisible(),true);
+ assert.equal(await demo.locator('#goal').innerText(),'100');
+ await demo.keyboard.press('Escape');
+ assert.equal(await preview.evaluate(element=>element===document.activeElement),true);
  const photo=demo.locator('#reward-photo'),dialog=demo.locator('#milestone-dialog');
- for(const [title,file] of [
-  ['Antes del «sí, quiero», ya había unas cuantas historias.','milestone-20.webp'],
-  ['Algunas noches se acaban. Las anécdotas se quedan para siempre.','milestone-40.webp'],
-  ['Si hay que hacer el ridículo, que sea en buena compañía.','milestone-60.webp'],
-  ['Qué suerte seguir compartiendo la vida y sus celebraciones con vosotros.','milestone-80.webp'],
-  ['¡Por vosotros y por todo lo que viene!','milestone-100.webp'],
- ]){
+ const rewards=[...demoProfile.rewards.milestones,FINAL_REWARD];
+ for(const {id,title,message} of rewards){
+  const file=`milestone-${id==='finish'?100:id.split('-')[1]}.webp`;
   await increment.click();
   await increment.click();
   await dialog.waitFor();
-  assert.equal(await demo.locator('#reward-description').innerText(),title);
+  assert.equal(await demo.locator('#reward-description').innerText(),id==='finish'?title:message);
   assert.equal(await demo.locator('#reward-close').evaluate(node=>node===document.activeElement),true);
   await demo.locator('#reward-view').click();
   await photo.waitFor();
@@ -96,7 +103,7 @@ async function checkDemoRewards(context, device) {
 
   if(file==='milestone-40.webp'||file==='milestone-100.webp'){
    const scene=file==='milestone-40.webp'?'portrait':'final';
-   if(scene==='final')assert.match(await demo.locator('#reward-message').innerText(),/Pablo y Dani\. ¡Vivan los novios!/);
+   if(scene==='final')assert.equal(await demo.locator('#reward-message').innerText(),FINAL_REWARD.message);
    await dialog.screenshot({path:resolve(output,`reward-${device}-${scene}-after.png`),animations:'disabled'});
    // Reapply the original fixed frame for the review comparison only.
    const formerFrame=await demo.addStyleTag({content:`
@@ -125,6 +132,27 @@ async function checkDemoRewards(context, device) {
  await demo.close();
 }
 
+async function checkWelcome(page,label) {
+ const dialog=page.locator('#welcome-dialog');
+ await dialog.waitFor();
+ assert.equal(await page.locator('#welcome-title').innerText(),'Alberto y Belén, ¡ahora empieza lo bueno! ❤️');
+ assert.equal(await page.locator('#welcome-title').evaluate(node=>node===document.activeElement),true);
+ assert.equal(await page.locator('#milestone-dialog').isVisible(),false);
+ await page.screenshot({path:resolve(output,`welcome-${label}.png`)});
+ const scroll=await dialog.locator('.welcome-content').evaluate(node=>{
+  node.scrollTop=node.scrollHeight;
+  return {top:node.scrollTop,scrollWidth:node.scrollWidth,width:node.clientWidth};
+ });
+ assert.ok(scroll.top>0 && scroll.scrollWidth<=scroll.width,'welcome content scrolls vertically without overflow');
+ assert.equal(await dialog.locator('p').last().innerText(),'Pablo y Dani ❤️');
+ await page.keyboard.press('Shift+Tab');
+ const close=page.getByRole('button',{name:'EMPEZAR EL CAMINO',exact:true});
+ assert.equal(await close.evaluate(node=>node===document.activeElement),true);
+ await close.click();
+ await dialog.waitFor({state:'hidden'});
+ assert.equal(await page.locator('.explore-link').evaluate(node=>node===document.activeElement),true);
+}
+
 try{
  const mobileContext=await browser.newContext({...devices['iPhone 13'],reducedMotion:'reduce'});
  const desktopDemo=await browser.newContext({viewport:{width:1440,height:1000}});
@@ -135,17 +163,21 @@ try{
  assert.equal(await before.locator('#distance').innerText(),'0,00');
  assert.match(await before.locator('#api-state').innerText(),/empieza el 28/);
  assert.equal(requests.length,0);
+ await checkWelcome(before,'mobile-before');
  await before.close();
  const pilot=await openLivePage(mobileContext,{width:390,height:844},'2026-11-27T23:00:00Z','pilot');
  assert.equal(await pilot.locator('#progress').isVisible(),false);
+ assert.equal(await pilot.locator('#welcome-dialog').isVisible(),false);
  assert.equal(await pilot.locator('#completion-card').isVisible(),false);
  await pilot.close();
  const wrongDate=await openLivePage(mobileContext,{width:390,height:844},'2026-11-27T23:00:00Z','wrong-date');
  assert.equal(await wrongDate.locator('#progress').isVisible(),false);
+ assert.equal(await wrongDate.locator('#welcome-dialog').isVisible(),false);
  await wrongDate.close();
  const mobile=await openLivePage(mobileContext,{width:390,height:844},'2026-11-27T23:00:00Z');
  assert.equal(await mobile.locator('#distance').innerText(),'0,00');
  assert.match(await mobile.locator('#api-state').innerText(),/cuentas de Strava pendiente/);
+ await checkWelcome(mobile,'mobile-zero');
  await mobile.screenshot({path:resolve(output,'mobile-launch.png'),fullPage:true});
  async function refresh(page, distance){
   await page.evaluate(()=>Object.defineProperty(document,'visibilityState',{configurable:true,get:()=>window.__visibilityState??'visible'}));
@@ -153,6 +185,7 @@ try{
   await page.waitForFunction(value=>document.getElementById('distance')?.textContent===value,distance);
  }
  await refresh(mobile,'62,66');
+ assert.equal(await mobile.locator('#welcome-dialog').isVisible(),false);
  assert.equal(await mobile.locator('body').getAttribute('class'),'live-presentation');
  assert.equal(await mobile.locator('#distance').innerText(),'62,66');assert.equal(await mobile.locator('#remaining').innerText(),'437,34');assert.equal(await mobile.locator('#goal').innerText(),'500');
  for(const selector of ['header.site-header .mode','#api-source','#api-refresh','#api-instruction','#journey-message','#data-source'])assert.equal(await mobile.locator(selector).isVisible(),false,`${selector} hidden in live`);
@@ -162,10 +195,38 @@ try{
  assert.ok(layout.scroll<=layout.width,`mobile horizontal overflow: ${JSON.stringify(layout)}`);assert.equal(layout.remainingText,'nowrap');await mobile.screenshot({path:resolve(output,'mobile-live.png'),fullPage:true});
  await refresh(mobile,'500,00');
  assert.equal(requests.length,5,'two rejected responses, one launch read and two tab refreshes');assert.equal(await mobile.locator('#remaining').innerText(),'0,00');assert.equal(await mobile.locator('#completion-card').isVisible(),true);assert.equal(await mobile.getByRole('button',{name:'Abrir el regalo'}).isVisible(),true);assert.match(await mobile.locator('#status').innerText(),/¡Y ahora empieza lo bueno!/);
- if(await mobile.locator('#milestone-dialog').isVisible())await mobile.getByRole('button',{name:/seguir el camino/i}).click();await mobile.screenshot({path:resolve(output,'mobile-complete.png'),fullPage:true});
+ if(await mobile.locator('#milestone-dialog').isVisible())await mobile.locator('#reward-close').click();await mobile.screenshot({path:resolve(output,'mobile-complete.png'),fullPage:true});
  reads=1;const desktopContext=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce'}),desktop=await openLivePage(desktopContext,{width:1440,height:1000},'2026-11-28T12:00:00Z');
  assert.equal(await desktop.locator('#distance').innerText(),'62,66');assert.equal(await desktop.locator('#remaining').innerText(),'437,34');
  const desktopLayout=await desktop.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,grid:getComputedStyle(document.querySelector('.adventure-layout')).gridTemplateColumns}));assert.ok(desktopLayout.scroll<=desktopLayout.width,`desktop horizontal overflow: ${JSON.stringify(desktopLayout)}`);await desktop.screenshot({path:resolve(output,'desktop-live.png'),fullPage:true});
+ assert.equal(await desktop.locator('#welcome-dialog').isVisible(),false);
+ const summer={startDate:'2027-07-01',snapshot:{...snapshots[0],unlockedMilestoneIds:['milestone-20']}}, desktopSize={width:1440,height:1000};
+ const summerBefore=await openLivePage(desktopContext,desktopSize,'2027-06-30T21:59:59Z','official',summer);
+ await checkWelcome(summerBefore,'desktop-before');
+ await summerBefore.close();
+ const zero=await openLivePage(desktopContext,desktopSize,'2027-06-30T22:00:00Z','official',summer);
+ await checkWelcome(zero,'desktop-zero');
+ await zero.locator('[data-milestone="milestone-20"]').click();
+ assert.equal(await zero.locator('#milestone-dialog').isVisible(),true);
+ assert.equal(await zero.locator('#welcome-dialog').isVisible(),false);
+ await zero.keyboard.press('Escape');
+ await zero.evaluate(()=>{
+  Object.defineProperty(document,'visibilityState',{configurable:true,value:'hidden'});
+  document.dispatchEvent(new Event('visibilitychange'));
+  Object.defineProperty(document,'visibilityState',{configurable:true,value:'visible'});
+  document.dispatchEvent(new Event('visibilitychange'));
+ });
+ await zero.waitForFunction(()=>document.getElementById('api-card').dataset.state==='ready');
+ assert.equal(await zero.locator('#welcome-dialog').isVisible(),false);
+ await zero.reload();
+ await zero.locator('#welcome-dialog').waitFor();
+ await zero.keyboard.press('Escape');
+ assert.equal(await zero.locator('.explore-link').evaluate(node=>node===document.activeElement),true);
+ await zero.close();
+ const failed=await openLivePage(desktopContext,desktopSize,'2027-06-30T22:00:00Z','offline',summer);
+ assert.equal(await failed.locator('#welcome-dialog').isVisible(),false);
+ await failed.locator('.explore-link').click();
+ assert.equal(new URL(failed.url()).hash,'#map');
  assert.deepEqual(requests.map(x=>x.method),Array(6).fill('GET'));assert.ok(requests.every(x=>x.url===endpoint&&x.referer===undefined&&x.cookie===undefined&&x.authorization===undefined));
  await writeFile(resolve(output,'manifest.json'),JSON.stringify({synthetic:true,realStravaRequests:0,realCloudflareRequests:0,profile:'official-pages-root',viewports:[{width:390,height:844},{width:1440,height:1000}],requests:requests.length,snapshots:[0,62.6602,500]},null,2)+'\n');
  await mobileContext.close();await desktopContext.close();console.log('Five photos and live presentation verified on mobile and desktop using intercepted responses only.');

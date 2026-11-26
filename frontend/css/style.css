@@ -191,3 +191,11 @@ body.live-presentation #data-source { display: none; }
 body.live-presentation .api-card { margin-top: 18px; }
 body.live-presentation .distance > span:first-child { white-space: nowrap; overflow-wrap: normal; font-size: clamp(36px, 10vw, 64px); }
 body.live-presentation .distance > span:last-child { white-space: nowrap; }
+
+.welcome-dialog { line-height: 1.6; overflow: hidden; }
+.welcome-dialog[open] { display: flex; flex-direction: column; }
+.welcome-content { min-height: 0; overflow-y: auto; padding: 4px; }
+.welcome-dialog h2 { margin: 0 0 18px; line-height: 1.2; color: var(--accent); }
+.welcome-dialog h3 { margin: 24px 0 8px; color: var(--accent); font-size: 0.85rem; letter-spacing: 0.08em; }
+.welcome-dialog p { margin: 0 0 12px; }
+.welcome-actions { flex: none; padding-top: 12px; }

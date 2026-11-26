@@ -183,6 +183,7 @@
         <a hidden class="controls-link" href="#simulation-heading">IR A LOS CONTROLES <span aria-hidden="true">↓</span></a>
       </section>
       <section id="simulation-card" hidden class="simulation-card" aria-labelledby="simulation-heading">
+        <button id="welcome-preview" type="button">Vista previa de la bienvenida del reto de 500 km</button>
         <p class="eyebrow">MANDOS DE PRUEBA</p><h2 id="simulation-heading" tabindex="-1">Dale kilómetros.</h2><p class="hint">Simula tu avance por el recorrido.</p>
         <div class="distance-buttons"><button type="button" data-km="1">+1 <span>km</span></button><button type="button" data-km="5">+5 <span>km</span></button><button type="button" data-km="10">+10 <span>km</span></button></div>
         <button id="reset" aria-describedby="reset-hint" class="reset-button" type="button">Reiniciar kilómetros</button>
@@ -193,6 +194,39 @@
     <p id="status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p>
     <noscript><p class="error">Activa JavaScript para cargar la configuración del juego.</p></noscript>
   </main>
+  <dialog id="welcome-dialog" class="reward-dialog welcome-dialog" aria-labelledby="welcome-title">
+    <div class="welcome-content">
+      <h2 id="welcome-title" tabindex="-1">Alberto y Belén, ¡ahora empieza lo bueno! ❤️</h2>
+      <p><strong>¡Enhorabuena, pareja!</strong></p>
+      <p>Después de tanto preparativo, tanta celebración y tanto «¿queda mucho para la boda?», por fin podéis relajaros.</p>
+      <p>Bueno… casi.</p>
+      <p>Porque Pablo y Dani hemos decidido que no os podíais ir de aquí sin llevaros unos deberes.</p>
+      <p><strong>500 kilómetros. Entre los dos.</strong></p>
+      <p>Tranquilos, no hay fecha límite, ni competición, ni nadie esperando en la meta con un cronómetro.</p>
+      <p>Solo vosotros, un montón de caminos por descubrir y alguna que otra sorpresa que os hemos preparado.</p>
+      <h3>UN CAMINO PARA COMPARTIR</h3>
+      <p>Cada vez que salgáis a caminar, correr o hacer senderismo, vuestros kilómetros se irán sumando.</p>
+      <p>Da igual quién haga más. Aunque si queréis picaros un poquito, nosotros no hemos dicho nada.</p>
+      <p>Veréis cómo avanzáis juntos por este recorrido hasta llegar a los 500 km.</p>
+      <h3>ALGUNOS RECUERDOS POR EL CAMINO</h3>
+      <p>Cada 100 kilómetros podréis abrir un cofre.</p>
+      <p>Dentro os esperan recuerdos, fotografías y alguna que otra prueba de que llevamos demasiados años haciendo el tonto juntos.</p>
+      <p>Y cuando lleguéis al final, habrá una última sorpresa.</p>
+      <p>No, no es otra boda. Podéis respirar tranquilos.</p>
+      <h3>ANTES DE ECHAR A ANDAR</h3>
+      <p>Cuando os demos vuestros enlaces personales, cada uno tendrá que conectar su cuenta de <strong>Strava</strong>.</p>
+      <p>Solo hay que hacerlo una vez.</p>
+      <p>Después, registrad vuestras caminatas, carreras o rutas de senderismo como siempre. Los kilómetros aparecerán aquí automáticamente.</p>
+      <p>Y si todavía veis el marcador a cero, no os preocupéis. Las mejores aventuras también empiezan así.</p>
+      <h3>LO MEJOR ESTÁ POR VENIR</h3>
+      <p>La boda ha sido solo el principio.</p>
+      <p>Os quedan miles de kilómetros, viajes, historias y risas por compartir.</p>
+      <p><strong>Nosotros os hemos preparado los primeros 500.</strong></p>
+      <p>Con mucho cariño,</p>
+      <p><strong>Pablo y Dani ❤️</strong></p>
+    </div>
+    <div class="reward-actions welcome-actions"><button id="welcome-close" type="button">EMPEZAR EL CAMINO</button></div>
+  </dialog>
   <dialog id="milestone-dialog" class="reward-dialog" aria-labelledby="reward-title" aria-describedby="reward-description reward-counter reward-status">
     <div class="reward-header"><div><p id="reward-eyebrow" class="eyebrow">UN NUEVO HITO</p><h2 id="reward-title">Hito desbloqueado</h2></div><button id="reward-close" class="reward-close" type="button" aria-label="Seguir el camino">SEGUIR EL CAMINO <span aria-hidden="true">×</span></button></div>
     <p id="reward-description" class="reward-description"></p>

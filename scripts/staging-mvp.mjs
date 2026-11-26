@@ -4,6 +4,7 @@ import {build} from 'esbuild';
 import {validateMvpConfiguration,mvpConfiguration} from './lib/staging-mvp-config.mjs';
 import {runMvpWrangler} from './lib/staging-mvp-runner.mjs';
 import {prepareMvpPrivate,readMvpPrivate,rotateMvpAdmin} from './lib/staging-mvp-private.mjs';
+import {OFFICIAL_CHALLENGE} from '../backend/official-challenge.js';
 import {callMvp} from './lib/staging-mvp-client.mjs';
 import {requireStagingAccount} from './lib/staging-config.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url)),argv=process.argv.slice(2),[operation,flag]=argv;
@@ -18,9 +19,9 @@ try {
       console.log('Single Worker bundled locally. No Wrangler, secrets, network or deployment.');
     } else console.log(JSON.stringify({status:'ready-locally',target:config.name,database:config.d1_databases[0].database_name,closedConfiguration:config.vars,releaseNeedsConfirmation:true,requiresExistingMigration:'0003_staging_auth_test.sql',secrets:['STRAVA_CLIENT_ID','STRAVA_CLIENT_SECRET','TOKEN_ENCRYPTION_KEY','TOKEN_ENCRYPTION_KEY_VERSION','STAGING_ADMIN_TOKEN'],operatorWorker:false,cron:{schedule:config.triggers.crons[0],utc:true,automaticSyncDefault:false}},null,2));
   }
-  else if(operation==='promote-challenge'&&flag==='--confirm-staging-admin'&&argv.length===3&&argv[2]==='--confirm-official-2026-11-28') {
+  else if(operation==='promote-challenge'&&flag==='--confirm-staging-admin'&&argv.length===3&&argv[2]===`--confirm-official-${OFFICIAL_CHALLENGE.startDate}`) {
     requireStagingAccount(process.env);
-    const result = await callMvp({root,operation:{type:operation,confirmation:'promote-official-2026-11-28'}});
+    const result = await callMvp({root,operation:{type:operation,confirmation:`promote-official-${OFFICIAL_CHALLENGE.startDate}`}});
     if(result.status!=='ok')throw Error();
     console.log(JSON.stringify(result));
   }
