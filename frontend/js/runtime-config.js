@@ -1,4 +1,5 @@
 import { loadGameConfig } from './config.js';
+import { PAGES_MODE } from './pages-mode.js';
 import { hasPagesTrackingParams, isPagesRoot, isPagesLivePage, OFFICIAL_START_DATE, PAGES_PRODUCTION_PROGRESS_URL, isPagesStagingPage, PAGES_STAGING_PROGRESS_URL, resolveProgressEndpoint } from './http-progress.js';
 export const LOCAL_CONFIG_URL = new URL('../config/local.json', import.meta.url);
 export const STAGING_CONFIG_URL = new URL('../config/staging.local.json', import.meta.url);
@@ -15,6 +16,12 @@ export async function loadRuntimeConfig({ pageUrl = globalThis.location.href, fe
     if (config.game.mode !== 'real' || config.game.id !== 'pages-staging-strava' || config.game.goalKm !== 500 || config.game.startDate !== '2026-11-01' || config.game.timeZone !== 'Europe/Madrid' || config.api?.url !== PAGES_STAGING_PROGRESS_URL || config.api.allowFixtures !== false) throw new Error('El perfil Pages debe usar únicamente el progreso agregado de staging.');
   } else if (isPagesRoot(page)) {
     if (!isPagesLivePage(page)) throw new Error('Enlace del reto inválido.');
+    if (PAGES_MODE === 'simulation') {
+      const demo = await loadGameConfig(fetchConfig);
+      if (demo.game.mode !== 'simulation' || demo.api) throw new Error('Configuración de la demo inválida.');
+      return demo;
+    }
+    if (PAGES_MODE !== 'live') throw new Error('Modo de publicación inválido.');
     if (!PAGES_PRODUCTION_PROGRESS_URL) throw new Error('El recorrido estará disponible cuando se publique el reto.');
     config = await loadGameConfig(fetchConfig, PAGES_LIVE_CONFIG_URL);
     const {game,api} = config;

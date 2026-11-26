@@ -14,7 +14,7 @@ jobs:
   deploy:
     # Ausente/false por defecto. Solo el propietario puede habilitarlo tras aprobar.
     if: github.ref == 'refs/heads/main' && vars.PAGES_TEST_DEPLOY_ENABLED == 'true'
-    name: Publicar el reto oficial
+    name: Publicar el juego
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -40,7 +40,12 @@ jobs:
         run: |
           for module in frontend/js/*.js; do node --check "$module"; done
           npm test
-          npm run production -- pages-check
+          pages_mode="$(node --input-type=module -e "import { PAGES_MODE } from './frontend/js/pages-mode.js'; console.log(PAGES_MODE)")"
+          case "$pages_mode" in
+            simulation) ;;
+            live) npm run production -- pages-check ;;
+            *) echo "Modo de Pages inválido"; exit 1 ;;
+          esac
       - name: Consultar Pages sin activar el servicio
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
         with:

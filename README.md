@@ -404,9 +404,11 @@ publicar la web ni modificar el progreso de los jugadores.
 
 ## GitHub Pages
 
-La raíz de Pages usa el perfil real de 500 km desde el 28/11/2026 en
-Europe/Madrid. La [guía de presentación](docs/official-launch.md) describe la
-promoción del Worker, la verificación de los 0 km iniciales y la publicación.
+La raíz de Pages usa temporalmente la demo simulada de `frontend/config/game.json`.
+Puede publicarse antes del 28/11 mediante el workflow manual. Tras la aprobación
+del propietario, cambiar `PAGES_MODE` a `live` en `frontend/js/pages-mode.js`
+y seguir la [guía de presentación](docs/official-launch.md). El workflow aplica
+el control de fecha y destino antes de publicar el reto real.
 El [visor de pruebas](docs/pages-staging.md) conserva su enlace explícito.
 
 [Publicar en Pages](.github/workflows/pages.yml) se ejecuta manualmente desde
