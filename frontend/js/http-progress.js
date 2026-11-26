@@ -2,8 +2,7 @@ const publicKeys = ['schemaVersion','source','distanceKm','partial','stale','upd
 export const MAX_UNLOCKED_IDS = 256;
 // Independent code allowlist: public config cannot authorize another remote host.
 export const PAGES_STAGING_PROGRESS_URL = 'https://albertoybelen-api-staging.autumn-dream-2a39.workers.dev/api/progress';
-// Pin the exact production endpoint after verifying the Worker. Null blocks live reads.
-export const PAGES_PRODUCTION_PROGRESS_URL = null;
+export const PAGES_PRODUCTION_PROGRESS_URL = 'https://albertoybelen-api.autumn-dream-2a39.workers.dev/api/progress';
 export const PAGES_TRACKING_KEYS = Object.freeze(['utm_source','utm_medium','utm_campaign','utm_content','utm_term']);
 const pagesOrigin='https://plopesc.github.io',pagesPath='/albertoybelen/';
 export const OFFICIAL_START_DATE = '2026-11-28';
