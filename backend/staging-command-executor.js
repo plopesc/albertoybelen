@@ -26,6 +26,9 @@ export function createStagingCommandExecutor({runtime,clock=Date.now}) {
       const fence=state=>state.stagingOperator?.lease?.nonce===nonce&&state.stagingOperator.lease.expiresAt>clock();
       try {
         if(op.type==='issue')result={status:'issued',invitation:await runtime.admin.issue({actor,slot:op.slot,expectedAthleteId:op.expectedAthleteId,fence})};
+        else if(op.type==='promote-challenge') {
+          result = {status:await runtime.admin.promoteChallenge({actor,fence}) ? 'promoted' : 'failed'};
+        }
         else if(op.type==='sync')result=await runtime.admin.sync({actor,fence});
         else if(op.type==='status') {
           const {state}=await runtime.repository.read(),c=control(state),budget=state.stagingBudget;
