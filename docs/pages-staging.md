@@ -1,8 +1,7 @@
 # Vista opt-in de Strava Staging en GitHub Pages (#52)
 
-Tras la publicación del reto oficial, la raíz abre ese reto. Durante el ensayo, una
-versión revisada y desplegar el cambio compatible del Worker, el enlace de
-prueba es:
+La raíz de Pages abre el reto oficial tras su publicación. El perfil de ensayo
+conserva este enlace de diagnóstico.
 
 **https://plopesc.github.io/albertoybelen/?pages-staging=strava**
 
