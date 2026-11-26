@@ -1,3 +1,4 @@
+import { startInstant } from './challenge-time.js';
 import { PAGES_MODE } from './pages-mode.js';
 
 const publicKeys = ['schemaVersion','source','distanceKm','partial','stale','updatedAt','unlockedMilestoneIds'];
@@ -7,8 +8,6 @@ export const PAGES_STAGING_PROGRESS_URL = 'https://albertoybelen-api-staging.aut
 export const PAGES_PRODUCTION_PROGRESS_URL = 'https://albertoybelen-api.autumn-dream-2a39.workers.dev/api/progress';
 export const PAGES_TRACKING_KEYS = Object.freeze(['utm_source','utm_medium','utm_campaign','utm_content','utm_term']);
 const pagesOrigin='https://plopesc.github.io',pagesPath='/albertoybelen/';
-export const OFFICIAL_START_DATE = '2026-11-28';
-export const OFFICIAL_START_INSTANT = Date.parse('2026-11-27T23:00:00Z');
 export function isPagesRoot(page) {
   return page.origin === pagesOrigin && [pagesPath,pagesPath+'index.html'].includes(page.pathname);
 }
@@ -70,11 +69,12 @@ export function validatePublicProgress(raw, { allowFixtures = false, expectedSou
 }
 
 /** Memory-only public DTO. Latest request wins; simulation storage is never consulted. */
-export function createHttpProgressProvider({ url, pageUrl, allowFixtures = false, fetchProgress = globalThis.fetch, timeoutMs = 8000 }) {
+export function createHttpProgressProvider({ url, pageUrl, allowFixtures = false, game, fetchProgress = globalThis.fetch, timeoutMs = 8000 }) {
   const endpoint = resolveProgressEndpoint(url, pageUrl, allowFixtures);
   if (!Number.isFinite(timeoutMs) || timeoutMs <= 0 || timeoutMs > 30000) throw new Error('Timeout inválido.');
   const pagesEndpoint = endpoint === PAGES_STAGING_PROGRESS_URL;
   const official = endpoint === PAGES_PRODUCTION_PROGRESS_URL;
+  const officialStart = official ? startInstant(game.startDate, game.timeZone) : null;
   let state = { status: 'idle', snapshot: null, error: null }, sequence = 0, cancel;
   const listeners = new Set();
   const copy = () => structuredClone(state);
@@ -93,13 +93,13 @@ export function createHttpProgressProvider({ url, pageUrl, allowFixtures = false
       state = { ...state, status: 'loading', error: null }; emit();
       try {
         const work = (async () => {
-          if (official && Date.now() < OFFICIAL_START_INSTANT) {
+          if (official && Date.now() < officialStart) {
             return {schemaVersion:1,source:'strava',distanceKm:0,partial:true,stale:false,updatedAt:null,unlockedMilestoneIds:[]};
           }
           const response = await fetchProgress(endpoint, { cache: 'no-store', credentials: 'omit', redirect: 'error', referrerPolicy: 'no-referrer', signal: controller.signal, headers: { Accept: 'application/json' } });
           if (response.status !== 200) throw new Error('unavailable');
           const challengeStart = response.headers.get('X-Challenge-Start');
-          if ((official && (challengeStart !== OFFICIAL_START_DATE || response.headers.get('X-Challenge-Environment') !== 'production')) ||
+          if ((official && (challengeStart !== game.startDate || response.headers.get('X-Challenge-Environment') !== 'production')) ||
               (pagesEndpoint && challengeStart !== null)) throw new Error('invalid_response');
           const reader = response.body?.getReader();
           if (!reader) throw new Error('invalid_response');

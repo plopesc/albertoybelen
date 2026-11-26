@@ -5,6 +5,9 @@ El reto suma 500 km desde el **28/11/2026 a las 00:00 en Madrid**
 dos plazas pendientes. El Worker y D1 de staging siguen siendo de pruebas.
 Queda sustituido el procedimiento de promoción de staging de #63.
 
+La fecha oficial se configura en `frontend/config/pages-live.json` (`game.startDate`).
+El navegador, el Worker y el control de publicación usan esa misma fecha.
+
 ## Inventario de solo lectura a cargo del propietario
 
 Desde una sesión de Wrangler autenticada y el panel de la cuenta correcta:
