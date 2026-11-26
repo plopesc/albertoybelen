@@ -8,7 +8,7 @@ const pair = value => {
 
 /** All OAuth/activity requests share durable conservative limits. No URL or body is logged. */
 export function createPilotTransport({ repository, ready, fetchProvider = fetch, clock = Date.now, limits = PILOT_LIMITS, budgetKey = 'pilotBudget' }) {
-  if (!['pilotBudget', 'stagingBudget'].includes(budgetKey)) throw Error('Invalid budget namespace');
+  if (!['pilotBudget', 'stagingBudget', 'productionBudget'].includes(budgetKey)) throw Error('Invalid budget namespace');
   let operationCount = 0;
   return async (address, options) => {
     await ready();

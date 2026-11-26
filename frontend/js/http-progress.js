@@ -2,6 +2,8 @@ const publicKeys = ['schemaVersion','source','distanceKm','partial','stale','upd
 export const MAX_UNLOCKED_IDS = 256;
 // Independent code allowlist: public config cannot authorize another remote host.
 export const PAGES_STAGING_PROGRESS_URL = 'https://albertoybelen-api-staging.autumn-dream-2a39.workers.dev/api/progress';
+// Pin the exact production endpoint after verifying the Worker. Null blocks live reads.
+export const PAGES_PRODUCTION_PROGRESS_URL = null;
 export const PAGES_TRACKING_KEYS = Object.freeze(['utm_source','utm_medium','utm_campaign','utm_content','utm_term']);
 const pagesOrigin='https://plopesc.github.io',pagesPath='/albertoybelen/';
 export const OFFICIAL_START_DATE = '2026-11-28';
@@ -46,7 +48,9 @@ export function resolveProgressEndpoint(address, pageUrl, allowFixtures = false)
   const local = ['albertoybelen.ddev.site','localhost','127.0.0.1','[::1]'].includes(page.hostname);
   const loopback = ['localhost','127.0.0.1','[::1]'].includes(page.hostname);
   const pagesStaging = isPagesStagingPage(page);
-  if ((pagesStaging || isPagesLivePage(page)) && address === PAGES_STAGING_PROGRESS_URL && url.href === PAGES_STAGING_PROGRESS_URL && !allowFixtures) return url.href;
+  if (pagesStaging && url.href === PAGES_STAGING_PROGRESS_URL && address === url.href && !allowFixtures) return url.href;
+  if (isPagesLivePage(page) && url.href === PAGES_PRODUCTION_PROGRESS_URL && address === url.href && !allowFixtures) return url.href;
+  if (isPagesRoot(page)) throw new Error('La API del reto no está disponible.');
   const permittedPath = url.pathname === '/api/progress' || (local && allowFixtures && url.pathname === '/api/staging/progress') || (local && !allowFixtures && url.pathname === '/api/staging/strava-progress');
   if (url.origin !== page.origin || (url.protocol !== 'https:' && !(loopback && url.protocol === 'http:')) || url.username || url.password || url.search || url.hash || !permittedPath || (allowFixtures && !local)) throw new Error('La API debe usar el origen y la ruta permitidos.');
   return url.href;
@@ -69,7 +73,7 @@ export function createHttpProgressProvider({ url, pageUrl, allowFixtures = false
   const endpoint = resolveProgressEndpoint(url, pageUrl, allowFixtures);
   if (!Number.isFinite(timeoutMs) || timeoutMs <= 0 || timeoutMs > 30000) throw new Error('Timeout inválido.');
   const pagesEndpoint = endpoint === PAGES_STAGING_PROGRESS_URL;
-  const official = pagesEndpoint && isPagesLivePage(new URL(pageUrl));
+  const official = endpoint === PAGES_PRODUCTION_PROGRESS_URL;
   let state = { status: 'idle', snapshot: null, error: null }, sequence = 0, cancel;
   const listeners = new Set();
   const copy = () => structuredClone(state);
@@ -94,7 +98,8 @@ export function createHttpProgressProvider({ url, pageUrl, allowFixtures = false
           const response = await fetchProgress(endpoint, { cache: 'no-store', credentials: 'omit', redirect: 'error', referrerPolicy: 'no-referrer', signal: controller.signal, headers: { Accept: 'application/json' } });
           if (response.status !== 200) throw new Error('unavailable');
           const challengeStart = response.headers.get('X-Challenge-Start');
-          if (pagesEndpoint && (official ? challengeStart !== OFFICIAL_START_DATE : challengeStart !== null)) throw new Error('invalid_response');
+          if ((official && (challengeStart !== OFFICIAL_START_DATE || response.headers.get('X-Challenge-Environment') !== 'production')) ||
+              (pagesEndpoint && challengeStart !== null)) throw new Error('invalid_response');
           const reader = response.body?.getReader();
           if (!reader) throw new Error('invalid_response');
           const chunks = []; let length = 0;
@@ -110,7 +115,7 @@ export function createHttpProgressProvider({ url, pageUrl, allowFixtures = false
           for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
           let raw; try { raw = JSON.parse(new TextDecoder().decode(bytes)); } catch { throw new Error('invalid_response'); }
           const path = new URL(endpoint).pathname;
-          return validatePublicProgress(raw, { allowFixtures, expectedSource: path === '/api/staging/progress' ? 'fixture' : path === '/api/staging/strava-progress' || endpoint === PAGES_STAGING_PROGRESS_URL ? 'strava' : undefined });
+          return validatePublicProgress(raw, { allowFixtures, expectedSource: path === '/api/staging/progress' ? 'fixture' : path === '/api/staging/strava-progress' || (pagesEndpoint || official) ? 'strava' : undefined });
         })();
         const snapshot = await Promise.race([work, stopped]);
         if (sequence !== current) return;

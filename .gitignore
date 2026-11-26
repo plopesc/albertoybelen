@@ -18,3 +18,5 @@ frontend/config/staging.local.json
 .ddev/nginx/staging-read-local.conf
 
 frontend/config/staging-strava.local.json
+
+/wrangler.production.generated.json

@@ -62,8 +62,8 @@ variable ya habilitada, el comando manual existente es:
 gh workflow run pages.yml --repo plopesc/albertoybelen --ref main
 ```
 
-Tras la promoción del reto oficial, la raíz muestra el reto real. El enlace de
-diagnóstico conserva el perfil de ensayo y rechaza la respuesta del reto oficial.
+La raíz apunta al Worker productivo tras configurar sus pines. El enlace de
+diagnóstico conserva el Worker y el perfil de staging.
 Consultar el [procedimiento de lanzamiento](official-launch.md).
 
 ## Comprobaciones locales

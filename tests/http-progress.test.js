@@ -16,7 +16,7 @@ test('HTTP valida y normaliza solo contrato público, sin datos adicionales',()=
 
 test('endpoint mismo origen HTTPS, subdirectorio Pages y fixtures locales explícitos',()=>{
  assert.equal(resolveProgressEndpoint('/api/progress',pageUrl,true),'https://albertoybelen.ddev.site/api/progress');
- assert.equal(resolveProgressEndpoint('/api/progress','https://plopesc.github.io/albertoybelen/',false),'https://plopesc.github.io/api/progress');
+ assert.throws(()=>resolveProgressEndpoint('/api/progress','https://plopesc.github.io/albertoybelen/',false));
  assert.equal(resolveProgressEndpoint('/api/progress','http://127.0.0.1:8000/albertoybelen/',true),'http://127.0.0.1:8000/api/progress');
  for(const url of ['https://evil.invalid/api/progress','http://albertoybelen.ddev.site/api/progress','https://user:secret@albertoybelen.ddev.site/api/progress','/api/progress?token=x','/api/progress#secret','/oauth/callback'])assert.throws(()=>resolveProgressEndpoint(url,pageUrl,true));
  assert.throws(()=>resolveProgressEndpoint('/api/progress','https://plopesc.github.io/albertoybelen/',true));

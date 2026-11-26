@@ -2,7 +2,7 @@ import { FINAL_REWARD } from './final-reward.js';
 import { calculateProgress } from './progress.js';
 import { createDistanceProvider } from './game.js';
 import { loadRuntimeConfig } from './runtime-config.js';
-import { createHttpProgressProvider, OFFICIAL_START_INSTANT, isPagesLivePage, PAGES_STAGING_PROGRESS_URL } from './http-progress.js';
+import { createHttpProgressProvider, OFFICIAL_START_INSTANT, PAGES_PRODUCTION_PROGRESS_URL, PAGES_STAGING_PROGRESS_URL } from './http-progress.js';
 import { createApiHistory } from './api-history.js';
 import { createMilestoneHistory, FINISH_MILESTONE_ID } from './milestone-history.js';
 import { createMilestoneReveals } from './milestone-dialog.js';
@@ -204,8 +204,8 @@ async function start() {
 function startReal(game, rewards, api) {
   usingApi = true;
   provider = createHttpProgressProvider({ ...api, pageUrl: window.location.href });
-  const official = provider.endpoint === PAGES_STAGING_PROGRESS_URL && isPagesLivePage(new URL(window.location.href));
-  const pagesStaging=provider.endpoint===PAGES_STAGING_PROGRESS_URL && !official;
+  const official = provider.endpoint === PAGES_PRODUCTION_PROGRESS_URL;
+  const pagesStaging=provider.endpoint===PAGES_STAGING_PROGRESS_URL;
   const launchDelay = OFFICIAL_START_INSTANT - Date.now();
   if (official && launchDelay > 0 && launchDelay <= 2147483647) {
     const launchTimer = setTimeout(() => provider.refresh(), launchDelay);

@@ -2,20 +2,26 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { loadRuntimeConfig, PAGES_STAGING_CONFIG_URL } from '../frontend/js/runtime-config.js';
 import { validateGameConfig } from '../frontend/js/config.js';
-import { createHttpProgressProvider, hasPagesTrackingParams, isPagesStagingPage, PAGES_STAGING_PROGRESS_URL, resolveProgressEndpoint } from '../frontend/js/http-progress.js';
+import { createHttpProgressProvider, hasPagesTrackingParams, isPagesStagingPage, PAGES_PRODUCTION_PROGRESS_URL, PAGES_STAGING_PROGRESS_URL, resolveProgressEndpoint } from '../frontend/js/http-progress.js';
 
 const page='https://plopesc.github.io/albertoybelen/?pages-staging=strava';
 const trackedPage=`${page}&utm_source=chatgpt.com`;
 const dto=(extra={})=>({schemaVersion:1,source:'strava',distanceKm:62.66,partial:true,stale:false,updatedAt:'2026-11-18T10:00:00Z',unlockedMilestoneIds:['milestone-20','milestone-40'],...extra});
 const profile=validateGameConfig({game:{id:'pages-staging-strava',title:'Alberto y Belén · Prueba Strava Staging',goalKm:500,startDate:'2026-11-01',timeZone:'Europe/Madrid',mode:'real'},rewards:{milestones:[20,40,60,80],finish:100},api:{url:PAGES_STAGING_PROGRESS_URL,allowFixtures:false}});
 
-test('Pages abre el reto oficial por defecto y conserva el perfil explícito de prueba',async()=>{
- const real=JSON.parse(await (await import('node:fs/promises')).readFile(new URL('../frontend/config/pages-live.json', import.meta.url),'utf8'));
+test('Pages fail-closed sin destino productivo y conserva el perfil explícito de prueba',async()=>{
  let requested;
- const live=await loadRuntimeConfig({pageUrl:'https://plopesc.github.io/albertoybelen/?utm_source=presentacion',fetchConfig:async url=>{requested=String(url);return Response.json(real);}});
- assert.match(requested,/pages-live\.json$/);
- assert.equal(live.game.mode,'real');assert.equal(live.game.presentation,'live');assert.equal(live.game.goalKm,500);
- await assert.rejects(loadRuntimeConfig({pageUrl:'https://plopesc.github.io/albertoybelen/?presentation=live',fetchConfig:async()=>Response.json(real)}));
+ const pageUrl='https://plopesc.github.io/albertoybelen/?utm_source=presentacion';
+ if(!PAGES_PRODUCTION_PROGRESS_URL) {
+  await assert.rejects(loadRuntimeConfig({pageUrl,fetchConfig:async url=>{requested=url;}}),/cuando se publique/);
+  assert.equal(requested,undefined);
+ } else {
+  const {readFile}=await import('node:fs/promises');
+  const real=await loadRuntimeConfig({pageUrl,fetchConfig:async url=>Response.json(JSON.parse(await readFile(url,'utf8')))});
+  assert.equal(real.api.url,PAGES_PRODUCTION_PROGRESS_URL);
+  assert.notEqual(real.api.url,PAGES_STAGING_PROGRESS_URL);
+ }
+ await assert.rejects(loadRuntimeConfig({pageUrl:'https://plopesc.github.io/albertoybelen/?presentation=live'}));
  const staging=await loadRuntimeConfig({pageUrl:trackedPage,fetchConfig:async url=>{requested=String(url);assert.equal(requested,String(PAGES_STAGING_CONFIG_URL));return Response.json(profile);}});
  assert.equal(staging.game.id,'pages-staging-strava');assert.equal(staging.game.goalKm,500);assert.equal(staging.game.startDate,'2026-11-01');assert.equal(staging.game.timeZone,'Europe/Madrid');assert.equal(staging.api.url,PAGES_STAGING_PROGRESS_URL);
 });

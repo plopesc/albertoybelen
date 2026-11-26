@@ -29,8 +29,9 @@ operaciones remotas que requieren autorización separada.
   manuales contrastan JSON → allowlist independiente → Wrangler antes de arrancar
   Wrangler. No hay overrides de destino ni de cuenta en el JSON o la CLI.
 - `cloudflare.production`: únicamente nombres reservados y
-  `configured:false`, `deployEnabled:false`. No tiene UUID ni URL conocidos;
-  no hay selector operativo de producción y no se consultan para completarlos.
+  `configured:false`, `deployEnabled:false`. Las guardas y el generador del
+  Worker productivo se documentan en [la guía de lanzamiento](official-launch.md).
+  Los pines de producción quedan vacíos hasta el inventario del propietario.
 - `local.ddev`: proyecto, origen HTTPS, callback, host loopback, targets de
   fixtures/OAuth mock/piloto propio y puertos de frontend/proxy staging.
   Contiene solo UUID locales ficticios y rutas relativas de persistencia fijas.

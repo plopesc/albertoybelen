@@ -1,4 +1,5 @@
 import { createDistanceState, applyParticipantSync, publicProgress } from '../../policy/distance-policy.js';
+import {PRODUCTION_DATASET} from '../production-target.js';
 import { createInvitationState, transitionInvitation } from '../../auth/invitation-machine.js';
 
 export const NAMESPACE = 'local-fixtures';
@@ -8,9 +9,9 @@ const key = (participant, activity) => JSON.stringify([participant, String(activ
 
 /** Single canonical domain document plus relational projections, committed in one D1 batch. */
 export function createD1Repository(db, { settings = FIXTURE_SETTINGS, dataset = NAMESPACE } = {}) {
-  if (![NAMESPACE, 'staging-strava-test-v1'].includes(dataset)) throw Error('Unsupported repository dataset');
+  if (![NAMESPACE, 'staging-strava-test-v1', PRODUCTION_DATASET].includes(dataset)) throw Error('Unsupported repository dataset');
   const namespace = dataset;
-  const prefix = dataset === NAMESPACE ? '' : 'staging_auth_';
+  const prefix = dataset === PRODUCTION_DATASET ? 'production_' : dataset === NAMESPACE ? '' : 'staging_auth_';
   const freshState = () => ({ ...fresh(), policy: createDistanceState(settings) });
   // Only fixed SQL identifiers from this repository are translated; never user input.
   const prepare = (sql, ...values) => db.prepare(sql.replace(/\b(game_state|transaction_guard|participants|activities|rewards|invitations|oauth_attempts|oauth_credentials|oauth_sessions)\b/g, name => prefix + name)).bind(...values);
