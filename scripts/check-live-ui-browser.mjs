@@ -144,7 +144,7 @@ async function checkWelcome(page,label) {
   return {top:node.scrollTop,scrollWidth:node.scrollWidth,width:node.clientWidth};
  });
  assert.ok(scroll.top>0 && scroll.scrollWidth<=scroll.width,'welcome content scrolls vertically without overflow');
- assert.equal(await dialog.locator('p').last().innerText(),'Pablo y Dani ❤️');
+ assert.equal(await dialog.locator('p').last().innerText(),'Pablo, Dani, Sara y Miriam ❤️');
  await page.keyboard.press('Shift+Tab');
  const close=page.getByRole('button',{name:'EMPEZAR EL CAMINO',exact:true});
  assert.equal(await close.evaluate(node=>node===document.activeElement),true);
