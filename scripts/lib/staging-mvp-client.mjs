@@ -16,7 +16,6 @@ export async function callMvp({root,operation,fetchAdmin=globalThis.fetch}) {
   const reader=response.body?.getReader();if(!reader)throw Error('Admin unavailable');const chunks=[];let size=0;
   try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>16384)throw Error('Admin unavailable');chunks.push(value);}}finally{await reader.cancel().catch(()=>{});}
   const result=JSON.parse(Buffer.concat(chunks).toString('utf8'));
-  if(operation.type==='promote-challenge'&&result.status==='promoted')return{status:'promoted'};
   if(!['issued','ok','synced','stale','idle','busy','disabled','enabled','replay','failed','unavailable'].includes(result.status))throw Error('Admin unavailable');
   if(result.status==='issued') {
     if(operation.type!=='issue'||Object.keys(result).sort().join()!=='invitation,status')throw Error('Invalid response');

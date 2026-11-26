@@ -21,7 +21,7 @@ test('promoción cerrada, presentación sin cuentas y reconciliación desde la m
     assert.equal((await f.execute(promotion)).status,'failed');
     assert.ok((await repo.read()).state.sealedTokens['slot-a']);
     await repo.updatePrivate(state=>{delete state.sealedTokens['slot-a'];});
-    assert.equal((await f.execute(promotion)).status,'promoted');
+    assert.equal((await f.execute(promotion)).status,'ok');
     assert.equal((await f.execute(promotion)).status,'failed');
     const launch=await pages();
     assert.equal(launch.headers.get('X-Challenge-Start'),'2026-11-28');

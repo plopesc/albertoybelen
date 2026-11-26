@@ -39,7 +39,7 @@ export function createStagingCommandExecutor({runtime,clock=Date.now}) {
         } else if(op.type==='revoke') {const r=await runtime.admin.revoke({actor,slot:op.slot});result={status:r.ok?'revoked':'failed'};}
         else if(op.type==='erase') {const r=await runtime.admin.erase({actor,slot:op.slot,verified:true,purgeMilestones:op.purgeMilestones});result={status:r.ok?'erased':'failed'};}
         else if(op.type==='promote-challenge') {
-          result = {status:await runtime.admin.promoteChallenge({actor,fence}) ? 'promoted' : 'failed'};
+          result = {status:await runtime.admin.promoteChallenge({actor,fence}) ? 'ok' : 'failed'};
         }
         else if(op.type==='rotate') {await runtime.admin.rotate({actor,slot:op.slot,fence});result={status:'rotated'};}
       }catch{result={status:'failed'};}

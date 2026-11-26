@@ -21,7 +21,7 @@ try {
   else if(operation==='promote-challenge'&&flag==='--confirm-staging-admin'&&argv.length===3&&argv[2]==='--confirm-official-2026-11-28') {
     requireStagingAccount(process.env);
     const result = await callMvp({root,operation:{type:operation,confirmation:'promote-official-2026-11-28'}});
-    if(result.status!=='promoted')throw Error();
+    if(result.status!=='ok')throw Error();
     console.log(JSON.stringify(result));
   }
  else if(operation==='rotate-admin'&&argv.length===2&&flag==='--confirm-local-key-rotation'){rotateMvpAdmin(root);console.log('New local admin credential prepared. Update the Worker Secret manually; AES unchanged.');}
