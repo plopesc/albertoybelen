@@ -38,7 +38,7 @@
     "finish": 100
   },
   "api": {
-    "url": null,
+    "url": "https://albertoybelen-api.autumn-dream-2a39.workers.dev/api/progress",
     "allowFixtures": false
   }
 }

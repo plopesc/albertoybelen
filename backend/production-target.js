@@ -8,8 +8,11 @@ export const PRODUCTION_CRON = '0 */3 * * *';
 export const PRODUCTION_ADMIN_PATH = '/admin/production';
 export const PRODUCTION_SETTINGS = Object.freeze({goalKm:500,startDate:'2026-11-28',timeZone:'Europe/Madrid'});
 
-// Complete only after the owner verifies the exact Cloudflare resources.
-export const PRODUCTION_TARGET = Object.freeze({origin:null,databaseId:null,routing:null});
+export const PRODUCTION_TARGET = Object.freeze({
+  origin:'https://albertoybelen-api.autumn-dream-2a39.workers.dev',
+  databaseId:'af0021ea-9c23-44b5-8a7d-6f281aaa02dc',
+  routing:'workers.dev',
+});
 
 export function requireProductionTarget(target = PRODUCTION_TARGET) {
   if (!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(target.databaseId ?? '') ||
