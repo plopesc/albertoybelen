@@ -68,7 +68,7 @@ progress::-moz-progress-bar { background: var(--accent); }
 .milestone-node { fill: var(--milestone-fill, #24342c); stroke: var(--milestone-stroke, #f5efdc); stroke-width: 3px; }
 .milestone-label > rect { fill: url(#map-plate); stroke: #c9cfc5; stroke-width: 2px; rx: 3px; }
 .milestone-label text { fill: #f5efdc; font: bold 18px ui-monospace, monospace; }
-.milestone-label .milestone-state { fill: #c9cfc5; font-size: 14px; }
+.milestone-label .milestone-state { fill: #c9cfc5; font-size: 10px; }
 .milestone.unlocked { color: #e2bc81; }
 .milestone.unlocked, .legend-unlocked { --milestone-fill: #e2bc81; --milestone-stroke: #24342c; }
 .milestone.unlocked .milestone-label > rect { stroke: #e2bc81; }

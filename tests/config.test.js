@@ -98,9 +98,9 @@ test('el JSON versionado cumple la validación usada en producción', async () =
 
 test('identidades explícitas estables y rutas locales, sin alias ambiguo', () => {
   const input = config();
-  input.rewards = { milestones: [{ id: 'recuerdo-bosque', percent: 29, image: 'assets/milestones/milestone-20.webp', title: '  Bosque  ', alt: 'Árboles.' }] };
+  input.rewards = { milestones: [{ id: 'recuerdo-bosque', percent: 29, image: 'assets/milestones/milestone-20.webp', title: '  Bosque  ', alt: 'Árboles.', message: '  Un recuerdo compartido.  ' }] };
   const milestone = validateGameConfig(input).rewards.milestones[0];
-  assert.deepEqual(milestone, { id: 'recuerdo-bosque', percent: 29, image: 'assets/milestones/milestone-20.webp', title: 'Bosque', alt: 'Árboles.' });
+  assert.deepEqual(milestone, { id: 'recuerdo-bosque', percent: 29, image: 'assets/milestones/milestone-20.webp', title: 'Bosque', alt: 'Árboles.', message: 'Un recuerdo compartido.' });
   for (const list of [[{ id: 'same', percent: 20 }, { id: 'same', percent: 40 }], [{ id: 'finish', percent: 20 }], [{ id: '../bad', percent: 20 }], [{ percent: 20 }]]) {
     input.rewards.milestones = list;
     assert.throws(() => validateGameConfig(input), /id/);
@@ -111,4 +111,12 @@ test('identidades explícitas estables y rutas locales, sin alias ambiguo', () =
   }
   input.rewards = { checkpoints: [20, 40] };
   assert.throws(() => validateGameConfig(input), /renombrarse/);
+});
+
+test('los mensajes opcionales de los recuerdos deben ser textos no vacíos', () => {
+  for (const message of ['', '   ', null, 20]) {
+    const input = config();
+    input.rewards = { milestones: [{ id: 'milestone-20', percent: 20, message }] };
+    assert.throws(() => validateGameConfig(input), /milestones.message/);
+  }
 });

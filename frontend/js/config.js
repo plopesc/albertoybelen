@@ -52,11 +52,11 @@ export function validateGameConfig(value) {
       throw new Error('Cada hito de rewards.milestones necesita un id único y estable; finish está reservado.');
     }
     ids.add(milestoneId);
-    for (const field of ['title', 'alt']) if (item[field] !== undefined && (typeof item[field] !== 'string' || !item[field].trim())) throw new Error(`milestones.${field} debe ser texto no vacío.`);
+    for (const field of ['title', 'alt', 'message']) if (item[field] !== undefined && (typeof item[field] !== 'string' || !item[field].trim())) throw new Error(`milestones.${field} debe ser texto no vacío.`);
     if (item.image !== undefined && (typeof item.image !== 'string' || !item.image.trim() || /[\\:?#]/.test(item.image) || item.image.startsWith('/') || item.image.split('/').includes('..'))) {
       throw new Error('milestones.image debe ser una ruta local relativa, sin salir del frontend.');
     }
-    return Object.freeze({ id: milestoneId, percent: item.percent, ...(item.image !== undefined ? { image: item.image } : {}), ...(item.title !== undefined ? { title: item.title.trim() } : {}), ...(item.alt !== undefined ? { alt: item.alt.trim() } : {}) });
+    return Object.freeze({ id: milestoneId, percent: item.percent, ...(item.image !== undefined ? { image: item.image } : {}), ...(item.title !== undefined ? { title: item.title.trim() } : {}), ...(item.alt !== undefined ? { alt: item.alt.trim() } : {}), ...(item.message !== undefined ? { message: item.message.trim() } : {}) });
   });
   if (finish !== 100) throw new Error('rewards.finish debe ser 100.');
   let api;

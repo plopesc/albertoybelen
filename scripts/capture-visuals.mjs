@@ -22,7 +22,7 @@ const server = createServer(async (request, response) => {
 await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const url = `http://127.0.0.1:${server.address().port}${prefix}`;
 const config = JSON.parse(await readFile(resolve(root, 'config/game.json'), 'utf8'));
-config.game = { ...config.game, id: 'visual-fixture', title: 'Alberto y Belén · Kilómetro Arcade', goalKm: 100, startDate: '2026-11-01', timeZone: 'Europe/Madrid', mode: 'simulation' };
+config.game = { ...config.game, id: 'visual-fixture', title: config.game.title, goalKm: 100, startDate: '2026-11-01', timeZone: 'Europe/Madrid', mode: 'simulation' };
 const definitions = config.rewards.milestones;
 const reached = km => definitions.filter(item => km >= item.percent).map(item => item.id);
 const results = [];
@@ -71,17 +71,17 @@ try {
     await page.locator('#milestone-dialog').waitFor({ state: 'visible' });
     if (await page.locator('#reward-photo-wrap').isVisible()) throw new Error('El aviso no debe abrir su imagen');
     await capture('notice');
-    await page.getByRole('button', { name: 'Ver imagen', exact: true }).click();
+    await page.getByRole('button', { name: 'ABRIR EL RECUERDO', exact: true }).click();
     await page.locator('#reward-photo-wrap').waitFor({ state: 'visible' });
     await page.locator('#reward-photo').evaluate(image => image.decode());
     await capture('image');
     await page.locator('#reward-close').click();
     // #16 se puede revisar con este mismo capturador al integrar su botón público.
     await state(100);
-    const finalButton = page.getByRole('button', { name: 'Abrir regalo final', exact: true });
+    const finalButton = page.getByRole('button', { name: 'ABRIR EL REGALO DE PABLO Y DANI', exact: true });
     if (await finalButton.count()) {
       await finalButton.click();
-      const view = page.getByRole('button', { name: 'Ver imagen', exact: true });
+      const view = page.getByRole('button', { name: 'ABRIR EL RECUERDO', exact: true });
       if (await view.isVisible()) await view.click();
       await page.locator('#reward-photo').evaluate(image => image.decode());
       await capture('final-gift');
