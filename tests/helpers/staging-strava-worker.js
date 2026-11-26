@@ -12,6 +12,14 @@ export default class extends WorkerEntrypoint {
     }
     if(url.pathname==='/api/v3/athlete/activities'&&request.method==='GET') {
       if(!['Bearer synthetic-access-101','Bearer synthetic-access-202'].includes(request.headers.get('Authorization')))return new Response('Mock rejected',{status:401});
+      const officialStart=Date.parse('2026-11-27T23:00:00Z');
+      if (Number(url.searchParams.get('after')) === officialStart/1000-1) {
+        const row={sport_type:'Run',manual:false,private:true};
+        return Response.json(url.searchParams.get('page')==='1'?[
+          {...row,id:3,distance:1234,start_date:new Date(officialStart).toISOString()},
+          {...row,id:2,distance:62660,start_date:new Date(officialStart-1).toISOString()},
+        ]:[]);
+      }
       return Response.json(url.searchParams.get('page')==='1'?[{id:1,distance:1000,start_date:'2026-11-01T10:00:00Z',sport_type:'Run',manual:false,private:true}]:[]);
     }
     return new Response('Mock rejected',{status:502});

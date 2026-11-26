@@ -2,7 +2,7 @@ import { FINAL_REWARD } from './final-reward.js';
 import { calculateProgress } from './progress.js';
 import { createDistanceProvider } from './game.js';
 import { loadRuntimeConfig } from './runtime-config.js';
-import { createHttpProgressProvider, PAGES_STAGING_PROGRESS_URL } from './http-progress.js';
+import { createHttpProgressProvider, OFFICIAL_START_INSTANT, isPagesLivePage, PAGES_STAGING_PROGRESS_URL } from './http-progress.js';
 import { createApiHistory } from './api-history.js';
 import { createMilestoneHistory, FINISH_MILESTONE_ID } from './milestone-history.js';
 import { createMilestoneReveals } from './milestone-dialog.js';
@@ -142,6 +142,7 @@ async function start() {
     const { game, rewards, api } = await loadRuntimeConfig();
     livePresentation = game.presentation === 'live';
     document.body.classList.toggle('live-presentation', livePresentation);
+    if (!livePresentation) document.querySelector('.intro .eyebrow').textContent = 'VERSIÓN DE PRUEBAS';
     if (livePresentation) document.querySelector('.intro .eyebrow').textContent = 'NUESTRO RECORRIDO';
     document.title = game.title;
     $('game-title').textContent = game.title;
@@ -203,7 +204,13 @@ async function start() {
 function startReal(game, rewards, api) {
   usingApi = true;
   provider = createHttpProgressProvider({ ...api, pageUrl: window.location.href });
-  const pagesStaging=provider.endpoint===PAGES_STAGING_PROGRESS_URL;
+  const official = provider.endpoint === PAGES_STAGING_PROGRESS_URL && isPagesLivePage(new URL(window.location.href));
+  const pagesStaging=provider.endpoint===PAGES_STAGING_PROGRESS_URL && !official;
+  const launchDelay = OFFICIAL_START_INSTANT - Date.now();
+  if (official && launchDelay > 0 && launchDelay <= 2147483647) {
+    const launchTimer = setTimeout(() => provider.refresh(), launchDelay);
+    window.addEventListener('pagehide', event => {if (!event.persisted) clearTimeout(launchTimer);});
+  }
   const stagingStrava=new URL(provider.endpoint).pathname==='/api/staging/strava-progress';
   const staging = pagesStaging || stagingStrava || new URL(provider.endpoint).pathname === '/api/staging/progress';
   const stagingLabel=pagesStaging?'PRUEBA · STAGING STRAVA':stagingStrava?'STAGING · STRAVA':'STAGING · DATOS FICTICIOS';
@@ -245,10 +252,12 @@ function startReal(game, rewards, api) {
       $('api-source').textContent = source;
       $('data-source').textContent = source;
       $('mode-label').textContent = staging ? stagingLabel : snapshot.source === 'fixture' ? 'MODO REAL · PRUEBAS' : 'MODO REAL · API';
-      $('api-updated').textContent = snapshot.updatedAt === null ? 'Sin fecha de actualización disponible.' : `Última actualización conocida: ${new Intl.DateTimeFormat('es-ES', { dateStyle: 'medium', timeStyle: 'short', timeZone: game.timeZone }).format(new Date(snapshot.updatedAt))}.`;
+      $('api-updated').textContent = snapshot.updatedAt === null ? (official ? '' : 'Sin fecha de actualización disponible.') : `Última actualización conocida: ${new Intl.DateTimeFormat('es-ES', { dateStyle: 'medium', timeStyle: 'short', timeZone: game.timeZone }).format(new Date(snapshot.updatedAt))}.`;
       $('api-state').textContent = status === 'error'
         ? 'Sin conexión o respuesta no válida. Se conserva el último dato recibido; puede estar desactualizado.'
-        : `${snapshot.partial ? 'Progreso parcial. Conexión o carga de datos pendiente.' : 'Datos completos.'} ${snapshot.stale ? 'Actualización pendiente. Se conserva el último progreso válido.' : 'Datos actualizados.'}`;
+        : official && snapshot.updatedAt === null && snapshot.partial && !snapshot.stale
+          ? Date.now() < OFFICIAL_START_INSTANT ? 'El reto empieza el 28 de noviembre.' : 'Conexión de las cuentas de Strava pendiente.'
+          : `${snapshot.partial ? 'Progreso parcial. Conexión o carga de datos pendiente.' : 'Datos completos.'} ${snapshot.stale ? 'Actualización pendiente. Se conserva el último progreso válido.' : 'Datos actualizados.'}`;
     } else {
       $('api-source').textContent = staging ? stagingSource : 'API · SIN DATOS';
       $('api-state').textContent = livePresentation

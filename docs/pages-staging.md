@@ -1,8 +1,7 @@
 # Vista opt-in de Strava Staging en GitHub Pages (#52)
 
-La ruta pública normal sigue abriendo la simulación. Después de publicar una
-versión revisada y desplegar el cambio compatible del Worker, el enlace de
-prueba es:
+La raíz de Pages abre el reto oficial tras su publicación. El perfil de ensayo
+conserva este enlace de diagnóstico.
 
 **https://plopesc.github.io/albertoybelen/?pages-staging=strava**
 
@@ -63,9 +62,9 @@ variable ya habilitada, el comando manual existente es:
 gh workflow run pages.yml --repo plopesc/albertoybelen --ref main
 ```
 
-Después, abrir el enlace anterior en móvil y escritorio, y confirmar que la ruta
-raíz `/albertoybelen/` sigue en modo simulado. No cambiar el objetivo definitivo
-ni la fecha del juego público.
+Tras la promoción del reto oficial, la raíz muestra el reto real. El enlace de
+diagnóstico conserva el perfil de ensayo y rechaza la respuesta del reto oficial.
+Consultar el [procedimiento de lanzamiento](official-launch.md).
 
 ## Comprobaciones locales
 

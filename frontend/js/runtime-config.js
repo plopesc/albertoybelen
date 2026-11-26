@@ -1,9 +1,10 @@
 import { loadGameConfig } from './config.js';
-import { hasPagesTrackingParams, isPagesStagingPage, PAGES_STAGING_PROGRESS_URL, resolveProgressEndpoint } from './http-progress.js';
+import { hasPagesTrackingParams, isPagesRoot, isPagesLivePage, OFFICIAL_START_DATE, isPagesStagingPage, PAGES_STAGING_PROGRESS_URL, resolveProgressEndpoint } from './http-progress.js';
 export const LOCAL_CONFIG_URL = new URL('../config/local.json', import.meta.url);
 export const STAGING_CONFIG_URL = new URL('../config/staging.local.json', import.meta.url);
 export const STAGING_STRAVA_CONFIG_URL = new URL('../config/staging-strava.local.json', import.meta.url);
 export const PAGES_STAGING_CONFIG_URL = new URL('../config/pages-staging.json', import.meta.url);
+export const PAGES_LIVE_CONFIG_URL = new URL('../config/pages-live.json', import.meta.url);
 export async function loadRuntimeConfig({ pageUrl = globalThis.location.href, fetchConfig = globalThis.fetch } = {}) {
   const page = new URL(pageUrl), local = page.searchParams.getAll('local-api'), staging = page.searchParams.getAll('staging-api'), pages = page.searchParams.getAll('pages-staging');
   let config;
@@ -12,6 +13,13 @@ export async function loadRuntimeConfig({ pageUrl = globalThis.location.href, fe
     try { config = await loadGameConfig(fetchConfig, PAGES_STAGING_CONFIG_URL); }
     catch { throw new Error('No se pudo cargar el perfil de prueba de GitHub Pages.'); }
     if (config.game.mode !== 'real' || config.game.id !== 'pages-staging-strava' || config.game.goalKm !== 500 || config.game.startDate !== '2026-11-01' || config.game.timeZone !== 'Europe/Madrid' || config.api?.url !== PAGES_STAGING_PROGRESS_URL || config.api.allowFixtures !== false) throw new Error('El perfil Pages debe usar únicamente el progreso agregado de staging.');
+  } else if (isPagesRoot(page)) {
+    if (!isPagesLivePage(page)) throw new Error('Enlace del reto inválido.');
+    config = await loadGameConfig(fetchConfig, PAGES_LIVE_CONFIG_URL);
+    const {game,api} = config;
+    if (game.id !== 'alberto-belen-reto-2026' || game.mode !== 'real' || game.presentation !== 'live' ||
+        game.goalKm !== 500 || game.startDate !== OFFICIAL_START_DATE || game.timeZone !== 'Europe/Madrid' ||
+        api?.url !== PAGES_STAGING_PROGRESS_URL || api.allowFixtures !== false) throw new Error('Configuración del reto inválida.');
   } else if (hasPagesTrackingParams(page)) throw new Error('Los parámetros UTM solo se aceptan en el enlace opt-in de prueba de GitHub Pages.');
   else if (staging.length) {
     if (local.length || page.origin !== 'https://albertoybelen.ddev.site' || staging.length !== 1 || !['1','strava'].includes(staging[0])) throw new Error('El perfil staging solo está disponible explícitamente en DDEV HTTPS.');
