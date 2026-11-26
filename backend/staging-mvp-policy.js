@@ -4,7 +4,7 @@ export const MVP_READY='owner-confirmed-0003-callback-capacity';
 export const MVP_ADMIN_PATH='/admin/staging';
 export const MVP_ORIGIN=STAGING_AUTH_ORIGIN;
 export const MVP_AUTO_SYNC_CRON='0 */3 * * *';
-export const MVP_ACTIONS=Object.freeze(['issue','status','sync','enable-sync','disable-sync','enable-auto-sync','disable-auto-sync','revoke-slot','erase-slot']);
+export const MVP_ACTIONS=Object.freeze(['issue','status','sync','enable-sync','disable-sync','enable-auto-sync','disable-auto-sync','revoke-slot','erase-slot','slot-status']);
 const slotRemovalFields = {
   'revoke-slot': 'type slot expectedAthleteId generation confirmation',
   'erase-slot': 'type slot expectedAthleteId generation confirmation purgeMilestones',

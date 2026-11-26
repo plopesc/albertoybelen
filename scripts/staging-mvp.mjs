@@ -29,7 +29,7 @@ try {
     if (result.status !== (operation === 'erase-slot' ? 'erased' : 'revoked')) throw Error();
     console.log(JSON.stringify(result));
   }
-  else if(['invite','status','sync','enable-sync','disable-sync','enable-auto-sync','disable-auto-sync'].includes(operation)&&flag==='--confirm-staging-admin'&&((operation==='enable-auto-sync'&&argv.length===3&&argv[2]==='--confirm-staging-auto-sync')||(operation!=='enable-auto-sync'&&argv.length===2))) {
+  else if(['invite','status','slot-status','sync','enable-sync','disable-sync','enable-auto-sync','disable-auto-sync'].includes(operation)&&flag==='--confirm-staging-admin'&&((operation==='enable-auto-sync'&&argv.length===3&&argv[2]==='--confirm-staging-auto-sync')||(operation!=='enable-auto-sync'&&argv.length===2))) {
     requireStagingAccount(process.env);
     const op=operation==='invite'?JSON.parse(readMvpPrivate(root,'invitation-request.json')):['enable-sync','enable-auto-sync'].includes(operation)?{type:operation,confirmation:operation==='enable-sync'?'enable-staging-sync':'enable-staging-auto-sync'}:{type:operation};
     if(operation==='invite'&&op.type!=='issue')throw Error();

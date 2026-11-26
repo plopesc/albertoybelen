@@ -4,11 +4,11 @@ Cada operación remota requiere autorización del propietario. Usar el Worker MV
 existentes, con la release aprobada y el perfil privado descrito en [MVP](staging-mvp.md).
 
 1. **Antes de publicar.** Ejecutar `npm run staging:mvp -- <operación> --confirm-staging-admin`
-   con `disable-auto-sync`, luego `disable-sync` y finalmente `status`.
+   con `disable-auto-sync`, luego `disable-sync` y finalmente `status` y `slot-status`.
    Confirmar ambos controles apagados y verificar privadamente que `slot-a` es
-   el piloto propio y `slot-b` está vacío. Anotar la generación de `slot-a`.
+   el piloto propio y `slot-b` está vacío. Anotar la generación de `slot-a` de `slot-status`.
 2. Crear `.local/staging-mvp/slot-removal.json` con permisos 0600 mediante editor
-   privado. Campos `slot` (slot-a), `generation` (entero de status),
+   privado. Campos `slot` (slot-a), `generation` (entero de slot-status),
    `expectedAthleteId` (entero de la cuenta piloto verificada por su titular)
    y `purgeMilestones` (true). Ejecutar
    `npm run staging:mvp -- erase-slot --confirm-staging-admin --confirm-verified-deletion`.
@@ -20,7 +20,7 @@ existentes, con la release aprobada y el perfil privado descrito en [MVP](stagin
    `--confirm-revocation` y omitir `purgeMilestones`. Para un borrado posterior,
    releer la generación. El titular puede retirar también el permiso de la app
    desde su propia sesión de Strava.
-3. Repetir `status` y comprobar slot-a suprimido, slot-b libre, 0 km, progreso
+3. Repetir `status` y `slot-status` y comprobar slot-a suprimido, slot-b libre, 0 km, progreso
    parcial y lista de hitos vacía. Ante un fallo o resultado incierto, releer
    estado antes de decidir. Aplicar el procedimiento del reto oficial (#63)
    y comprobar la página de presentación con las dos plazas pendientes.

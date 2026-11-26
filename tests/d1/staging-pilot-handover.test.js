@@ -30,7 +30,7 @@ test('retirada verificada del piloto y consentimiento posterior en ambas plazas'
 
     const repository = createD1Repository(f.db,{dataset:'staging-strava-test-v1'});
     await repository.updatePrivate(state=>{state.policy.unlockedMilestoneIds=['milestone-20'];});
-    const generation = (await f.execute({type:'status'})).slots.find(slot=>slot.id==='slot-a').generation;
+    const generation = (await f.execute({type:'slot-status'})).slots.find(slot=>slot.id==='slot-a').generation;
     const erase={type:'erase-slot',slot:'slot-a',expectedAthleteId:101,generation,confirmation:'verified-staging-deletion',purgeMilestones:true};
     assert.equal((await f.execute(erase)).status,'failed');
     await f.execute({type:'disable-sync'});

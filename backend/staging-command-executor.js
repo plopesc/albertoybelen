@@ -7,7 +7,7 @@ const control=stagingOperatorState;
 export function createStagingCommandExecutor({runtime,clock=Date.now}) {
   return {async execute(command) {
       const op=command.operation,nonce=hashSecret(command.nonce);
-      const priority=['status','disable-sync','disable-auto-sync','revoke','erase'].includes(op.type);
+      const priority=['status','disable-sync','disable-auto-sync','revoke','erase','slot-status'].includes(op.type);
       let claimed;
       try {
         claimed=await runtime.repository.updatePrivate(state=>{
@@ -29,12 +29,16 @@ export function createStagingCommandExecutor({runtime,clock=Date.now}) {
           const removed = await runtime.admin.removeSlot({actor,operation:op,fence});
           result = {status:removed.ok ? (op.type === 'erase-slot' ? 'erased' : 'revoked') : 'failed'};
         }
+        else if(op.type==='slot-status') {
+          const {state} = await runtime.repository.read();
+          const slots = state.auth.slots.map(({id,status,generation})=>({id,status,generation}));
+          result = {status:'ok',slots};
+        }
         else if(op.type==='issue')result={status:'issued',invitation:await runtime.admin.issue({actor,slot:op.slot,expectedAthleteId:op.expectedAthleteId,fence})};
         else if(op.type==='sync')result=await runtime.admin.sync({actor,fence});
         else if(op.type==='status') {
           const {state}=await runtime.repository.read(),c=control(state),budget=state.stagingBudget;
-          const slots=state.auth.slots.map(({id,status,generation})=>({id,status,generation}));
-          result={status:'ok',slots,progress:await runtime.repository.getProgress(),syncDisabled:c.syncDisabled,autoSyncEnabled:c.autoSyncEnabled,lastAutomaticSync:c.lastAutomaticSync,budget:{requests:budget?.requests??0,blockedUntil:budget?.blockedUntil??0,quarterCount:budget?.quarterCount??0,dayCount:budget?.dayCount??0}};
+          result={status:'ok',progress:await runtime.repository.getProgress(),syncDisabled:c.syncDisabled,autoSyncEnabled:c.autoSyncEnabled,lastAutomaticSync:c.lastAutomaticSync,budget:{requests:budget?.requests??0,blockedUntil:budget?.blockedUntil??0,quarterCount:budget?.quarterCount??0,dayCount:budget?.dayCount??0}};
         } else if(['disable-sync','enable-sync'].includes(op.type)) {
           await runtime.repository.updatePrivate(state=>{const c=control(state);if(op.type==='enable-sync'&&!fence(state))throw Error('operator_rejected');c.syncDisabled=op.type==='disable-sync';c.epoch++;});result={status:op.type==='disable-sync'?'disabled':'enabled'};
         } else if(['disable-auto-sync','enable-auto-sync'].includes(op.type)) {

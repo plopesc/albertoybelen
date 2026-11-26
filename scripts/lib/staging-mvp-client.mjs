@@ -25,16 +25,15 @@ export async function callMvp({root,operation,fetchAdmin=globalThis.fetch}) {
     return{status:'issued',file:`.local/staging-mvp/${file}`};
   }
   if(result.status==='ok'&&operation.type==='status'&&(typeof result.syncDisabled!=='boolean'||typeof result.autoSyncEnabled!=='boolean'||!(result.lastAutomaticSync===null||result.lastAutomaticSync&&Object.keys(result.lastAutomaticSync).sort().join()==='at,status'&&typeof result.lastAutomaticSync.at==='string'&&Number.isFinite(Date.parse(result.lastAutomaticSync.at))&&['synced','idle','busy','stale','disabled','failed'].includes(result.lastAutomaticSync.status))))throw Error('Invalid response');
-  let slots;
-  if(result.status==='ok'&&operation.type==='status'&&result.slots!==undefined) {
+  if(result.status==='ok'&&operation.type==='slot-status') {
     if(!Array.isArray(result.slots)||result.slots.length!==2||
         new Set(result.slots.map(slot=>slot.id)).size!==2||
         result.slots.some(slot=>!['slot-a','slot-b'].includes(slot.id)||
           !['disconnected','connected','revoked','deleted'].includes(slot.status)||
           !Number.isSafeInteger(slot.generation)||slot.generation<0))throw Error('Invalid response');
-    slots=result.slots.map(({id,status,generation})=>({id,status,generation}));
+    return{status:'ok',slots:result.slots.map(({id,status,generation})=>({id,status,generation}))};
   }
-  if(result.status==='ok'&&operation.type==='status')return{status:'ok',slots,syncDisabled:result.syncDisabled,autoSyncEnabled:result.autoSyncEnabled,lastAutomaticSync:result.lastAutomaticSync,progress:validatePublicProgress({schemaVersion:1,source:'strava',...result.progress},{expectedSource:'strava'})};
+  if(result.status==='ok'&&operation.type==='status')return{status:'ok',syncDisabled:result.syncDisabled,autoSyncEnabled:result.autoSyncEnabled,lastAutomaticSync:result.lastAutomaticSync,progress:validatePublicProgress({schemaVersion:1,source:'strava',...result.progress},{expectedSource:'strava'})};
   if(['enable-auto-sync','disable-auto-sync'].includes(operation.type)&&result.status===(operation.type==='enable-auto-sync'?'enabled':'disabled')&&result.autoSyncEnabled!==(operation.type==='enable-auto-sync'))throw Error('Invalid response');
   return{status:result.status};
 }
