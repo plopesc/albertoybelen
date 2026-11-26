@@ -61,11 +61,11 @@ async function checkDemoRewards(context, device) {
  assert.equal(await demo.locator('#api-card').isVisible(),false);
  const photo=demo.locator('#reward-photo'),dialog=demo.locator('#milestone-dialog');
  for(const [title,file] of [
-  ['Los primeros recuerdos','milestone-20.webp'],
-  ['Una noche para recordar','milestone-40.webp'],
-  ['Kilómetros y carcajadas','milestone-60.webp'],
-  ['Cerca de las cumbres','milestone-80.webp'],
-  ['¡500 km y un brindis!','milestone-100.webp'],
+  ['Antes del «sí, quiero», ya había unas cuantas historias.','milestone-20.webp'],
+  ['Algunas noches se acaban. Las anécdotas se quedan para siempre.','milestone-40.webp'],
+  ['Si hay que hacer el ridículo, que sea en buena compañía.','milestone-60.webp'],
+  ['Qué suerte seguir compartiendo la vida y sus celebraciones con vosotros.','milestone-80.webp'],
+  ['¡Por vosotros y por todo lo que viene!','milestone-100.webp'],
  ]){
   await increment.click();
   await increment.click();
@@ -162,7 +162,7 @@ try{
  assert.ok(layout.scroll<=layout.width,`mobile horizontal overflow: ${JSON.stringify(layout)}`);assert.equal(layout.remainingText,'nowrap');await mobile.screenshot({path:resolve(output,'mobile-live.png'),fullPage:true});
  await refresh(mobile,'500,00');
  assert.equal(requests.length,5,'two rejected responses, one launch read and two tab refreshes');assert.equal(await mobile.locator('#remaining').innerText(),'0,00');assert.equal(await mobile.locator('#completion-card').isVisible(),true);assert.equal(await mobile.getByRole('button',{name:'ABRIR EL REGALO DE PABLO Y DANI'}).isVisible(),true);assert.match(await mobile.locator('#status').innerText(),/¡Y ahora empieza lo bueno!/);
- if(await mobile.locator('#milestone-dialog').isVisible())await mobile.getByRole('button',{name:/cerrar recuerdos/i}).click();await mobile.screenshot({path:resolve(output,'mobile-complete.png'),fullPage:true});
+ if(await mobile.locator('#milestone-dialog').isVisible())await mobile.getByRole('button',{name:/seguir el camino/i}).click();await mobile.screenshot({path:resolve(output,'mobile-complete.png'),fullPage:true});
  reads=1;const desktopContext=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce'}),desktop=await openLivePage(desktopContext,{width:1440,height:1000},'2026-11-28T12:00:00Z');
  assert.equal(await desktop.locator('#distance').innerText(),'62,66');assert.equal(await desktop.locator('#remaining').innerText(),'437,34');
  const desktopLayout=await desktop.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,grid:getComputedStyle(document.querySelector('.adventure-layout')).gridTemplateColumns}));assert.ok(desktopLayout.scroll<=desktopLayout.width,`desktop horizontal overflow: ${JSON.stringify(desktopLayout)}`);await desktop.screenshot({path:resolve(output,'desktop-live.png'),fullPage:true});
