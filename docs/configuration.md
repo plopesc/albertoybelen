@@ -174,3 +174,7 @@ JSON para probar objetivos, fechas, zonas, hitos, modos y errores. No
 modifica el archivo. Incluye migración, geometría 0/20/50/80/100 %, teclado,
 movimiento reducido y tamaños 320/390/768/1280. La CI usa Node.js; Chromium sigue
 siendo una comprobación local opcional, sin dependencias de runtime nuevas.
+
+Los recuerdos admiten `title` (nombre de la parada) y `message` (dedicatoria
+breve opcional). Ambos deben ser textos no vacíos cuando se incluyen. El diálogo
+muestra el título y la dedicatoria sin modificar los IDs ni el historial.

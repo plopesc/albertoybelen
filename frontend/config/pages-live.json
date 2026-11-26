@@ -1,7 +1,7 @@
 {
   "game": {
     "id": "alberto-belen-reto-2026",
-    "title": "Alberto y Belén · Kilómetro Arcade",
+    "title": "Alberto y Belén · El viaje empieza aquí",
     "goalKm": 500,
     "startDate": "2026-11-28",
     "timeZone": "Europe/Madrid",
@@ -13,26 +13,30 @@
       {
         "id": "milestone-20",
         "percent": 20,
-        "title": "Los primeros recuerdos",
-        "alt": "Tres personas posan juntas en un local con iluminación tenue."
+        "title": "Primera parada · Cómo empezó todo",
+        "alt": "Tres personas posan juntas en un local con iluminación tenue.",
+        "message": "Antes del «sí, quiero», ya había unas cuantas historias."
       },
       {
         "id": "milestone-40",
         "percent": 40,
-        "title": "Una noche para recordar",
-        "alt": "Tres personas vestidas de fiesta posan bajo luces azules y moradas."
+        "title": "Segunda parada · Las noches que cuentan",
+        "alt": "Tres personas vestidas de fiesta posan bajo luces azules y moradas.",
+        "message": "Algunas noches se acaban. Las anécdotas se quedan para siempre."
       },
       {
         "id": "milestone-60",
         "percent": 60,
-        "title": "Kilómetros y carcajadas",
-        "alt": "Tres personas con ropa de celebración hacen gestos divertidos ante la cámara."
+        "title": "Tercera parada · Que no falten las risas",
+        "alt": "Tres personas con ropa de celebración hacen gestos divertidos ante la cámara.",
+        "message": "Si hay que hacer el ridículo, que sea en buena compañía."
       },
       {
         "id": "milestone-80",
         "percent": 80,
-        "title": "Cerca de las cumbres",
-        "alt": "Imagen provisional de montañas nevadas bajo el cielo, sin personas."
+        "title": "Cuarta parada · La gente que os acompaña",
+        "alt": "Imagen provisional de montañas nevadas bajo el cielo, sin personas.",
+        "message": "Qué suerte seguir compartiendo la vida y sus celebraciones con vosotros."
       }
     ],
     "finish": 100

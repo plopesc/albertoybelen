@@ -15,7 +15,7 @@ async page => {
     assert(await page.locator('#completion-card').isHidden(), '99 km sin premio');
     await page.getByRole('button', { name: '+1 km', exact: true }).click();
     assert(await page.locator('#milestone-dialog').evaluate(dialog => dialog.classList.contains('is-celebrating')), 'Primera llegada celebra');
-    assert(await page.locator('#reward-title').textContent() === '¡Reto completado!', 'Título de la meta');
+    assert(await page.locator('#reward-title').textContent() === '¡Y ahora empieza lo bueno!', 'Título de la meta');
     assert(await page.locator('#reward-photo-wrap').isHidden(), 'El regalo espera Ver imagen');
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.locator('#reward-view').click();

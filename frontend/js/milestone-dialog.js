@@ -24,7 +24,7 @@ export function createMilestoneReveals({ root, dialog, milestones, history }) {
     $('reward-next').hidden = pending.length === 0;
     $('reward-next').textContent = `Siguiente hito (${pending.length})`;
     $('reward-view').hidden = phase !== 'notice';
-    $('reward-counter').textContent = pending.length ? `${pending.length} ${pending.length === 1 ? 'hito pendiente' : 'hitos pendientes'}` : 'Puedes volver a abrir esta imagen desde el mapa.';
+    $('reward-counter').textContent = pending.length ? `${pending.length} ${pending.length === 1 ? 'hito pendiente' : 'hitos pendientes'}` : 'Este recuerdo se queda aquí para cuando queráis volver a él.';
   }
 
   function reveal() {
@@ -32,7 +32,7 @@ export function createMilestoneReveals({ root, dialog, milestones, history }) {
     if (queue.getState().current === null) return;
     phase = 'revealed';
     dialog.dataset.phase = phase;
-    $('reward-eyebrow').textContent = 'UN RECUERDO EN EL CAMINO';
+    $('reward-eyebrow').textContent = 'DE PABLO Y DANI, CON MUCHO CARIÑO';
     $('reward-chest').toggleAttribute('hidden', true);
     $('reward-photo-wrap').hidden = false;
     $('reward-status').textContent = '';
@@ -43,7 +43,7 @@ export function createMilestoneReveals({ root, dialog, milestones, history }) {
       $('reward-photo').hidden = true;
       $('reward-image-error').hidden = false;
     };
-    $('reward-message').textContent = photoFor(queue.getState().current).message ?? '';
+    $('reward-message').textContent = queue.getState().current === FINISH_MILESTONE_ID ? photoFor(queue.getState().current).message ?? '' : '';
     $('reward-message').hidden = !$('reward-message').textContent;
     $('reward-photo').src = photoFor(queue.getState().current).src;
     updateControls();
@@ -61,7 +61,7 @@ export function createMilestoneReveals({ root, dialog, milestones, history }) {
     dialog.classList.toggle('is-celebrating', isFinal && celebrateFinal);
     if (isFinal) celebrateFinal = false;
     $('reward-message').hidden = true;
-    $('reward-eyebrow').textContent = isFinal ? 'LA META ES SOLO EL PRINCIPIO' : 'UN NUEVO HITO';
+    $('reward-eyebrow').textContent = isFinal ? 'EL «SÍ, QUIERO» ES SOLO EL PRINCIPIO' : 'DE PABLO Y DANI, CON MUCHO CARIÑO';
     $('reward-chest').toggleAttribute('hidden', false);
     $('reward-chest').classList.remove('is-open');
     $('reward-photo-wrap').hidden = true;
@@ -69,10 +69,10 @@ export function createMilestoneReveals({ root, dialog, milestones, history }) {
     $('reward-photo').hidden = false;
     $('reward-photo').onerror = null;
     $('reward-photo').removeAttribute('src');
-    $('reward-title').textContent = isFinal ? '¡Reto completado!' : `Hito ${number.format(definitions.get(current).percent)} %`;
-    $('reward-description').textContent = photo.title;
+    $('reward-title').textContent = isFinal ? '¡Y ahora empieza lo bueno!' : definitions.get(current).title ?? `Hito ${number.format(definitions.get(current).percent)} %`;
+    $('reward-description').textContent = isFinal ? photo.title : photo.message ?? '';
     $('reward-status').hidden = false;
-    $('reward-status').textContent = '¡Has conseguido un nuevo hito! Abre el cofre para descubrir su imagen.';
+    $('reward-status').textContent = 'Pablo y Dani os han dejado algo aquí. Abrid el cofre y descubridlo.';
     $('reward-photo').alt = photo.alt;
     if (directImage) reveal();
     if (!dialog.open) {
