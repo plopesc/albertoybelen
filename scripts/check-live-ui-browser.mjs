@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {extname,resolve,relative,sep} from 'node:path';
 import {chromium,devices} from 'playwright';
-import {PAGES_STAGING_PROGRESS_URL as endpoint} from '../frontend/js/http-progress.js';
+const endpoint='https://production-browser.example/api/progress';
 
 const origin='https://plopesc.github.io',prefix='/albertoybelen/',output=resolve(process.env.LIVE_UI_OUTPUT??'artifacts/live-ui');
 await mkdir(output,{recursive:true});
@@ -15,6 +15,15 @@ const snapshots=[
 let reads=0;const requests=[];
 async function servePage(route){
  const url=new URL(route.request().url());let path=decodeURIComponent(url.pathname.slice(prefix.length));if(!path)path='index.html';
+ if(path==='js/http-progress.js'){
+  const source=await readFile('frontend/js/http-progress.js','utf8');
+  return route.fulfill({contentType:'text/javascript',body:source.replace(/export const PAGES_PRODUCTION_PROGRESS_URL = [^;]+;/,`export const PAGES_PRODUCTION_PROGRESS_URL = '${endpoint}';`)});
+ }
+ if(path==='config/pages-live.json'){
+  const profile=JSON.parse(await readFile('frontend/config/pages-live.json','utf8'));
+  profile.api.url=endpoint;
+  return route.fulfill({json:profile});
+ }
  const file=resolve('frontend',path),relativePath=relative(resolve('frontend'),file);if(relativePath.startsWith(`..${sep}`)||relativePath==='..')return route.abort();
  try{await route.fulfill({status:200,contentType:({'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp'})[extname(file)]??'application/octet-stream',body:await readFile(file)});}catch{await route.fulfill({status:404,body:'not found'});}
 }
@@ -25,13 +34,13 @@ async function openLivePage(context,viewport,instant,mode='official'){
  await page.route(endpoint,async route=>{
   const req=route.request(),headers=await req.allHeaders();
   requests.push({url:req.url(),method:req.method(),referer:headers.referer,cookie:headers.cookie,authorization:headers.authorization});
-  const snapshot=mode==='pilot'?snapshots[1]:snapshots[Math.min(reads++,snapshots.length-1)];
+  const snapshot=mode!=='official'?snapshots[1]:snapshots[Math.min(reads++,snapshots.length-1)];
   const cors={'Cache-Control':'no-store','Access-Control-Allow-Origin':origin};
-  if(mode==='official') Object.assign(cors,{'X-Challenge-Start':'2026-11-28','Access-Control-Expose-Headers':'X-Challenge-Start'});
+  Object.assign(cors,{'X-Challenge-Start':mode==='wrong-date'?'2026-11-01':'2026-11-28','X-Challenge-Environment':mode==='pilot'?'staging':'production','Access-Control-Expose-Headers':'X-Challenge-Start, X-Challenge-Environment'});
   await route.fulfill({status:200,contentType:'application/json',headers:cors,body:JSON.stringify(snapshot)});
  });
  await page.goto(`${origin}${prefix}?utm_source=presentacion`);
- await page.waitForFunction(expected=>document.getElementById('api-card')?.dataset.state===expected,mode==='pilot'?'error':'ready');
+ await page.waitForFunction(expected=>document.getElementById('api-card')?.dataset.state===expected,mode==='official'?'ready':'error');
  assert.deepEqual(errors,[]);
  return page;
 }
@@ -46,6 +55,9 @@ try{
  assert.equal(await pilot.locator('#progress').isVisible(),false);
  assert.equal(await pilot.locator('#completion-card').isVisible(),false);
  await pilot.close();
+ const wrongDate=await openLivePage(mobileContext,{width:390,height:844},'2026-11-27T23:00:00Z','wrong-date');
+ assert.equal(await wrongDate.locator('#progress').isVisible(),false);
+ await wrongDate.close();
  const mobile=await openLivePage(mobileContext,{width:390,height:844},'2026-11-27T23:00:00Z');
  assert.equal(await mobile.locator('#distance').innerText(),'0,00');
  assert.match(await mobile.locator('#api-state').innerText(),/cuentas de Strava pendiente/);
@@ -64,12 +76,12 @@ try{
  const layout=await mobile.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,remaining:document.querySelector('#remaining').getBoundingClientRect().toJSON(),remainingText:getComputedStyle(document.querySelector('#remaining').parentElement).whiteSpace}));
  assert.ok(layout.scroll<=layout.width,`mobile horizontal overflow: ${JSON.stringify(layout)}`);assert.equal(layout.remainingText,'nowrap');await mobile.screenshot({path:resolve(output,'mobile-live.png'),fullPage:true});
  await refresh(mobile,'500,00');
- assert.equal(requests.length,4,'one rejected pilot, one launch read and two tab refreshes');assert.equal(await mobile.locator('#remaining').innerText(),'0,00');assert.equal(await mobile.locator('#completion-card').isVisible(),true);assert.equal(await mobile.getByRole('button',{name:'Abrir regalo final'}).isVisible(),true);assert.match(await mobile.locator('#status').innerText(),/¡Reto completado!/);
+ assert.equal(requests.length,5,'two rejected responses, one launch read and two tab refreshes');assert.equal(await mobile.locator('#remaining').innerText(),'0,00');assert.equal(await mobile.locator('#completion-card').isVisible(),true);assert.equal(await mobile.getByRole('button',{name:'Abrir regalo final'}).isVisible(),true);assert.match(await mobile.locator('#status').innerText(),/¡Reto completado!/);
  if(await mobile.locator('#milestone-dialog').isVisible())await mobile.getByRole('button',{name:/cerrar recuerdos/i}).click();await mobile.screenshot({path:resolve(output,'mobile-complete.png'),fullPage:true});
  reads=1;const desktopContext=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce'}),desktop=await openLivePage(desktopContext,{width:1440,height:1000},'2026-11-28T12:00:00Z');
  assert.equal(await desktop.locator('#distance').innerText(),'62,66');assert.equal(await desktop.locator('#remaining').innerText(),'437,34');
  const desktopLayout=await desktop.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,grid:getComputedStyle(document.querySelector('.adventure-layout')).gridTemplateColumns}));assert.ok(desktopLayout.scroll<=desktopLayout.width,`desktop horizontal overflow: ${JSON.stringify(desktopLayout)}`);await desktop.screenshot({path:resolve(output,'desktop-live.png'),fullPage:true});
- assert.deepEqual(requests.map(x=>x.method),Array(5).fill('GET'));assert.ok(requests.every(x=>x.url===endpoint&&x.referer===undefined&&x.cookie===undefined&&x.authorization===undefined));
+ assert.deepEqual(requests.map(x=>x.method),Array(6).fill('GET'));assert.ok(requests.every(x=>x.url===endpoint&&x.referer===undefined&&x.cookie===undefined&&x.authorization===undefined));
  await writeFile(resolve(output,'manifest.json'),JSON.stringify({synthetic:true,realStravaRequests:0,realCloudflareRequests:0,profile:'official-pages-root',viewports:[{width:390,height:844},{width:1440,height:1000}],requests:requests.length,snapshots:[0,62.6602,500]},null,2)+'\n');
  await mobileContext.close();await desktopContext.close();console.log('Live presentation verified at mobile and desktop sizes; one refresh occurs on return to the tab, with intercepted synthetic responses only.');
 }finally{await browser.close();}

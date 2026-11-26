@@ -1,4 +1,8 @@
-# Retirada del piloto e invitaciones después de la presentación
+# Retirada del piloto de staging
+
+Este procedimiento queda reservado a operaciones de pruebas. Para el
+lanzamiento, el piloto permanece en staging y se sigue la
+[guía de producción](official-launch.md).
 
 Cada operación remota requiere autorización del propietario. Usar el Worker MVP y D1
 existentes, con la release aprobada y el perfil privado descrito en [MVP](staging-mvp.md).
