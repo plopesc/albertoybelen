@@ -78,7 +78,7 @@ try {
     await page.locator('#reward-close').click();
     // #16 se puede revisar con este mismo capturador al integrar su botón público.
     await state(100);
-    const finalButton = page.getByRole('button', { name: 'ABRIR EL REGALO DE PABLO Y DANI', exact: true });
+    const finalButton = page.getByRole('button', { name: 'Abrir el regalo', exact: true });
     if (await finalButton.count()) {
       await finalButton.click();
       const view = page.getByRole('button', { name: 'ABRIR EL RECUERDO', exact: true });
