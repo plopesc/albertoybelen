@@ -65,7 +65,7 @@ export function inspectSql(bytes,migrations) {
       if(action===c.SQLITE_DELETE)return first==='sqlite_sequence'?c.SQLITE_OK:c.SQLITE_DENY;
       if(action===c.SQLITE_TRANSACTION)return c.SQLITE_OK;
       if(action===c.SQLITE_PRAGMA)return ['foreign_keys','defer_foreign_keys'].includes(first)?c.SQLITE_OK:c.SQLITE_DENY;
-      if(action===c.SQLITE_FUNCTION)return ['char','json_valid','current_timestamp','length','like','glob','julianday'].includes(second)?c.SQLITE_OK:c.SQLITE_DENY;
+      if(action===c.SQLITE_FUNCTION)return ['char','json_valid','current_timestamp','length','like','glob','julianday'].includes(second?.toLowerCase())?c.SQLITE_OK:c.SQLITE_DENY;
       return c.SQLITE_DENY;
     });
     db.exec(sql);db.setAuthorizer(null);if(db.isTransaction)throw Error();
