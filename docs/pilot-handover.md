@@ -15,6 +15,7 @@ existentes, con la release aprobada y el perfil privado descrito en [MVP](stagin
    Esta supresión retira credenciales y aportes del piloto y limpia los hitos de
    ensayo. La orden se rechaza si cambió la cuenta o generación, hay sync habilitada
    o la otra plaza tiene una vinculación, invitación pendiente registrada o actividad.
+   La purga de hitos está limitada al reto de ensayo.
    Si solo se quiere desconectar conservando la distancia, usar `revoke-slot` con
    `--confirm-revocation` y omitir `purgeMilestones`. Para un borrado posterior,
    releer la generación. El titular puede retirar también el permiso de la app

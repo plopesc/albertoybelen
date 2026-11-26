@@ -95,6 +95,7 @@ export function createStagingAuth(env,{fetchProvider,clock=Date.now,progressOrig
             slot?.accountHash === expected && slot.generation === op.generation &&
             participant?.generation === op.generation &&
             (!erase || !op.purgeMilestones || (
+              state.policy.config.startDate === settings.startDate &&
               state.auth.slots.every(s => s.id === op.slot || (!s.accountHash && !s.expectedAccountHash)) &&
               state.policy.participants.every(p => p.id === op.slot || (!p.connected && !p.activities.length))
             ));
