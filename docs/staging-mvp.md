@@ -201,3 +201,5 @@ por lo que no debe reactivarse el piloto en paralelo.
 No publicar invitaciones, secretos, IDs o respuestas privadas. La salida resumida
 del CLI y `/api/progress` solo incluyen agregado y estados; nunca aportaciones por
 participante. No activar GitHub Pages ni modificar `frontend/config/game.json`.
+
+Para el relevo del piloto, consulta el [procedimiento de retirada e invitaciones](pilot-handover.md).

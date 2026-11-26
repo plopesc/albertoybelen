@@ -90,8 +90,9 @@ export function createD1Repository(db, { settings = FIXTURE_SETTINGS, dataset = 
     async getProgress() { return publicProgress(await this.getState()); },
     applyEvents(events) { return mutate(state => { for (const event of events) apply(state, event); }); },
     markFailures() { return mutate(state => { for (const p of state.policy.participants.filter(p => p.connected)) apply(state, { participantId: p.id, generation: p.generation, status: 'error' }); }); },
-    transitionAuth(event) {
+    transitionAuth(event, guard = () => true) {
       return mutate(state => {
+        if (!guard(state)) return { ok: false, code: 'state_changed' };
         const next = transitionInvitation(state.auth, event);
         state.auth = next.state;
         for (const effect of next.effects) apply(state, effect);

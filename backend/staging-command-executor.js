@@ -7,7 +7,7 @@ const control=stagingOperatorState;
 export function createStagingCommandExecutor({runtime,clock=Date.now}) {
   return {async execute(command) {
       const op=command.operation,nonce=hashSecret(command.nonce);
-      const priority=['status','disable-sync','disable-auto-sync','revoke','erase'].includes(op.type);
+      const priority=['status','disable-sync','disable-auto-sync','revoke','erase','slot-status'].includes(op.type);
       let claimed;
       try {
         claimed=await runtime.repository.updatePrivate(state=>{
@@ -25,7 +25,16 @@ export function createStagingCommandExecutor({runtime,clock=Date.now}) {
       let result={status:'failed'};
       const fence=state=>state.stagingOperator?.lease?.nonce===nonce&&state.stagingOperator.lease.expiresAt>clock();
       try {
-        if(op.type==='issue')result={status:'issued',invitation:await runtime.admin.issue({actor,slot:op.slot,expectedAthleteId:op.expectedAthleteId,fence})};
+        if (['revoke-slot','erase-slot'].includes(op.type)) {
+          const removed = await runtime.admin.removeSlot({actor,operation:op,fence});
+          result = {status:removed.ok ? (op.type === 'erase-slot' ? 'erased' : 'revoked') : 'failed'};
+        }
+        else if(op.type==='slot-status') {
+          const {state} = await runtime.repository.read();
+          const slots = state.auth.slots.map(({id,status,generation})=>({id,status,generation}));
+          result = {status:'ok',slots};
+        }
+        else if(op.type==='issue')result={status:'issued',invitation:await runtime.admin.issue({actor,slot:op.slot,expectedAthleteId:op.expectedAthleteId,fence})};
         else if(op.type==='sync')result=await runtime.admin.sync({actor,fence});
         else if(op.type==='status') {
           const {state}=await runtime.repository.read(),c=control(state),budget=state.stagingBudget;

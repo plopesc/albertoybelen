@@ -16,7 +16,7 @@ export async function callMvp({root,operation,fetchAdmin=globalThis.fetch}) {
   const reader=response.body?.getReader();if(!reader)throw Error('Admin unavailable');const chunks=[];let size=0;
   try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>16384)throw Error('Admin unavailable');chunks.push(value);}}finally{await reader.cancel().catch(()=>{});}
   const result=JSON.parse(Buffer.concat(chunks).toString('utf8'));
-  if(!['issued','ok','synced','stale','idle','busy','disabled','enabled','replay','failed','unavailable'].includes(result.status))throw Error('Admin unavailable');
+  if(!['issued','ok','synced','stale','idle','busy','disabled','enabled','replay','revoked','erased','failed','unavailable'].includes(result.status))throw Error('Admin unavailable');
   if(result.status==='issued') {
     if(operation.type!=='issue'||Object.keys(result).sort().join()!=='invitation,status')throw Error('Invalid response');
     const url=new URL(result.invitation);if(url.origin!==MVP_ORIGIN||url.pathname!=='/invite'||url.search||url.username||url.password||!/^#[\w-]{43}$/.test(url.hash))throw Error('Invalid response');
@@ -25,6 +25,14 @@ export async function callMvp({root,operation,fetchAdmin=globalThis.fetch}) {
     return{status:'issued',file:`.local/staging-mvp/${file}`};
   }
   if(result.status==='ok'&&operation.type==='status'&&(typeof result.syncDisabled!=='boolean'||typeof result.autoSyncEnabled!=='boolean'||!(result.lastAutomaticSync===null||result.lastAutomaticSync&&Object.keys(result.lastAutomaticSync).sort().join()==='at,status'&&typeof result.lastAutomaticSync.at==='string'&&Number.isFinite(Date.parse(result.lastAutomaticSync.at))&&['synced','idle','busy','stale','disabled','failed'].includes(result.lastAutomaticSync.status))))throw Error('Invalid response');
+  if(result.status==='ok'&&operation.type==='slot-status') {
+    if(!Array.isArray(result.slots)||result.slots.length!==2||
+        new Set(result.slots.map(slot=>slot.id)).size!==2||
+        result.slots.some(slot=>!['slot-a','slot-b'].includes(slot.id)||
+          !['disconnected','connected','revoked','deleted'].includes(slot.status)||
+          !Number.isSafeInteger(slot.generation)||slot.generation<0))throw Error('Invalid response');
+    return{status:'ok',slots:result.slots.map(({id,status,generation})=>({id,status,generation}))};
+  }
   if(result.status==='ok'&&operation.type==='status')return{status:'ok',syncDisabled:result.syncDisabled,autoSyncEnabled:result.autoSyncEnabled,lastAutomaticSync:result.lastAutomaticSync,progress:validatePublicProgress({schemaVersion:1,source:'strava',...result.progress},{expectedSource:'strava'})};
   if(['enable-auto-sync','disable-auto-sync'].includes(operation.type)&&result.status===(operation.type==='enable-auto-sync'?'enabled':'disabled')&&result.autoSyncEnabled!==(operation.type==='enable-auto-sync'))throw Error('Invalid response');
   return{status:result.status};
