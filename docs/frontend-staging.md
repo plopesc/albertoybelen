@@ -41,7 +41,7 @@ ni de fixtures. Para cambiar un perfil staging editado, revisarlo localmente y
 retirar solo ese archivo antes de regenerar; no borrar local.json para ello.
 
 `?staging-api=1` se acepta solo en DDEV HTTPS y no puede combinarse con local-api,
-repetirse ni usarse desde Pages. Sin parámetro se mantiene el juego público simulado.
+repetirse ni usarse desde Pages. En DDEV, sin parámetro se mantiene la simulación local.
 La URL del navegador sigue siendo del mismo origen: GET `/api/staging/progress`.
 El adaptador no admite que la configuración apunte directamente a URLs arbitrarias.
 

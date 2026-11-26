@@ -1,6 +1,6 @@
 # Vista opt-in de Strava Staging en GitHub Pages (#52)
 
-La ruta pública normal sigue abriendo la simulación. Después de publicar una
+Tras la publicación del reto oficial, la raíz abre ese reto. Durante el ensayo, una
 versión revisada y desplegar el cambio compatible del Worker, el enlace de
 prueba es:
 
