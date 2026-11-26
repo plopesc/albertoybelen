@@ -1,3 +1,5 @@
+import { PAGES_MODE } from './pages-mode.js';
+
 const publicKeys = ['schemaVersion','source','distanceKm','partial','stale','updatedAt','unlockedMilestoneIds'];
 export const MAX_UNLOCKED_IDS = 256;
 // Independent code allowlist: public config cannot authorize another remote host.
@@ -48,7 +50,7 @@ export function resolveProgressEndpoint(address, pageUrl, allowFixtures = false)
   const loopback = ['localhost','127.0.0.1','[::1]'].includes(page.hostname);
   const pagesStaging = isPagesStagingPage(page);
   if (pagesStaging && url.href === PAGES_STAGING_PROGRESS_URL && address === url.href && !allowFixtures) return url.href;
-  if (isPagesLivePage(page) && url.href === PAGES_PRODUCTION_PROGRESS_URL && address === url.href && !allowFixtures) return url.href;
+  if (PAGES_MODE === 'live' && isPagesLivePage(page) && url.href === PAGES_PRODUCTION_PROGRESS_URL && address === url.href && !allowFixtures) return url.href;
   if (isPagesRoot(page)) throw new Error('La API del reto no está disponible.');
   const permittedPath = url.pathname === '/api/progress' || (local && allowFixtures && url.pathname === '/api/staging/progress') || (local && !allowFixtures && url.pathname === '/api/staging/strava-progress');
   if (url.origin !== page.origin || (url.protocol !== 'https:' && !(loopback && url.protocol === 'http:')) || url.username || url.password || url.search || url.hash || !permittedPath || (allowFixtures && !local)) throw new Error('La API debe usar el origen y la ruta permitidos.');

@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { loadRuntimeConfig, PAGES_STAGING_CONFIG_URL } from '../frontend/js/runtime-config.js';
+import { PAGES_MODE } from '../frontend/js/pages-mode.js';
 import { validateGameConfig } from '../frontend/js/config.js';
 import { createHttpProgressProvider, hasPagesTrackingParams, isPagesStagingPage, PAGES_PRODUCTION_PROGRESS_URL, PAGES_STAGING_PROGRESS_URL, resolveProgressEndpoint } from '../frontend/js/http-progress.js';
 
@@ -9,10 +10,20 @@ const trackedPage=`${page}&utm_source=chatgpt.com`;
 const dto=(extra={})=>({schemaVersion:1,source:'strava',distanceKm:62.66,partial:true,stale:false,updatedAt:'2026-11-18T10:00:00Z',unlockedMilestoneIds:['milestone-20','milestone-40'],...extra});
 const profile=validateGameConfig({game:{id:'pages-staging-strava',title:'Alberto y Belén · Prueba Strava Staging',goalKm:500,startDate:'2026-11-01',timeZone:'Europe/Madrid',mode:'real'},rewards:{milestones:[20,40,60,80],finish:100},api:{url:PAGES_STAGING_PROGRESS_URL,allowFixtures:false}});
 
-test('Pages fail-closed sin destino productivo y conserva el perfil explícito de prueba',async()=>{
+test('Pages aplica el perfil de publicación y conserva el perfil explícito de prueba',async()=>{
  let requested;
  const pageUrl='https://plopesc.github.io/albertoybelen/?utm_source=presentacion';
- if(!PAGES_PRODUCTION_PROGRESS_URL) {
+ if(PAGES_MODE==='simulation') {
+  const {readFile}=await import('node:fs/promises');
+  const demo=await loadRuntimeConfig({pageUrl,fetchConfig:async url=>{
+   assert.match(url.pathname,/\/config\/game\.json$/);
+   return Response.json(JSON.parse(await readFile(url,'utf8')));
+  }});
+  assert.equal(demo.game.mode,'simulation');
+  assert.equal(demo.api,undefined);
+  assert.throws(()=>resolveProgressEndpoint(PAGES_PRODUCTION_PROGRESS_URL,pageUrl));
+  await assert.rejects(loadRuntimeConfig({pageUrl,fetchConfig:async()=>Response.json(profile)}),/demo inválida/);
+ } else if(!PAGES_PRODUCTION_PROGRESS_URL) {
   await assert.rejects(loadRuntimeConfig({pageUrl,fetchConfig:async url=>{requested=url;}}),/cuando se publique/);
   assert.equal(requested,undefined);
  } else {

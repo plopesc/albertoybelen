@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {extname,resolve,relative,sep} from 'node:path';
 import {chromium,devices} from 'playwright';
+import {PAGES_MODE} from '../frontend/js/pages-mode.js';
 const endpoint='https://production-browser.example/api/progress';
 
 const origin='https://plopesc.github.io',prefix='/albertoybelen/',output=resolve(process.env.LIVE_UI_OUTPUT??'artifacts/live-ui');
@@ -13,13 +14,15 @@ const snapshots=[
  {schemaVersion:1,source:'strava',distanceKm:500,partial:false,stale:false,updatedAt:'2026-11-28T10:02:00Z',unlockedMilestoneIds:['milestone-20','milestone-40','milestone-60','milestone-80','finish']},
 ];
 let reads=0;const requests=[];
-async function servePage(route){
+async function servePage(route,live=true){
  const url=new URL(route.request().url());let path=decodeURIComponent(url.pathname.slice(prefix.length));if(!path)path='index.html';
- if(path==='js/http-progress.js'){
+ const mode=live?'live':'simulation';
+ if(path==='js/pages-mode.js'&&PAGES_MODE!==mode) return route.fulfill({contentType:'text/javascript',body:`export const PAGES_MODE = '${mode}';`});
+ if(live&&path==='js/http-progress.js'){
   const source=await readFile('frontend/js/http-progress.js','utf8');
   return route.fulfill({contentType:'text/javascript',body:source.replace(/export const PAGES_PRODUCTION_PROGRESS_URL = [^;]+;/,`export const PAGES_PRODUCTION_PROGRESS_URL = '${endpoint}';`)});
  }
- if(path==='config/pages-live.json'){
+ if(live&&path==='config/pages-live.json'){
   const profile=JSON.parse(await readFile('frontend/config/pages-live.json','utf8'));
   profile.api.url=endpoint;
   return route.fulfill({json:profile});
@@ -29,7 +32,7 @@ async function servePage(route){
 }
 async function openLivePage(context,viewport,instant,mode='official'){
  const page=await context.newPage();await page.setViewportSize(viewport);const errors=[];page.on('pageerror',error=>errors.push(error.message));
- await page.route('**/*',route=>route.abort());await page.route(`${origin}${prefix}**`,servePage);
+ await page.route('**/*',route=>route.abort());await page.route(`${origin}${prefix}**`,route=>servePage(route));
  await page.clock.setFixedTime(new Date(instant));
  await page.route(endpoint,async route=>{
   const req=route.request(),headers=await req.allHeaders();
@@ -46,6 +49,43 @@ async function openLivePage(context,viewport,instant,mode='official'){
 }
 try{
  const mobileContext=await browser.newContext({...devices['iPhone 13'],reducedMotion:'reduce'});
+ const demo=await mobileContext.newPage();
+ const demoReads=[];
+ await demo.route('**/*',route=>route.abort());
+ await demo.route(`${origin}${prefix}**`,route=>servePage(route,false));
+ demo.on('request',req=>demoReads.push(req.url()));
+ await demo.clock.setFixedTime(new Date('2026-11-26T12:00:00Z'));
+ await demo.goto(`${origin}${prefix}?utm_source=demo`);
+ await demo.locator('[data-km="10"]').waitFor();
+ assert.equal(await demo.locator('#mode-label').innerText(),'MODO SIMULADO');
+ assert.equal(await demo.locator('#api-card').isVisible(),false);
+ const increment=demo.locator('[data-km="10"]');
+ const photo=demo.locator('#reward-photo');
+ async function reveal(title,file){
+  await demo.locator('#milestone-dialog').waitFor();
+  assert.equal(await demo.locator('#reward-description').innerText(),title);
+  await demo.locator('#reward-view').click();
+  await photo.evaluate(img=>img.decode());
+  assert.ok((await photo.getAttribute('src')).endsWith('/'+file));
+ }
+ for(const [title,file] of [
+  ['Los primeros recuerdos','milestone-20.webp'],
+  ['Una noche para recordar','milestone-40.webp'],
+  ['Kilómetros y carcajadas','milestone-60.webp'],
+  ['Cerca de las cumbres','milestone-80.webp'],
+  ['¡500 km y un brindis!','milestone-100.webp'],
+ ]){
+  await increment.click();
+  await increment.click();
+  await reveal(title,file);
+  if(file==='milestone-100.webp'){
+   assert.match(await demo.locator('#reward-message').innerText(),/¡Salud!/);
+   await demo.screenshot({path:resolve(output,'mobile-demo.png'),fullPage:true});
+  }
+  await demo.locator('#reward-close').click();
+ }
+ assert.ok(demoReads.every(url=>url.startsWith(origin+prefix) && !url.includes('/api/') && !url.includes('/config/pages-live.json')));
+ await demo.close();
  const before=await openLivePage(mobileContext,{width:390,height:844},'2026-11-27T22:59:59Z');
  assert.equal(await before.locator('#distance').innerText(),'0,00');
  assert.match(await before.locator('#api-state').innerText(),/empieza el 28/);

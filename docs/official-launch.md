@@ -77,7 +77,9 @@ su primer despliegue autorizado con la configuración productiva.
    `updatedAt:null` e hitos vacíos. Comprobar desde el admin privado que ambas
    plazas están desconectadas si ya se instaló la clave de administración.
    La presentación pública funciona con OAuth cerrado y sin datos de atletas.
-5. Con autorización de publicación y a partir de la medianoche de Madrid,
+5. Con autorización del propietario, cambiar `PAGES_MODE` a `live` en
+   `frontend/js/pages-mode.js` y aprobar ese cambio. Después, a partir
+   de la medianoche de Madrid y con autorización de publicación,
    ejecutar manualmente **Publicar en Pages** desde `main` con la variable
    `PAGES_TEST_DEPLOY_ENABLED=true`. Verificar la
    [raíz pública](https://plopesc.github.io/albertoybelen/) en móvil e incógnito,
