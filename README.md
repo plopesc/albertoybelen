@@ -402,88 +402,23 @@ npm run capture:visual
 El workflow de PR guarda las capturas como artifacts durante tres días, sin
 publicar la web ni modificar el progreso de los jugadores.
 
-## Entorno de pruebas en GitHub Pages
+## GitHub Pages
 
-**Estado a 11 de noviembre de 2026: viable, pendiente de activación autorizada.**
-El propietario ha hecho público `plopesc/albertoybelen`. La comprobación de solo
-lectura devuelve `private: false`, `visibility: public` y `has_pages: false`.
-[GitHub Free permite Pages en repositorios públicos](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site);
-la limitación inicial del repositorio privado está resuelta. No hay un sitio
-configurado ni una URL publicada, y no se ha realizado ningún despliegue.
+La raíz de Pages usa el perfil real de 500 km desde el 28/11/2026 en
+Europe/Madrid. La [guía de presentación](docs/official-launch.md) describe la
+promoción del Worker, la verificación de los 0 km iniciales y la publicación.
+El [visor de pruebas](docs/pages-staging.md) conserva su enlace explícito.
 
-Si en el futuro se vuelve a hacer privado el repositorio, hará falta un plan
-compatible con Pages privado o elegir otro alojamiento. Esas decisiones y cualquier
-cambio de visibilidad o creación de otro repositorio corresponden al propietario.
+[Publicar en Pages](.github/workflows/pages.yml) se ejecuta manualmente desde
+`main` con `PAGES_TEST_DEPLOY_ENABLED=true`. Requiere aprobación del propietario.
+El workflow comprueba el frontend y empaqueta solo `frontend/`. Las PRs y los
+merges no publican Pages. Para retirar un sitio ya publicado, el propietario
+puede usar **Settings → Pages → Unpublish site**.
 
-### Funcionamiento y activación pendiente
-
-El workflow [Pages de pruebas](.github/workflows/pages.yml) está separado de CI.
-Se puede iniciar por `push` a `main` o manualmente, pero **todos sus pasos quedan
-omitidos** salvo que la rama sea `main` y la variable del repositorio
-`PAGES_TEST_DEPLOY_ENABLED` sea exactamente `true`. Abrir o actualizar una PR no
-lo ejecuta. Una PR fusionada tampoco publica mientras falte esa autorización.
-El checkout no conserva credenciales, las acciones están fijadas a SHA, solo el
-job de despliegue recibe `contents: read`, `pages: write` e `id-token: write` y
-la concurrencia evita cancelar un despliegue en curso.
-
-Publica exclusivamente `frontend/` como raíz: HTML, JS, CSS, recursos y cualquier
-configuración pública futura bajo esa carpeta. No publica `.github/`, `.ddev/`,
-pruebas, capturas ni el archivo original `icono.jpeg` situado fuera de `frontend/`.
-No hay build ni instalación de dependencias. Comprueba sintaxis de todos los
-módulos y ejecuta las pruebas antes de empaquetar. `configure-pages` usa
-`enablement: false`: no crea ni activa el sitio por iniciativa del workflow.
-
-**Solo tras autorización explícita del propietario:**
-
-1. Revisar y fusionar esta PR mediante el flujo habitual. Confirmar que la cuenta
-   ya permite Pages (plan compatible o visibilidad pública autorizada) y aprobar
-   el contenido público.
-2. En **Settings → Pages → Build and deployment**, seleccionar **GitHub Actions**.
-   Este cambio de ajustes debe hacerlo el propietario o autorizarlo explícitamente.
-3. En **Settings → Environments → github-pages**, restringir despliegues a `main`
-   y añadir revisión obligatoria si el plan la permite.
-4. Después de aprobar también el primer despliegue, crear en **Settings → Secrets
-   and variables → Actions → Variables** `PAGES_TEST_DEPLOY_ENABLED=true`. Es una
-   variable de autorización, no un secreto. No se crea en esta tarea.
-5. En **Actions → Pages de pruebas → Run workflow**, seleccionar **main** y ejecutar.
-   Los siguientes merges en `main` publicarán mientras esa variable siga activa.
-
-No existe todavía una URL publicada. Sin dominio personalizado, la URL esperada
-es `https://plopesc.github.io/albertoybelen/`; **es una previsión, no un sitio
-verificado**. Tras el primer despliegue, confirmar la URL de la salida del job
-`github-pages` y actualizar aquí si fuera distinta.
-
-### Privacidad y comprobación en móvil
-
-**El sitio puede ser público aunque el repositorio sea privado.** Cualquier
-archivo bajo `frontend/` se considerará público, incluida la ilustración del
-indicador aportada para el juego y la configuración JSON futura. No añadir
-fotografías personales, secretos, credenciales, tokens ni contenido del premio
-final. El regalo actual es solo un dibujo decorativo cerrado.
-
-Después de una activación autorizada: abrir la URL con su prefijo
-`/albertoybelen/` desde móvil y escritorio; comprobar el aviso **VERSIÓN DE
-PRUEBAS**, modo simulado, imágenes, controles, persistencia y teclado. Revisar
-320/390/768/1280 px y verificar en la pestaña de red que JS/CSS/configuración e
-imágenes no devuelvan 404. El progreso es local al origen del navegador: los datos
-de DDEV no aparecen en Pages. Para comprobar sin desplegar bajo un prefijo:
-
-```sh
-mkdir -p /tmp/albertoybelen-pages-check
-cp -R frontend /tmp/albertoybelen-pages-check/albertoybelen
-python3 -m http.server 8001 --bind 127.0.0.1 --directory /tmp/albertoybelen-pages-check
-```
-
-Abrir `http://127.0.0.1:8001/albertoybelen/` y ejecutar la prueba de navegador
-anterior contra esa URL. Todo recurso de la aplicación usa rutas relativas.
-
-### Desactivar
-
-Para detener publicaciones futuras, cambiar la variable a `false` o eliminarla,
-y desactivar **Pages de pruebas** desde Actions. Eso no retira un sitio ya
-publicado: para retirarlo, el propietario debe usar **Settings → Pages → Unpublish
-site**. Cancelar también ejecuciones activas si las hubiera. La despublicación y
-los ajustes requieren su autorización; no se han realizado en esta tarea.
+Para probar la raíz pública en Chromium sin publicar ni consultar el Worker,
+ejecutar `npm run test:live-ui:browser`. La prueba intercepta el origen de Pages
+y comprueba escritorio, móvil y la apertura del reto con respuestas sintéticas.
+El servidor estático local sigue abriendo el perfil de simulación.
 
 ## Invitaciones privadas: prototipo de seguridad
 
@@ -548,5 +483,3 @@ export real ni aplicado 0003 remotamente. Pruebas: `npm run test:staging:d1`.
 La [guía MVP de staging](docs/staging-mvp.md) prepara secretos nuevos, invitaciones, OAuth y sync manual, y deja el Cron cada tres horas desactivado por un interruptor durable hasta autorización admin separada. `npm run staging:mvp -- check` y `npm run staging:mvp -- dry-run` son locales; `npm run test:staging:mvp` y `npm run test:staging:mvp:browser` usan D1 temporal y mocks. Secretos, deploy y conexión real quedan para ejecución manual posterior. El visor opt-in `?staging-api=strava` muestra «STAGING · STRAVA» y rechaza fixtures.
 
 La [vista de prueba de Strava en GitHub Pages](docs/pages-staging.md) es opt-in mediante `?pages-staging=strava`; la URL pública normal sigue en simulación. Requiere autorización y despliegue manual posterior del Worker para habilitar CORS de lectura agregada. `npm run test:pages:staging:browser` usa solo red interceptada y snapshots sintéticos.
-
-Para la presentación pública y la activación posterior de Strava, consulta el [procedimiento del reto oficial](docs/official-launch.md).

@@ -63,9 +63,9 @@ variable ya habilitada, el comando manual existente es:
 gh workflow run pages.yml --repo plopesc/albertoybelen --ref main
 ```
 
-Después, abrir el enlace anterior en móvil y escritorio, y confirmar que la ruta
-raíz `/albertoybelen/` sigue en modo simulado. No cambiar el objetivo definitivo
-ni la fecha del juego público.
+Tras la promoción del reto oficial, la raíz muestra el reto real. El enlace de
+diagnóstico conserva el perfil de ensayo y rechaza la respuesta del reto oficial.
+Consultar el [procedimiento de lanzamiento](official-launch.md).
 
 ## Comprobaciones locales
 
