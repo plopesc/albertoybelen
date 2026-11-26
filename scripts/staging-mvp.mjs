@@ -24,7 +24,7 @@ try {
     if(result.status!=='ok')throw Error();
     console.log(JSON.stringify(result));
   }
- else if(operation==='rotate-admin'&&argv.length===2&&flag==='--confirm-local-key-rotation'){rotateMvpAdmin(root);console.log('New local admin credential prepared. Update the Worker Secret manually; AES unchanged.');}
+  else if(operation==='rotate-admin'&&argv.length===2&&flag==='--confirm-local-key-rotation'){rotateMvpAdmin(root);console.log('New local admin credential prepared. Update the Worker Secret manually; AES unchanged.');}
   else if(['deploy','secret','secret-delete'].includes(operation))console.log(JSON.stringify(runMvpWrangler({root,config,fixture,env:process.env,argv})));
   else if(['invite','status','sync','enable-sync','disable-sync','enable-auto-sync','disable-auto-sync'].includes(operation)&&flag==='--confirm-staging-admin'&&((operation==='enable-auto-sync'&&argv.length===3&&argv[2]==='--confirm-staging-auto-sync')||(operation!=='enable-auto-sync'&&argv.length===2))) {
     requireStagingAccount(process.env);
