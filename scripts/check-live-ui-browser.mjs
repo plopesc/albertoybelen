@@ -96,7 +96,7 @@ async function checkDemoRewards(context, device) {
 
   if(file==='milestone-40.webp'||file==='milestone-100.webp'){
    const scene=file==='milestone-40.webp'?'portrait':'final';
-   if(scene==='final')assert.match(await demo.locator('#reward-message').innerText(),/¡Salud!/);
+   if(scene==='final')assert.match(await demo.locator('#reward-message').innerText(),/Pablo y Dani\. ¡Vivan los novios!/);
    await dialog.screenshot({path:resolve(output,`reward-${device}-${scene}-after.png`),animations:'disabled'});
    // Reapply the original fixed frame for the review comparison only.
    const formerFrame=await demo.addStyleTag({content:`
