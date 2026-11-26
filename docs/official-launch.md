@@ -33,6 +33,13 @@ npx --no-install wrangler deployments list --name albertoybelen-api
   revisión de los valores fijos. Mantener credenciales e IDs de atletas
   fuera de Git, consola, issues y PRs.
 
+## Creación si falta un recurso
+
+Tras autorización separada, crear solo la D1 productiva si falta con
+`npx --no-install wrangler d1 create albertoybelen-db` en la cuenta verificada.
+Volver al inventario para comprobar el UUID. El Worker se crea al realizar
+su primer despliegue autorizado con la configuración productiva.
+
 ## Preparar, desplegar y comprobar
 
 1. Tras verificar los recursos y obtener aprobación, fijar `origin`,
