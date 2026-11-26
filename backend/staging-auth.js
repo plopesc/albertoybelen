@@ -1,3 +1,4 @@
+import {OFFICIAL_CHALLENGE} from './official-challenge.js';
 import {createD1Repository} from './d1/repository.js';
 import {createTokenVault} from '../auth/token-vault.js';
 import {createOAuthService} from '../auth/oauth-service.js';
@@ -9,7 +10,7 @@ import {createActivitySync} from './activity-sync.js';
 import {createActivityClient} from './strava-activities.js';
 import {createPilotTransport} from './pilot-budget.js';
 import {stagingOperatorState,automaticSyncStatus} from './staging-operator-state.js';
-import {STAGING_AUTH_ORIGIN as origin,STAGING_AUTH_DATASET as dataset,STAGING_AUTH_SETTINGS as settings,OFFICIAL_CHALLENGE,OFFICIAL_CHALLENGE_HEADER,STAGING_AUTH_ENABLE,STAGING_NETWORK_ENABLE,STAGING_AUTH_LIMITS as limits} from './staging-auth-settings.js';
+import {STAGING_AUTH_ORIGIN as origin,STAGING_AUTH_DATASET as dataset,STAGING_AUTH_SETTINGS as settings,OFFICIAL_CHALLENGE_HEADER,STAGING_AUTH_ENABLE,STAGING_NETWORK_ENABLE,STAGING_AUTH_LIMITS as limits} from './staging-auth-settings.js';
 
 /** Capabilities for trusted server code; HTTP exposure requires a separate authenticated adapter. */
 export function createStagingAuth(env,{fetchProvider,clock=Date.now,progressOrigins=[origin],officialEnabled=false}={}) {

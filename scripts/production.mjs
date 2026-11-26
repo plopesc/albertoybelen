@@ -4,6 +4,7 @@ import {join} from 'node:path';
 import {randomBytes} from 'node:crypto';
 import {build} from 'esbuild';
 import {privateDirectory,privateFile} from './lib/staging-private-files.mjs';
+import {startInstant} from '../frontend/js/challenge-time.js';
 import {validateGameConfig} from '../frontend/js/config.js';
 import {PAGES_PRODUCTION_PROGRESS_URL,validatePublicProgress} from '../frontend/js/http-progress.js';
 import {PRODUCTION_TARGET,PRODUCTION_WORKER,PRODUCTION_DATABASE,PRODUCTION_DATASET,PRODUCTION_SETTINGS,PRODUCTION_CRON,PRODUCTION_ADMIN_PATH,requireProductionTarget} from '../backend/production-target.js';
@@ -30,7 +31,7 @@ try {
     console.log('Production pins and Pages endpoint agree.');
   } else if(command==='pages-check' && !args.length) {
     verified();
-    if(Date.now()<Date.parse('2026-11-27T23:00:00Z')) throw Error('premature_release');
+    if(Date.now()<startInstant(PRODUCTION_SETTINGS.startDate,PRODUCTION_SETTINGS.timeZone)) throw Error('premature_release');
     console.log('Production Pages gate passed.');
   } else if(command==='render' && (args.length===0 || args.length===1&&args[0]==='--enable-oauth')) {
     const target=verified();

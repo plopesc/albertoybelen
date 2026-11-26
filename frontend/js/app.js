@@ -1,8 +1,10 @@
 import { FINAL_REWARD } from './final-reward.js';
 import { calculateProgress } from './progress.js';
 import { createDistanceProvider } from './game.js';
+import { startInstant } from './challenge-time.js';
+import { createWelcome, shouldWelcome } from './welcome.js';
 import { loadRuntimeConfig } from './runtime-config.js';
-import { createHttpProgressProvider, OFFICIAL_START_INSTANT, PAGES_PRODUCTION_PROGRESS_URL, PAGES_STAGING_PROGRESS_URL } from './http-progress.js';
+import { createHttpProgressProvider, PAGES_PRODUCTION_PROGRESS_URL, PAGES_STAGING_PROGRESS_URL } from './http-progress.js';
 import { createApiHistory } from './api-history.js';
 import { createMilestoneHistory, FINISH_MILESTONE_ID } from './milestone-history.js';
 import { createMilestoneReveals } from './milestone-dialog.js';
@@ -145,6 +147,11 @@ function showNotice(message, error = false) {
   notice.textContent = message;
 }
 
+const welcome = createWelcome({
+  dialog: $('welcome-dialog'), title: $('welcome-title'), button: $('welcome-close'),
+  fallbackFocus: document.querySelector('.explore-link'), rewardDialog: $('milestone-dialog'),
+});
+
 async function start() {
   try {
     const { game, rewards, api } = await loadRuntimeConfig();
@@ -196,6 +203,7 @@ async function start() {
     });
     $('setup-message').hidden = true;
     $('simulation-card').hidden = false;
+    $('welcome-preview').addEventListener('click', event => welcome.open(event.currentTarget));
     document.querySelector('.controls-link').hidden = false;
     $('progress').hidden = false;
     reveals.showPending();
@@ -211,12 +219,18 @@ async function start() {
 
 function startReal(game, rewards, api) {
   usingApi = true;
-  provider = createHttpProgressProvider({ ...api, pageUrl: window.location.href });
+  provider = createHttpProgressProvider({ ...api, pageUrl: window.location.href, game });
   const official = provider.endpoint === PAGES_PRODUCTION_PROGRESS_URL;
   const pagesStaging=provider.endpoint===PAGES_STAGING_PROGRESS_URL;
-  const launchDelay = OFFICIAL_START_INSTANT - Date.now();
-  if (official && launchDelay > 0 && launchDelay <= 2147483647) {
-    const launchTimer = setTimeout(() => provider.refresh(), launchDelay);
+  const officialStart = official ? startInstant(game.startDate, game.timeZone) : null;
+  if (official && officialStart > Date.now()) {
+    let launchTimer;
+    const refreshAtStart = () => {
+      const delay = officialStart - Date.now();
+      if (delay <= 0) provider.refresh();
+      else launchTimer = setTimeout(refreshAtStart, Math.min(delay, 2147483647));
+    };
+    refreshAtStart();
     window.addEventListener('pagehide', event => {if (!event.persisted) clearTimeout(launchTimer);});
   }
   const stagingStrava=new URL(provider.endpoint).pathname==='/api/staging/strava-progress';
@@ -237,7 +251,15 @@ function startReal(game, rewards, api) {
   $('api-card').hidden = false;
   $('api-refresh').addEventListener('click', () => provider.refresh());
   window.addEventListener('pagehide', event => { if (!event.persisted) provider.dispose(); });
-  let previous = null;
+  let previous = null, welcomeEvaluated = false;
+  const considerWelcome = distanceKm => {
+    if (!official || welcomeEvaluated) return;
+    const show = shouldWelcome(officialStart, Date.now(), distanceKm);
+    if (!show && distanceKm === undefined) return;
+    welcomeEvaluated = true;
+    if (show) welcome.open();
+  };
+  considerWelcome();
   provider.subscribe(({ status, snapshot, error }) => {
     $('api-refresh').disabled = status === 'loading';
     $('api-card').setAttribute('aria-busy', String(status === 'loading'));
@@ -248,11 +270,12 @@ function startReal(game, rewards, api) {
       return;
     }
     if (status === 'ready') {
+      considerWelcome(snapshot.distanceKm);
       $('progress').hidden = false;
       history.applySnapshot(snapshot.unlockedMilestoneIds);
-      if (previous) reveals.advance(calculateProgress(previous.distanceKm, game.goalKm).ratio, calculateProgress(snapshot.distanceKm, game.goalKm).ratio, snapshot.distanceKm - previous.distanceKm, $('api-refresh'), { hadFinal: previous.unlockedMilestoneIds.includes(FINISH_MILESTONE_ID) });
+      if (previous && !welcome.isOpen) reveals.advance(calculateProgress(previous.distanceKm, game.goalKm).ratio, calculateProgress(snapshot.distanceKm, game.goalKm).ratio, snapshot.distanceKm - previous.distanceKm, $('api-refresh'), { hadFinal: previous.unlockedMilestoneIds.includes(FINISH_MILESTONE_ID) });
       render({ distanceKm: snapshot.distanceKm, goalKm: game.goalKm }, Boolean(previous));
-      if (!previous) reveals.showPending();
+      if (!previous && !welcome.isOpen) reveals.showPending();
       previous = snapshot;
     }
     if (snapshot) {
@@ -264,7 +287,7 @@ function startReal(game, rewards, api) {
       $('api-state').textContent = status === 'error'
         ? 'Sin conexión o respuesta no válida. Se conserva el último dato recibido; puede estar desactualizado.'
         : official && snapshot.updatedAt === null && snapshot.partial && !snapshot.stale
-          ? Date.now() < OFFICIAL_START_INSTANT ? 'El reto empieza el 28 de noviembre.' : 'Conexión de las cuentas de Strava pendiente.'
+          ? Date.now() < officialStart ? `El reto empieza el ${new Intl.DateTimeFormat('es-ES', {dateStyle:'long',timeZone:game.timeZone}).format(officialStart)}.` : 'Conexión de las cuentas de Strava pendiente.'
           : `${snapshot.partial ? 'Progreso parcial. Conexión o carga de datos pendiente.' : 'Datos completos.'} ${snapshot.stale ? 'Actualización pendiente. Se conserva el último progreso válido.' : 'Datos actualizados.'}`;
     } else {
       $('api-source').textContent = staging ? stagingSource : 'API · SIN DATOS';
