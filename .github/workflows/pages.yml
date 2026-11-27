@@ -2,6 +2,11 @@ name: Publicar en Pages
 
 on:
   workflow_dispatch:
+  # Publicación única de preparación: solo cuando cambia este workflow en main.
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/pages.yml'
 
 permissions:
   contents: read
@@ -43,7 +48,9 @@ jobs:
           pages_mode="$(node --input-type=module -e "import { PAGES_MODE } from './frontend/js/pages-mode.js'; console.log(PAGES_MODE)")"
           case "$pages_mode" in
             simulation) ;;
-            live) npm run production -- pages-check ;;
+            # El contenido oficial puede publicarse anticipadamente, pero el
+            # frontend y la API mantienen el inicio y los 0 km hasta la fecha configurada.
+            live) npm run production -- check ;;
             *) echo "Modo de Pages inválido"; exit 1 ;;
           esac
       - name: Consultar Pages sin activar el servicio
