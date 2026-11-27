@@ -62,6 +62,9 @@ jobs:
         with:
           path: frontend/
           retention-days: 1
+      # Esperar a que GitHub Actions indexe el artefacto de Pages antes de consultarlo.
+      - name: Esperar indexación del artefacto
+        run: sleep 15
       - name: Desplegar Pages
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
